@@ -25,7 +25,7 @@ Download or clone the repository into a new virtualenv directory
 virtualenv <your dir>
 cd <your dir>
 source bin/activate
-git clone https://github.com/fnlf/avvik.git
+git clone https://github.com/fnlf/fnlf-backend.git
 ```
 
 
@@ -56,7 +56,7 @@ You should also install the frontend.
 Frontend
 --------
 
-The frontend/client is located at [avvik-klient]
+The frontend/client is located at [fnlf-client]
 
 Features
 --------
@@ -79,7 +79,7 @@ Issues
 
 Discovered a bug? Please create an issue here on GitHub!
 
-https://github.com/fnlf/avvik/issues
+https://github.com/fnlf/fnlf-backend/issues
 
 Versioning
 ----------
@@ -130,7 +130,7 @@ Guidelines for bug reports:
 
 4. Please try to be as detailed as possible in your report. Include specific
    information about the environment – operating system and version, browser
-   and version, version of avvik – and steps required to reproduce the 
+   and version, version of fnlf-backend – and steps required to reproduce the 
   issue.
 
 Feature Requests & Contribution Enquiries
@@ -166,11 +166,11 @@ project:
 
    ```bash
    # Clone your fork of the repo into the current directory
-   git clone https://github.com/<your-username>/avvik
+   git clone https://github.com/<your-username>/fnlf-backend
    # Navigate to the newly cloned directory
    cd <repo-name>
    # Assign the original repo to a remote called "upstream"
-   git remote add upstream git://github.com/fnlf/avvik
+   git remote add upstream git://github.com/fnlf/fnlf-backend
    ```
 
 2. If you cloned a while ago, get the latest changes from upstream:
@@ -237,18 +237,18 @@ Copyright [F/NLF].
 
 Licensed under the MIT License
 
-[avvik-klient]: https://github.com/fnlf/avvik-klient
-[avvik]: https://github.com/fnlf/avvik
+[fnlf-client]: https://github.com/fnlf/fnlf-client
+[fnlf-backend]: https://github.com/fnlf/fnlf-backend
 [F/NLF Wiki]: https://nlf-az-db02.cloudapp.net/confluence
 [F/NLF]: http://www.nlf.no/fallskjerm
 
 <!-- assets -->
-[zipball]: http://fnlf.github.com/avvik/releases/latest/avvik.zip
+[zipball]: http://fnlf.github.com/fnlf-backend/releases/latest/fnlf-backend.zip
 
 <!-- github links -->
-[contributing-guidelines]: https://github.com/fnlf/avvik/blob/master/CONTRIBUTING.md
-[contributors]: https://github.com/fnlf/avvik/contributors
-[issues]: https://github.com/fnlf/avvik/issues
+[contributing-guidelines]: https://github.com/fnlf/fnlf-backend/blob/master/CONTRIBUTING.md
+[contributors]: https://github.com/fnlf/fnlf-backend/contributors
+[issues]: https://github.com/fnlf/fnlf-backend/issues
 
 <!-- deep links -->
 
