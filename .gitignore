@@ -1,6 +1,12 @@
 #Custom files
 .*.md.html
 
+#Python virtualenv
+bin/
+include/
+lib64
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
