@@ -32,13 +32,13 @@ git clone https://github.com/fnlf/fnlf-backend.git
 
 ### Install
 ```
-pip install requirements.txt
+pip install -r requirements.txt
 python setup.py
 ```
 
 **Note:** No database or Melwin integration is supplied here since this contains private information. To download visit [F/NLF Wiki](https://nlf-az-db02.cloudapp.net/confluence) You will need access to the developer pages for this project.
 
-**Note:** If `pip install requirements.txt` fails, try to do a `pip install git+https://github.com/nicolaiarocci/eve.git@development` then rerun `pip install requirements.txt`
+**Note:** If `pip install -r requirements.txt` fails, try to do a `pip install git+https://github.com/nicolaiarocci/eve.git@develop` then rerun `pip install requirements.txt`
 
 
 
