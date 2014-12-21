@@ -30,8 +30,8 @@ _schema = {
 
 definition = {
         'item_title': 'club',
-        'url': 'melwin/clubs',
-        'description': 'Melwin passthrough',
+        'url': 'clubs',
+        'description': 'Clubs with added data',
         
         'datasource': {'source': 'clubs',
                        'default_sort': [('id', 1)],
