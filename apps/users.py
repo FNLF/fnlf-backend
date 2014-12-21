@@ -43,7 +43,7 @@ definition = {
                        'default_sort': [('id', 1)],
                        },
         
-        'resource_methods': ['GET'], #No post, only internal!!
+        'resource_methods': ['GET', 'POST'], #No post, only internal!!
         'item_methods': ['GET', 'PATCH'],
         
         'versioning': True,

@@ -84,14 +84,14 @@ def login():
             user = accounts.find_one({'id': username})
         except:
             user = None
-            pprint("Error in getting user!")
-            pass
+            pprint("Error, did not find any user!")
         
         # If not existing, make from melwin!
         if not user:
-            melwin_api = app.data.driver.db['persons']
+            melwin_api = app.data.driver.db['melwin_users']
             melwin_user = melwin_api.find_one({'id': username})
             
+            pprint(melwin_user)
             if melwin_user:
                 
                 try: # Users 
@@ -101,7 +101,8 @@ def login():
                     print("Could not insert users_collection")
                 
                 try:# Users auth collection
-                    r_auth = app.data.insert(app.globals['auth']['auth_collection'], {'id': melwin_user['id'], 'user': r_user[0]['_id'], 'auth': {"token": "", "valid": ""}})
+                    users_auth_collection = app.data.driver.db[app.globals['auth']['auth_collection']]
+                    r_auth = users_auth_collection.insert({'id': melwin_user['id'], 'user': r_user[0]['_id'], 'auth': {"token": "", "valid": ""}})
                     _id = r_auth
                     
                 except:
