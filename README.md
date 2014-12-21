@@ -29,7 +29,10 @@ git clone https://github.com/fnlf/fnlf-backend.git
 cd fnlf-backend
 ```
 
-
+Note: Make sure you are using a supported python version, most likely your system has multiple python versions installed. To specify version:
+```
+virtualenv -p /usr/bin/python3.3 <your dir>
+```
 
 ### Install
 ```
@@ -50,9 +53,28 @@ Optionally configure `settings.py` to suit your environment but the default shou
 
 `python run.py`
 
-The REST api is now available on http://localhost:5000/api/v1
+The REST api is now available on http://localhost:8080/api/v1
+
+Note: Issues describe some common issues with the 3rd party modules
 
 You should also install the frontend.
+
+Issues
+------
+**suds:**
+Uncomment line 95 in sax/date.py and jsut return the value:
+```
+#raise ValueError("date data has invalid format '%s'" % (value,))
+return value
+```
+This is due to Melwin date format and suds handling of incorrect date formats.
+
+**eve-docs:**
+Change line 11 in eve_docs/config.py to:
+```
+print(base)
+```
+
 
 Frontend
 --------
