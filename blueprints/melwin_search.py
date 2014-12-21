@@ -71,7 +71,7 @@ def search_user():
         message = "You need at least 3 characters for searching"
     # Build the result
             
-    data.update({'_meta': {'err': err, 'total': num_results, 'max_results': max_results, 'message': message}, 'results': result})
+    data.update({'_meta': {'err': err, 'total': num_results, 'max_results': max_results, 'message': message}, '_items': result})
     
     
     #return jsonify(**{data})
