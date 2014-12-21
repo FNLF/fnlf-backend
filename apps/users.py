@@ -46,7 +46,7 @@ definition = {
         'resource_methods': ['GET'], #No post, only internal!!
         'item_methods': ['GET', 'PATCH'],
         
-        'versioning': False,
+        'versioning': True,
         
         'additional_lookup': {
             'url': 'regex("[\d{1,6}]+")',

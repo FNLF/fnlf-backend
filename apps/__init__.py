@@ -15,7 +15,8 @@ import melwin_users
 
 # User data (avatar, settings, acls etc)
 import users
-#import users_auth 
+import licenses
+import clubs
 
 # Incident Reporting
 import observations
@@ -28,11 +29,13 @@ import dev
 
 # Build the Domain to be presented
 DOMAIN = {
-    #'users' : users.definition,
+    'users' : users.definition,
     #'users_auth': users_auth.definition, No, pure Flask
     'melwin/clubs': melwin_clubs.definition,
     'melwin/users': melwin_users.definition,
     'melwin/licenses': melwin_licenses.definition,
+    'licenses': licenses.definition,
+    'clubs': clubs.definition,
     'observations' : observations.definition,
     'dev' : dev.definition,
     'files' : files.definition,

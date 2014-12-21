@@ -1,17 +1,10 @@
 """
 
-    license
-    =======
+    Melwin licenses
+    ===============
     
     Should return an object with license information
     
-    {
-        "_id" : ObjectId("5360ad6712afba95dd35a527"),
-        "id" : 9,
-        "melwinId" : "F-C",
-        "licenseName" : "C-lisens",
-        "active" : true
-    }
 
 """
 
@@ -21,10 +14,6 @@ _schema = {
                  },
             'name': {'type': 'string',
                    },
-            'active': {'type': 'boolean',
-                       },
-            
-            'url': {'type': 'string', 'required': False},
             }
 
 definition = {
@@ -37,10 +26,10 @@ definition = {
                        'default_sort': [('id', 1)],
                        },
         
-        'resource_methods': ['GET', 'POST', 'DELETE'],
-        'item_methods': ['GET', 'PATCH', 'PUT'],
+        'resource_methods': ['GET'],
+        'item_methods': ['GET'],
         
-        'versioning': True,
+        'versioning': False,
         
         'additional_lookup': {
             'url': 'regex("[\w{1}\-\w{1,5}]+")',

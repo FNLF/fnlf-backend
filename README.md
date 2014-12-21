@@ -5,7 +5,7 @@ F/NLF Backend
 A REST backend for F/NLF's applications built on [Eve](http://python-eve.org)
 
 * [Eve]
-* [Eve docs]
+* [Eve-docs]
 * [Eve-Mongoengine]
 * [Eve-Mocker]
 
@@ -45,7 +45,12 @@ python setup.py
 **Note:** If `pip install -r requirements.txt` fails, try to do a `pip install git+https://github.com/nicolaiarocci/eve.git@develop` then rerun `pip install requirements.txt`
 
 
+Restore latest database dump
+```
+mongorestore --drop -d fnlf dump/fnlf
+```
 
+Melwin.py needs to be moved to `ext/melwin.py`
 
 ### Start Eve
 
@@ -61,8 +66,10 @@ You should also install the frontend.
 
 Issues
 ------
+Some of the site-packages has issues which needs to be adressed before starting the server.
+
 **suds:**
-Uncomment line 95 in sax/date.py and jsut return the value:
+Uncomment line 95 in sax/date.py and just return the value:
 ```
 #raise ValueError("date data has invalid format '%s'" % (value,))
 return value
@@ -278,7 +285,7 @@ Licensed under the MIT License
 
 <!-- links to third party projects -->
 [Eve]: https://github.com/nicolaiarocci/eve
-[Eve docs]: https://github.com/charlesflynn/eve-docs
+[Eve-docs]: https://github.com/charlesflynn/eve-docs
 [Eve-Mongoengine]: https://github.com/hellerstanislav/eve-mongoengine
 [Eve-Mocker]: https://github.com/tsileo/eve-mocker
 [Virtualenv]: http://virtualenv.readthedocs.org/en/latest/

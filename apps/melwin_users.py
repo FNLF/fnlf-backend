@@ -91,15 +91,15 @@ definition = {
                        'default_sort': [('id', 1)],
                        },
         
-        'resource_methods': ['GET', 'POST', 'DELETE'], #NB delete only for testing!!
-        'item_methods': ['GET', 'PATCH', 'PUT'],
+        'resource_methods': ['GET'], #NB delete only for testing!!
+        'item_methods': ['GET'],
         
         'additional_lookup': {
             'url': 'regex("[\d{1,6}]+")',
             'field': 'id',
         },
         
-        'versioning': True,
+        'versioning': False,
         
         'schema': _schema
         
