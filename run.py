@@ -238,11 +238,11 @@ app.on_pre_POST_avvik += pre_avvik
     
     Starting the wsgi development server with Eve
     
-    Localhost and port 5000
+    Localhost and port 8080
 
 """
 if __name__ == '__main__':
-    port = 5000
+    port = 8080
     host = '127.0.0.1'
 
     app.run(host=host, port=port)
