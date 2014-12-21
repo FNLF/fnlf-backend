@@ -20,7 +20,7 @@ MONGO_PORT = 27017
 MONGO_USERNAME = ''
 MONGO_PASSWORD = ''
 # MONGO_DBNAME = 'fnlfAnomaliesDb'
-MONGO_DBNAME = 'fnlfAnomaliesDb'
+MONGO_DBNAME = 'fnlf'
 
 # Will also make server watch inode and reload on changes
 DEBUG = True
