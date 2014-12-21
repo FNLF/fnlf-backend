@@ -12,10 +12,11 @@ Init for the seperated applications and including those into a Domain
 import melwin_clubs
 import melwin_licenses
 # Melwin merged data
-import melwin_person
+import melwin_users
 
-# User data (password, avatar, settings, acls etc)
-# import users
+# User data (avatar, settings, acls etc)
+import users
+import users_auth
 
 # Authentication
 # import authentication
@@ -31,12 +32,14 @@ import dev
 
 # Build the Domain to be presented
 DOMAIN = {
-    'clubs': melwin_clubs.definition,
-    'melwin': melwin_person.definition,
-    'licenses': melwin_licenses.definition,
-    'avvik' : incident_reports.definition,
+    #'users' : users.definition,
+    #'users_auth': users_auth.definition, No, pure Flask
+    'melwin/clubs': melwin_clubs.definition,
+    'melwin/users': melwin_users.definition,
+    'melwin/licenses': melwin_licenses.definition,
+    'observations' : incident_reports.definition,
     'dev' : dev.definition,
     'files' : files.definition,
-    
+   
 }
 

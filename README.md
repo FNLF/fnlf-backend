@@ -16,7 +16,7 @@ Getting Started
 ### Requirements
 * Python 3.3+
 * [Virtualenv] \(optional but highly recommended\)
-* A running MongoDB instance
+* Mongodb > 2.6 (and a running instance)
 * 
 
 Download or clone the repository into a new virtualenv directory
@@ -26,6 +26,7 @@ virtualenv <your dir>
 cd <your dir>
 source bin/activate
 git clone https://github.com/fnlf/fnlf-backend.git
+cd fnlf-backend
 ```
 
 

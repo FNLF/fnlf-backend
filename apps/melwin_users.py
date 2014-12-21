@@ -12,8 +12,8 @@
     NB: Non conforming melwinId type string in mongo, should be integer!
     
     Indexes:
-    db.persons.ensureIndex({"id": 1},{ unique: true } );
-    db.persons.ensureIndex({ "location" :"2dsphere"}); 
+    db.users.ensureIndex({"id": 1},{ unique: true } );
+    db.users.ensureIndex({ "location" :"2dsphere"}); 
     @todo: Look at taking location apart as loacation { location {type, coordinates()}, -and the rest of openstreetmap-}
     @todo: This should be routed as melwin? People??
 
@@ -80,10 +80,13 @@ _schema = {
             }
         
 definition = {
-        'item_title': 'person',
-        #'item_url': 'persons',
+        'item_title': 'Melwin Users',
+        'url': 'melwin/users',
+        'description': 'Melwin passthrough',
         
-        'datasource': {'source': 'persons',
+        #'item_url': 'users',
+        
+        'datasource': {'source': 'melwin_users',
                        #'projection' : {'firstname': 1, 'lastname': 1, 'id': 1},
                        'default_sort': [('id', 1)],
                        },

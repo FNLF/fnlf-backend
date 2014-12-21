@@ -11,15 +11,15 @@
     - a application structure as a package for seperation
     
     Proposed structure:
-    /run.py                   - this script, launch with: 'python run-py'
-    /settings.py              - required by eve, only _global_ settings imports domains from apps
-    /requirements.txt         - should be updated with all modules/packages for easy installing!
-    /apps/*                   - directory with all the more or less seperated apps setting files
-    /apps/__init__.py         - package file putting it all together ie the domain
-    /apps/authz.py             - the authorization
-    /apps/avviksrapportering.py - avviksrapportering
-    /apps/clubs.py            - everything about clubs, admin, authz, locations etc
-    /apps/...
+    /run.py               - this script, launch with: 'python run-py'
+    /settings.py          - required by eve, only global settings imports domains from apps
+    /requirements.txt     - should be updated with all modules/packages for easy installing!
+    /apps/*               - directory with all the more or less seperated apps setting files
+        /apps/__init__.py         - package file putting it all together
+        /apps/auth.py             - the authentication 
+        /apps/avviksrapportering.py - avviksrapportering
+        /apps/clubs.py            - everything about clubs, admin, authz, locations etc
+        /apps/...
     
     @todo: Need to implement tests! Eve got it's own tests which can be used, or eve-mocker?
     @todo: CI - via bamboo?
@@ -36,23 +36,54 @@
 import os
 from eve import Eve
 
+
 # We need the json serializer from flask.jsonify (faster than "".json())
 # flask.request for custom flask routes (no need for schemas, database or anything else) 
 from flask import jsonify, request
 
-# For automatic documentation generation from schemas; eve-docs
-# Styled with bootstrap via flask bootstrap extension
+# Eve docs (blueprint)
 from flask.ext.bootstrap import Bootstrap
 from eve_docs import eve_docs
 
-# Start Eve (and flask)
-app = Eve()
+# Authentication (blueprint)
+from blueprints.authentication import Authenticate
+# Melwin Search Blueprint
+from blueprints.melwin_search import MelwinSearch
 
-# Start Bootstrap
+# Debug output use pprint
+from pprint import pprint
+
+# Custom extensions
+from ext.tokenauth import TokenAuth
+
+import sys
+
+
+
+
+# Start Eve (and flask)
+# Instantiate wit custom auth
+app = Eve(auth=TokenAuth)
+
+# Define global configs
+app.globals = {"prefix": "/api/v1"}
+
+app.globals.update({"auth": {}})
+app.globals['auth'].update({"auth_collection": "users_auth",
+                            "users_collection": "users",
+                            })
+
+pprint(app.globals)
+
+# Start Bootstrap (should be a blueprint?)
 Bootstrap(app)
 
 # Register eve-docs blueprint 
-app.register_blueprint(eve_docs, url_prefix='/docs')
+app.register_blueprint(eve_docs, url_prefix="%s/docs" % app.globals['prefix'])
+
+# Register authentication blueprint
+app.register_blueprint(Authenticate, url_prefix="%s/user" % app.globals['prefix'])
+app.register_blueprint(MelwinSearch, url_prefix="%s/melwin/users/search" % app.globals['prefix'])
 
 
 """
@@ -71,6 +102,18 @@ def eve_error_msg(message, http_code='404'):
                                  "code": http_code
                                  }
                       })
+
+
+
+
+
+
+"""
+    Start Eve & friends
+    ===================
+    
+"""
+
 
 
 """
@@ -97,7 +140,7 @@ def eve_error_msg(message, http_code='404'):
     Can also fetch data (forecast, metar & taf) as a supplement to the anomaly/avvik without user intervention
 
 """
-@app.route('/api/v1/weather/<what>')
+@app.route("%s/weather/<what>" % app.globals['prefix'], methods=['GET'])
 def wx(what):
     
     from yr.libyr import Yr #This should not be here
@@ -128,15 +171,15 @@ def wx(what):
     This should be blueprints from /apps/ directory per application
 
 """
-@app.route('/')
+@app.route("%s/info" % app.globals['prefix'], methods=['GET'])
 def api_info():
     # Build a dictionary
     dict = {'api': 'F/NLF Elektroniske tjenester', 
             'version': '0.1.0', 
             'contact': 'Jan Erik Wang', 
             'email': 'Jan Erik Wang <janerik.wang@nlf.no>', 
-            'api_url': request.base_url + 'api/v1/', 
-            'doc_url': request.base_url + 'docs',
+            'api_url': request.base_url, 
+            'doc_url': request.base_url + '/docs',
             'base_url': request.base_url,
             }
     
