@@ -2,6 +2,8 @@
 
 Avviksrapportering applikasjon
 
+@note: workflow kan feks være readonly, så kan dette rutes via en egen (flask) ressurs for å sette den!
+
 """
 
 _schema = {'anomalyType': {'type': 'dict',
@@ -21,6 +23,7 @@ _schema = {'anomalyType': {'type': 'dict',
            'jumpleaderComment': {'type': 'string',
                                  'required': False
                                  },
+           'workflow': {'type': 'dict'},
            }
 
 definition = {

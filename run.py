@@ -8,13 +8,16 @@
     - autogenerating documentation for resources via eve-docs
     - how to use flask for custom routes, and how to do simple integration with external 3rd party modules
     - how to use events
-    - a application structure as a package for seperation
+    - an application structure as a package for seperation
     
     Proposed structure:
-    /run.py               - this script, launch with: 'python run-py'
-    /settings.py          - required by eve, only global settings imports domains from apps
-    /requirements.txt     - should be updated with all modules/packages for easy installing!
-    /apps/*               - directory with all the more or less seperated apps setting files
+    /run.py                - this script, launch with: 'python run-py'
+    /settings.py           - required by eve, only global settings imports domains from apps
+    /requirements.txt      - should be updated with all modules/packages for easy installing!
+    /setup.py              - `python run.py` should setup the entire application
+    /ext/*                 - custom library and decorators - extensions
+    /blueprints/*          - blueprinted modules
+    /apps/*                - directory with all the more or less seperated apps setting files
         /apps/__init__.py         - package file putting it all together
         /apps/auth.py             - the authentication 
         /apps/avviksrapportering.py - avviksrapportering
@@ -27,15 +30,28 @@
     @todo: Melwin: NEED a query interface for lookups to reduce overhead!!
     @todo: Custom flask routes as blueprints is cleaner, or just as module?
     @todo: Auth & AuthZ - acl lists? Acl groups/roles on user/mackine, corresponding on routes and documents?
+    @todo: Application logger setup http://flask.pocoo.org/docs/0.10/errorhandling/ file||database
+    @todo: Manual logging facilities see http://flask.pocoo.org/docs/0.10/api/#flask.Flask.logger
+            app.logger.debug('A value for debugging')
+            app.logger.warning('A warning occurred (%d apples)', 42)
+            app.logger.error('An error occurred')
 
 
-    :copyright: (c) 2014 by Einar Huseby
-    :license: BSD, see LICENSE for more details.
+    @note: Pip stuff as a reminder
+    
+            Update all packages in one go!
+            pip freeze --local | grep -v '^\-e' | cut -d = -f 1  | xargs pip install -U
+            
+            Find outdated packages
+            pip list --outdated
+    
+    @author:  (c) 2014 by Einar Huseby
+    @copyright: (c) 2014 Fallskjermseksjonen Norges Luftsportsforbund
+    @license: MIT, see LICENSE for more details. Note that Eve is BSD licensed
 """
 
 import os
 from eve import Eve
-
 
 # We need the json serializer from flask.jsonify (faster than "".json())
 # flask.request for custom flask routes (no need for schemas, database or anything else) 
@@ -47,8 +63,15 @@ from eve_docs import eve_docs
 
 # Authentication (blueprint)
 from blueprints.authentication import Authenticate
+
 # Melwin Search Blueprint
 from blueprints.melwin_search import MelwinSearch
+
+# Workflows as blueprints
+from blueprints.observation_workflow import ObsWorkflow
+
+# Cusotm url mappings (for flask)
+from ext.url_maps import ObjectIDConverter
 
 # Debug output use pprint
 from pprint import pprint
@@ -63,7 +86,8 @@ import sys
 
 # Start Eve (and flask)
 # Instantiate wit custom auth
-app = Eve(auth=TokenAuth)
+#app = Eve(auth=TokenAuth)
+app = Eve()
 
 # Define global configs
 app.globals = {"prefix": "/api/v1"}
@@ -78,12 +102,18 @@ pprint(app.globals)
 # Start Bootstrap (should be a blueprint?)
 Bootstrap(app)
 
+#Custom url mapping
+app.url_map.converters['objectid'] = ObjectIDConverter
+
 # Register eve-docs blueprint 
 app.register_blueprint(eve_docs, url_prefix="%s/docs" % app.globals['prefix'])
 
-# Register authentication blueprint
+# Register custom blueprints
 app.register_blueprint(Authenticate, url_prefix="%s/user" % app.globals['prefix'])
 app.register_blueprint(MelwinSearch, url_prefix="%s/melwin/users/search" % app.globals['prefix'])
+
+# Register workflow endpoints
+app.register_blueprint(ObsWorkflow, url_prefix="%s/observations/workflow" % app.globals['prefix'])
 
 
 """
@@ -92,6 +122,11 @@ app.register_blueprint(MelwinSearch, url_prefix="%s/melwin/users/search" % app.g
     =============================
     
     To be used in custom Flask routes to be compatible with Eve error messages
+    
+    Should integrate abort/Response
+    
+    @todo: Use in flask abort
+    @todo: Use in flask Response
 
 """
 def eve_error_msg(message, http_code='404'):

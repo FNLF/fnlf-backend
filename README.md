@@ -82,6 +82,10 @@ Change line 11 in eve_docs/config.py to:
 print(base)
 ```
 
+Change line 80 in `transitions/core.py` to allow event data to propagate to conditions:
+```
+if not getattr(event_data.model, c)(event_data):
+```
 
 Frontend
 --------
