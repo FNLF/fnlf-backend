@@ -12,7 +12,7 @@ class ObservationWorkflow(Machine):
     
     
     
-    def __init__(self,object_id=None,initial_state=None, user_id=None):
+    def __init__(self,object_id=None,initial_state=None, user_id=None, comment=None):
         
         self.user_id = user_id
         # The states
@@ -105,12 +105,16 @@ class ObservationWorkflow(Machine):
                               'reopen_su': {'title': 'Reopen Observation', 'action': 'Reopen', 'resource': 'reopen','comment': True, 'permission': list(set(su + fs))},
                               }
         
+        
+        """ Comment for that transition
+        """
+        self.comment = comment
+        
         """ Make sure to start with a defined state!
         """
-        
         col = app.data.driver.db['anomalies']
         
-        self.db_wf = col.find_one({'_id': ObjectId(object_id)}, {'workflow': 1}) #, '_etag': 1
+        self.db_wf = col.find_one({'_id': ObjectId(object_id)}, {'workflow': 1, '_etag': 1})
         
         pprint(self.db_wf)
         
@@ -211,7 +215,7 @@ class ObservationWorkflow(Machine):
         
         return NotImplemented
         
-    def save_workflow(self,event):
+    def save_workflow(self, event):
         """ Will only trigger when it actually IS changed, so save every time this is called!
         patch_internal(self.known_resource, data, concurrency_check=False,**{'_id': self.item_id})
         patch_internal(resource, payload=None, concurrency_check=False,skip_validation=False, **lookup):
@@ -224,10 +228,16 @@ class ObservationWorkflow(Machine):
         
         # Make a new without _id etc
         new = {'workflow': self.db_wf.get('workflow')}
-
-        # Should really supply the e-tag here, will work! , '_etag': _etag
-        result = patch_internal("observations", payload=new, concurrency_check=False, **{'_id': "%s" % _id})
         
+        if self._trigger_attrs.get(event.event.name).get('comment'):
+            new.get('workflow').update({'comment': self.comment})
+        
+        # Should really supply the e-tag here, will work! , '_etag': _etag
+        # Can also use test_client to do this but it's rubbish or?
+        # This will ignore the readonly field skip_validation AND you do not need another domain file for it!!
+        result = patch_internal("observations", payload=new, concurrency_check=False,skip_validation=True, **{'_id': "%s" % _id})
+        # test_client().post('/add', data = {'input1': 'a'}}
+        #app.test_client().patch('/observations/%s' % _id, data=new, headers=[('If-Match', _etag)])
         pprint(result)
         
         if self.state != self.initial_state:

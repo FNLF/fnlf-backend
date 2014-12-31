@@ -27,7 +27,12 @@ class UserAPI(MethodView):
     reject
     close
     
-    Need to have 
+    @todo: HATEOAS links to actions?
+        "_links": {
+        "reject": {
+            "href": "observations/workflow/5396b800e4b0220ae2b05797/reject",
+            "title": "Reject"
+        },
 
 """
 
@@ -48,6 +53,7 @@ ObsWorkflow = Blueprint('Observation Workflow', __name__,)
 """
 Get current state, actions, transitions and permissions
 """
+@ObsWorkflow.route("/<objectid:observation_id>", methods=['GET'])
 @ObsWorkflow.route("/<objectid:observation_id>/state", methods=['GET'])
 #@require_token()
 def state(observation_id):
@@ -70,16 +76,22 @@ def audit(observation_id):
 
 
   
-@ObsWorkflow.route("/<objectid:observation_id>/<action>", methods=['GET'])
+@ObsWorkflow.route("/<objectid:observation_id>/<action>", methods=['POST'])
 #@require_token()
 def transition(observation_id, action):
     """
     Perform action on observation
     reject, approve, reopen, withdraw
+    request.form.get 
+    request.args.get ?q=tal
+    @todo: include comment in post!
     """
-      
+    
+    args = request.get_json() #use force=True to do anyway!
+    comment = args.get('comment')
+    print("Comment: %s" % comment)
     # Instantiate with observation_id and current user (user is from app.globals.user_id
-    wf = ObservationWorkflow(object_id=observation_id, user_id=45199)
+    wf = ObservationWorkflow(object_id=observation_id, user_id=45199, comment=comment)
     
     # Now just do a
     
