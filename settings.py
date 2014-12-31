@@ -8,10 +8,10 @@
 import os, sys
 
 # Make importing sliced up apps easy as pees
-sys.path.insert(0,"apps")
+sys.path.insert(0,"domain")
 
 # Import the apps - DOMAIN definition (app.DOMAIN)
-import apps
+import domain
 
 
 # Running on local machine. Let's just use the local mongod instance.
@@ -75,4 +75,4 @@ OPLOG_AUDIT = True #Set it to True to enable the audit feature. When audit is en
 
 # The DOMAIN dict explains which resources will be available and how they will
 # be accessible to the API consumer.
-DOMAIN = apps.DOMAIN
+DOMAIN = domain.DOMAIN
