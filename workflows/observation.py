@@ -8,6 +8,8 @@ from pprint import pprint
 
 from eve.methods.patch import patch_internal
 
+import datetime
+
 class ObservationWorkflow(Machine):
     
     
@@ -114,7 +116,7 @@ class ObservationWorkflow(Machine):
         """
         col = app.data.driver.db['anomalies']
         
-        self.db_wf = col.find_one({'_id': ObjectId(object_id)}, {'workflow': 1, '_etag': 1})
+        self.db_wf = col.find_one({'_id': ObjectId(object_id)}, {'workflow': 1, '_etag': 1, '_version': 1})
         
         pprint(self.db_wf)
         
@@ -224,10 +226,33 @@ class ObservationWorkflow(Machine):
         """
         _id = self.db_wf.get('_id')
         _etag = self.db_wf.get('_etag')
+        _version = self.db_wf.get('_version')
+        
         self.db_wf.get('workflow').update({'state': self.state})
         
         # Make a new without _id etc
         new = {'workflow': self.db_wf.get('workflow')}
+        
+        # Make new audit
+        """ "action": "init",
+                "dst": "draft",
+                "by": 45199,
+                "date": "2014-12-30T14:03:00UTC",
+                "src": "",
+                "comment": "Initialized state draft"
+                """
+        audit = {'a': event.event.name,
+                 'r': self._trigger_attrs.get(event.event.name).get('resource'),
+                 'u': self.user_id,
+                 's': self.initial_state,
+                 'd': self.state,
+                 'v': _version + 1,
+                 't': datetime.datetime.utcnow(),
+                 'c': self.comment }
+        
+        new.get('workflow').get('audit').insert(0,audit)
+        
+        new['workflow']['last_transition'] = datetime.datetime.utcnow()
         
         if self._trigger_attrs.get(event.event.name).get('comment'):
             new.get('workflow').update({'comment': self.comment})
@@ -235,7 +260,7 @@ class ObservationWorkflow(Machine):
         # Should really supply the e-tag here, will work! , '_etag': _etag
         # Can also use test_client to do this but it's rubbish or?
         # This will ignore the readonly field skip_validation AND you do not need another domain file for it!!
-        result = patch_internal("observations", payload=new, concurrency_check=False,skip_validation=True, **{'_id': "%s" % _id})
+        result = patch_internal("observations", payload=new, concurrency_check=False,skip_validation=True, **{'_id': "%s" % _id, '_etag': "%s" % _etag})
         # test_client().post('/add', data = {'input1': 'a'}}
         #app.test_client().patch('/observations/%s' % _id, data=new, headers=[('If-Match', _etag)])
         pprint(result)
