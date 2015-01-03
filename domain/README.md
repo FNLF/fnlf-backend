@@ -11,6 +11,7 @@ Globals
 Locals
 --------
 
+See http://www.python-eve.org
 
 **`url`** The endpoint URL.
 If omitted the resource key of the DOMAIN dict will be used to build the URL. As an example, contacts would make the people resource available at /contacts (instead of /people). URL can be as complex as needed and can be nested relative to another API endpoint (you can have a /contacts endpoint and then a /contacts/overseas endpoint. Both are independent of each other and freely configurable). You can also use regexes to setup subresource-like endpoints. See Sub Resources.
