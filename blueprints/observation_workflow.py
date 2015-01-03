@@ -8,15 +8,15 @@
     
     simple_page = Blueprint('simple_page', __name__)
 
-class UserAPI(MethodView):
-
-     def get(self):
-         users = User.query.all()
-
-     def post(self):
-         user = User.from_form_data(request.form)
-
-    simple_page .add_url_rule('/', view_func=UserAPI.as_view('users'))
+    class UserAPI(MethodView):
+    
+         def get(self):
+             users = User.query.all()
+    
+         def post(self):
+             user = User.from_form_data(request.form)
+    
+        simple_page .add_url_rule('/', view_func=UserAPI.as_view('users'))
     
     ===> So this should ALL be contained in the workflow class?? No need to add an extra layer or??
     
@@ -26,6 +26,10 @@ class UserAPI(MethodView):
     approve
     reject
     close
+    
+    @todo: Signals on change signal to communications to dispatch an update to the watchers
+           http://stackoverflow.com/questions/16163139/catch-signals-in-flask-blueprint
+           
     
     @todo: HATEOAS links to actions?
         "_links": {
@@ -45,7 +49,6 @@ from workflows.observation import ObservationWorkflow
 
 # Need custom decorators
 from ext.decorators import *
-
 
 
 ObsWorkflow = Blueprint('Observation Workflow', __name__,)
@@ -76,7 +79,7 @@ def audit(observation_id):
 
 
   
-@ObsWorkflow.route("/<objectid:observation_id>/<action>", methods=['POST'])
+@ObsWorkflow.route('/<objectid:observation_id>/<regex("(approve|reject|withdraw|reopen)"):action>', methods=['POST'])
 #@require_token()
 def transition(observation_id, action):
     """

@@ -8,7 +8,7 @@ from pprint import pprint
 
 from eve.methods.patch import patch_internal
 
-import datetime
+from datetime import datetime
 
 class ObservationWorkflow(Machine):
     
@@ -48,11 +48,14 @@ class ObservationWorkflow(Machine):
         
         WISHLIST:
         states: should also have an extended version, say {'name':'state_name', 'attr': {whatever you like}
-        trigger: dict name, title='approve' or a attributes = {} just to hold some shait!
-        conditions: takes arguments (event) like after & before!!
-        permissions: should be a condition maybe? Conditions will always be first (now we send event_data on conditions)
-        All: Set callbacks on _all_ transitions (say has_permission etc)
+        trigger: dict name, title='approve' or a attributes = {} just to hold some attributes (like states)
         
+        conditions: takes arguments (event) like after & before!!
+        [ok] permissions: should be a condition maybe? Conditions will always be first (now we send event_data on conditions)
+        All: Set callbacks on _all_ transitions (say has_permission etc)
+        Automatic transitions: On expiry/date do transition, on tasks complete/review complete
+        
+        Review: all approved => approve, one reject => reject
         
         """
         
@@ -247,12 +250,12 @@ class ObservationWorkflow(Machine):
                  's': self.initial_state,
                  'd': self.state,
                  'v': _version + 1,
-                 't': datetime.datetime.utcnow(),
+                 't': datetime.utcnow(),
                  'c': self.comment }
         
         new.get('workflow').get('audit').insert(0,audit)
         
-        new['workflow']['last_transition'] = datetime.datetime.utcnow()
+        new['workflow']['last_transition'] = datetime.utcnow()
         
         if self._trigger_attrs.get(event.event.name).get('comment'):
             new.get('workflow').update({'comment': self.comment})

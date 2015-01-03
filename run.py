@@ -71,7 +71,7 @@ from blueprints.melwin_search import MelwinSearch
 from blueprints.observation_workflow import ObsWorkflow
 
 # Cusotm url mappings (for flask)
-from ext.url_maps import ObjectIDConverter
+from ext.url_maps import ObjectIDConverter, RegexConverter
 
 # Debug output use pprint
 from pprint import pprint
@@ -104,6 +104,7 @@ Bootstrap(app)
 
 #Custom url mapping
 app.url_map.converters['objectid'] = ObjectIDConverter
+app.url_map.converters['regex'] = RegexConverter
 
 # Register eve-docs blueprint 
 app.register_blueprint(eve_docs, url_prefix="%s/docs" % app.globals['prefix'])
