@@ -18,7 +18,6 @@
 from flask import Blueprint, current_app as app, request, Response, abort, jsonify
 from bson import json_util
 import json
-import re
 
 # Need custom decorators
 from ext.decorators import *
