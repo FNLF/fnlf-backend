@@ -50,7 +50,7 @@ JSON = True
 
 ALLOW_UNKNOWN = False
 
-DATE_FORMAT = "%Y-%m-%dT%H:%M:%S%Z"
+DATE_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
 # File storage
 EXTENDED_MEDIA_INFO = ['content_type', 'name', 'length']

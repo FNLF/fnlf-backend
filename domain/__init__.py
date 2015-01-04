@@ -20,6 +20,7 @@ import clubs
 
 # Incident Reporting
 import observations
+import observation_components
 
 # Files - just a test collection
 import files
@@ -37,6 +38,7 @@ DOMAIN = {
     'licenses': licenses.definition,
     'clubs': clubs.definition,
     'observations' : observations.definition,
+    'observations-components' : observation_components.definition,
     'dev' : dev.definition,
     'files' : files.definition,
    
