@@ -5,9 +5,13 @@
     Simple watchers resource
     
     - start and stop watching
-    - 
+    - return a list of watchers (list)
+    - if current user is watching (boolean)
+    
+    @note: Watching uses direct db access, so no new version will 
     
     @todo: add signals on start and stop for audit
+    @todo: implement audit (likely through signals)
     @todo: implement updating from workflow?
     @todo: refactor and have all changes in a model, this being the controller hence it can be called from other resources
     
@@ -24,8 +28,6 @@ from eve.methods.patch import patch_internal
 
 # Need custom decorators
 from ext.decorators import *
-
-
 
 ObsWatchers = Blueprint('Observation Watchers', __name__,)
 
