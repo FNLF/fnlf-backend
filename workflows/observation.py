@@ -117,7 +117,7 @@ class ObservationWorkflow(Machine):
         
         """ Make sure to start with a defined state!
         """
-        col = app.data.driver.db['anomalies']
+        col = app.data.driver.db['observations']
         
         self.db_wf = col.find_one({'_id': ObjectId(object_id)}, {'workflow': 1, '_etag': 1, '_version': 1})
         

@@ -16,7 +16,7 @@ _schema = {'what': {'type': 'string',
                                 }},
            'how': {'type': 'string'},
            'who': {'type': 'list',}, #List of id's
-           'type': {'type': 'dict'},
+           'definition': {'type': 'dict'},
            'labels': {'type': 'list'},
            'freetext': {'type': 'string'},
            'files': {'type': 'list', 

@@ -35,6 +35,9 @@
             app.logger.debug('A value for debugging')
             app.logger.warning('A warning occurred (%d apples)', 42)
             app.logger.error('An error occurred')
+    @todo: Custom eve compatible responses:
+            "_issues": {"watchers": "field is read-only", "when": "must be of datetime type"}, 
+            "_error": {"code": 422, "message": "Insertion failure: 1 document(s) contain(s) error(s)"}, "_status": "ERR"}
 
 
     @note: Pip stuff as a reminder
