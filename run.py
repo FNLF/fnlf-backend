@@ -72,6 +72,8 @@ from blueprints.melwin_search import MelwinSearch
 
 # Workflows as blueprints
 from blueprints.observation_workflow import ObsWorkflow
+# Watchers as blueprints
+from blueprints.observation_watchers import ObsWatchers
 
 # Cusotm url mappings (for flask)
 from ext.url_maps import ObjectIDConverter, RegexConverter
@@ -88,9 +90,9 @@ import sys
 
 
 # Start Eve (and flask)
-# Instantiate wit custom auth
-#app = Eve(auth=TokenAuth)
-app = Eve()
+# Instantiate with custom auth
+app = Eve(auth=TokenAuth)
+#app = Eve()
 
 # Define global configs
 app.globals = {"prefix": "/api/v1"}
@@ -118,6 +120,7 @@ app.register_blueprint(MelwinSearch, url_prefix="%s/melwin/users/search" % app.g
 
 # Register workflow endpoints
 app.register_blueprint(ObsWorkflow, url_prefix="%s/observations/workflow" % app.globals['prefix'])
+app.register_blueprint(ObsWatchers, url_prefix="%s/observations/watchers" % app.globals['prefix'])
 
 
 """
