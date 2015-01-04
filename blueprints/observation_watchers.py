@@ -27,22 +27,31 @@ from ext.decorators import *
 
 ObsWatchers = Blueprint('Observation Watchers', __name__,)
 
-@ObsWorkflow.route("/<objectid:observation_id>/watchers", methods=['GET'])
+@ObsWatchers.route("/<objectid:observation_id>/", methods=['GET'])
+@ObsWatchers.route("/<objectid:observation_id>/watchers", methods=['GET'])
 #@require_token()
 def watchers(observation_id):
     
-    return NotImplemented
+    w = get_watchers(observation_id)
+    
+    return jsonify(**{'watchers': w})
 
-@ObsWorkflow.route("/<objectid:observation_id>/watching", methods=['GET'])
-#@require_token()
+@ObsWatchers.route("/<objectid:observation_id>/watching", methods=['GET'])
+@require_token()
 def is_watching(observation_id):
     
     # if app.user_id in watchers()
     #    return True
+    from pprint import pprint
+    print("USER GLOBALS")
+    pprint(app.globals)
     
-    return NotImplemented
+    if app.globals.get('user_id') in get_watchers(observation_id):
+        return jsonify(**{'watching': True})
+    
+    return jsonify(**{'watching': False})
 
-@ObsWorkflow.route("/<objectid:observation_id>/start", methods=['GET'])
+@ObsWatchers.route("/<objectid:observation_id>/start", methods=['GET'])
 #@require_token()
 def start(observation_id):
     
@@ -50,11 +59,21 @@ def start(observation_id):
     
     return NotImplemented
 
-@ObsWorkflow.route("/<objectid:observation_id>/stop", methods=['GET'])
+@ObsWatchers.route("/<objectid:observation_id>/stop", methods=['GET'])
 #@require_token()
 def stop(observation_id):
     
     # Patch internal
     
     return NotImplemented
+
+def get_watchers(observation_id):
+    
+    col = app.data.driver.db['observations']
+    
+    r = col.find_one({'_id': observation_id}, {'watchers': 1})
+   
+    return r['watchers']
+    
+    
 
