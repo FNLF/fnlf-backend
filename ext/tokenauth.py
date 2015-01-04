@@ -49,7 +49,7 @@ class TokenAuth(TokenAuth):
                 #app.globals.update({'_id':  u['_id']})
                 
                 # Set acl
-              
+                app.globals.update({'user_id': u['id']})
                 #self.set_acl(u['acl'], u['_id'], u['id'])
                 self._set_globals(u['id'], u['_id'])
                 self.is_auth = True

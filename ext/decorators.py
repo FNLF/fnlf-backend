@@ -47,6 +47,8 @@ def require_token():
                         # If it fails, then token is not renewed
                         accounts.update({'_id': u['_id']}, { "$set": { "auth.valid": valid.datetime } } )
                         
+                        app.globals.update({'user_id': u['id']})
+                        
                         app.globals.update({'_id': u['_id']})
                         app.globals.update({'id': u['id']})
                     else:

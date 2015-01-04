@@ -120,7 +120,7 @@ def login():
         
         # Make token valid to
         utc = arrow.utcnow()
-        valid = utc.replace(hours=+1)
+        valid = utc.replace(hours=+2) #@bug: utc and cet!!!
         
         try:
             #r = patch_internal('users_auth', payload={'auth': {'token': token, 'valid': valid.datetime}}, concurrency_check=False, **{'_id': _id})
@@ -128,8 +128,8 @@ def login():
             
             # Wont work with the update or patch_internal or any other internal for now
             accounts = app.data.driver.db[app.globals['auth']['auth_collection']]
-            accounts.update({'_id': _id}, { "$set": {"auth.token": token } } )
-            accounts.update({'_id': _id}, { "$set": {"auth.valid": valid.datetime } } )
+            accounts.update({'_id': _id}, { "$set": {"auth.token": token,"auth.valid": valid.datetime } } )
+            
             
         except:
             pprint("Updating didnt work!")
