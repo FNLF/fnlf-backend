@@ -33,7 +33,7 @@ class TokenAuth(TokenAuth):
         accounts = app.data.driver.db[app.globals['auth']['auth_collection']]
         
         u = accounts.find_one({'auth.token': token})
-        print(u)
+
         if u:
             utc = arrow.utcnow()
             if utc.timestamp < arrow.get(u['auth']['valid']).timestamp:
