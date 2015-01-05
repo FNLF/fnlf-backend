@@ -15,10 +15,11 @@
 import observation_components
 
 _schema = {'id': {'type': 'integer',
-                  'required': True},
+                  'required': False},
            'title': {'type': 'string'},
            'type': {'type': 'dict'},
-           'owner': {'type': 'integer'}, # user_id this post/patch
+           'owner': {'type': 'integer', 'readonly': True}, # user_id this post/patch
+           'reporter': {'type': 'integer', 'readonly': True}, # user_id initial reported by!
            'when': {'type': 'datetime'},
            'involved': {'type': 'list'},
            'organisation': {'type': 'dict'},

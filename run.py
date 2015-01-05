@@ -1,29 +1,7 @@
 """
-    Eve Demo
-    ========
+    FNLF-backend
+    ============
 
-    Demonstrating an example use of Eve:
-    - interfacing existing db from student project
-    - all the out of the box features available (filtering, paginating, file upload, etags, versioning, hateos etc etc)
-    - autogenerating documentation for resources via eve-docs
-    - how to use flask for custom routes, and how to do simple integration with external 3rd party modules
-    - how to use events
-    - an application structure as a package for seperation
-    
-    Proposed structure:
-    /run.py                - this script, launch with: 'python run-py'
-    /settings.py           - required by eve, only global settings imports domains from apps
-    /requirements.txt      - should be updated with all modules/packages for easy installing!
-    /setup.py              - `python run.py` should setup the entire application
-    /ext/*                 - custom library and decorators - extensions
-    /blueprints/*          - blueprinted modules
-    /apps/*                - directory with all the more or less seperated apps setting files
-        /apps/__init__.py         - package file putting it all together
-        /apps/auth.py             - the authentication 
-        /apps/avviksrapportering.py - avviksrapportering
-        /apps/clubs.py            - everything about clubs, admin, authz, locations etc
-        /apps/...
-    
     @todo: Need to implement tests! Eve got it's own tests which can be used, or eve-mocker?
     @todo: CI - via bamboo?
     @todo: Melwin: integration via suds (15 sec+ for licenses...) - make a package/module, see /mw.py
@@ -48,7 +26,7 @@
             Find outdated packages
             pip list --outdated
     
-    @author:  (c) 2014 by Einar Huseby
+    @author:  Einar Huseby
     @copyright: (c) 2014 Fallskjermseksjonen Norges Luftsportsforbund
     @license: MIT, see LICENSE for more details. Note that Eve is BSD licensed
 """
@@ -79,6 +57,8 @@ from ext.url_maps import ObjectIDConverter, RegexConverter
 from ext.tokenauth import TokenAuth
 
 import sys
+
+import arrow
 
 # Debug output use pprint
 from pprint import pprint
@@ -169,15 +149,107 @@ def eve_error_msg(message, http_code='404'):
     
     NB: To run a websocket server you need gunicorn or others with support for wsgi.websocket...
     
-    @todo: Seperate hooks out 
+    @todo: How to run in seperate file
+    
+    @note: all requests are supported: GET, POST, PATCH, PUT, DELETE
+    @note: POST (resource, request, payload)
+    @note: POST_resource (request, payload)
+    @note: GET (resource, request, lookup)
+    @note: GET_resource (request, lookup)
 
 """
-def pre_persons(request, lookup):
-    # Print something
-    print("Invoked Pre Get Lookup - on persons!")
+
+def observations_before_post(request, payload=None):
     
-# Register event
-app.on_pre_GET_persons += pre_persons
+    raise NotImplementedError
+
+def observations_before_patch(request, lookup):
+    
+    raise NotImplementedError
+
+def observations_after_patch(request, response):
+    """ Need to get data from response
+    """
+    import json
+    from bson.objectid import ObjectId
+    
+    r = json.loads(response.get_data().decode())
+    pprint(r.get('_id'))
+    _id = r.get('_id') #ObjectId(r['_id'])
+    pprint(ObjectId(_id))
+    
+    try:
+        observation = app.data.driver.db['observations']
+        u = observation.update({'_id': ObjectId(_id)}, 
+                               { "$set": {"owner": app.globals.get('user_id')} 
+                                })
+        pprint(u)
+    except:
+        print("SOMTHING AWFUL HAPPENED")
+        pprint(u)
+        
+    
+    pass
+
+def observations_after_post(request, payload):
+    """ When payload as json, request.get_json()
+    Else; payload
+    @todo: Integrate with ObservationWorkflow!
+    @todo: Set expiry as attribute for states!
+    """
+    r = request.get_json() #Got all _id and _etag
+    
+    _id = r.get('_id')
+    _etag = r.get('_etag')
+    _version = r.get('_version')
+    utc = arrow.utcnow()
+    
+    workflow = {"name": "ObservationWorkflow",
+                "comment": "Initialized workflow",
+                "state": "draft",
+                "last_transition": utc.datetime,
+                "expires":  utc.replace(days=+7).datetime,
+                "audit" : {'a': "init",
+                           'r': "init",
+                           'u': app.globals.get('user_id'),
+                           's': None,
+                           'd': "draft",
+                           'v': _version,
+                           't': utc.datetime,
+                           'c': "Initialized workflow" }
+                }
+    
+    watchers = [app.globals.get('user_id')]
+    
+    # Make a integer increment from seq collection
+    seq = app.data.driver.db['seq']
+    seq.update({'c': 'observations'}, {'$inc': {'i': int(1)}}, True) #,fields={'i': 1, '_id': 0},new=True).get('i')
+    seq_r = seq.find_one({'c': 'observations'}, {'i': 1, '_id': 0})
+    number = int(seq_r.get('i'))
+    
+    observation = app.data.driver.db['observations']
+    observation.update({'_id': _id, '_etag': _etag}, 
+                       { "$set": {"workflow": workflow,
+                                  "id": number,
+                                  "watchers": watchers, 
+                                  "owner": app.globals.get('user_id'),
+                                  "reporter": app.globals.get('user_id')
+                                  } 
+                        })
+    
+    pass
+
+def observations_before_get(request, lookup):
+    
+    raise NotImplementedError
+    pass
+
+#app.on_pre_GET_observations += observations_before_get
+#app.on_pre_POST_observations += observations_before_post
+#app.on_pre_PATCH_observations += observations_before_patch
+app.on_post_POST_observations += observations_after_post
+app.on_post_PATCH_observations += observations_after_patch
+
 
 """
     Where can user id be added?
@@ -190,13 +262,6 @@ def before_insert_oplog(items):
     
 app.on_insert_dev += before_insert_oplog
 
-"""
-    Let's see what's getting posted!
-"""
-def pre_avvik(request):
-    print(request.data)
-    
-app.on_pre_POST_avvik += pre_avvik
 
 
 
