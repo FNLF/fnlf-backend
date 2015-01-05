@@ -209,14 +209,14 @@ def observations_after_post(request, payload):
                 "state": "draft",
                 "last_transition": utc.datetime,
                 "expires":  utc.replace(days=+7).datetime,
-                "audit" : {'a': "init",
+                "audit" : [{'a': "init",
                            'r': "init",
                            'u': app.globals.get('user_id'),
                            's': None,
                            'd': "draft",
                            'v': _version,
                            't': utc.datetime,
-                           'c': "Initialized workflow" }
+                           'c': "Initialized workflow" } ]
                 }
     
     watchers = [app.globals.get('user_id')]

@@ -250,7 +250,7 @@ class ObservationWorkflow(Machine):
                  't': datetime.utcnow(),
                  'c': self.comment }
         
-        new.get('workflow').get('audit').insert(0,audit)
+        new['workflow']['audit'].insert(0,audit)
         
         new['workflow']['last_transition'] = datetime.utcnow()
         
