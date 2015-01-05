@@ -97,7 +97,7 @@ class ObservationWorkflow(Machine):
         su = [5766, 4455, 3322, 32233, 45199]
         fs = [5766, 45199]
         hi = [45199] # current club observation is registered on
-        owner = app.globals.get('user_id')
+        owner = [app.globals.get('user_id')]
         #self.user_id 
         
         """ Extra attributes needed for sensible feedback from API to client
@@ -116,9 +116,7 @@ class ObservationWorkflow(Machine):
                               }
         
         
-        """ Comment for that transition
-        """
-        self.comment = comment
+        
         
         """ Make sure to start with a defined state!
         """
@@ -136,6 +134,8 @@ class ObservationWorkflow(Machine):
             self.initial_state = 'draft'
         else:
              self.initial_state = initial_state
+        
+        self.comment = comment
              
         Machine.__init__(self, states=self._states, send_event=True, transitions=self._transitions, initial=self.initial_state)
 
@@ -214,8 +214,8 @@ class ObservationWorkflow(Machine):
         # Get which trigger where done, and by who?
         # This is called before the save_state
         
-        trail = {'trail': self.db_wf['workflow']['audit']}
-        pprint(trail)
+        trail = {'audit': self.db_wf['workflow']['audit']}
+
         return trail
     
     def save_state(self):

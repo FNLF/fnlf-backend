@@ -46,7 +46,7 @@ def index():
 def yr(what):
     """ Downloads data from yr.no
     @todo: Should fix units
-    @todo: Should be based on locations and/or clubs default location in clubs /yr/wind/375-F
+    @todo: Should be based on locations and/or clubs default location in clubs '/yr/wind/375-F'
     """
     
     
@@ -63,8 +63,6 @@ def yr(what):
         wind_speed['wind_forecast'] = [{'from': forecast['@from'], 'to': forecast['@to'],'@unit': 'knots', 'speed': round(float(forecast['windSpeed']['@mps'])*1.943844, 2)} for forecast in weather.forecast()]
         return jsonify(**wind_speed)
         
-    else:
-        return eve_error_msg('There is nothing defined for "' + what + '". Only /weather/now, /weather/wind and /weather/forecast are allowed.', 503)
 
 
 @Weather.route("/aero/<regex('(metar|taf|shorttaf)'):what>/<icao>", methods=['GET'])

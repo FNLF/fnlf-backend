@@ -33,7 +33,7 @@ ObsWatchers = Blueprint('Observation Watchers', __name__,)
 
 @ObsWatchers.route("/<objectid:observation_id>/", methods=['GET'])
 @ObsWatchers.route("/<objectid:observation_id>/watchers", methods=['GET'])
-#@require_token()
+@require_token()
 def watchers(observation_id):
     
     w = get_watchers(observation_id)
