@@ -12,6 +12,7 @@ Init for the seperated applications and including those into a Domain
 import melwin_clubs
 import melwin_licenses
 import melwin_users
+import melwin_membership
 
 # User data (avatar, settings, acls etc)
 import users
@@ -35,6 +36,7 @@ DOMAIN = {
     'melwin/clubs': melwin_clubs.definition,
     'melwin/users': melwin_users.definition,
     'melwin/licenses': melwin_licenses.definition,
+    'melwin/memberships': melwin_membership.definition,
     'licenses': licenses.definition,
     'clubs': clubs.definition,
     'observations' : observations.definition,
