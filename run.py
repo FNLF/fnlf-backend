@@ -64,31 +64,24 @@ from flask import jsonify, request
 from flask.ext.bootstrap import Bootstrap
 from eve_docs import eve_docs
 
-# Authentication (blueprint)
+# Import blueprints
 from blueprints.authentication import Authenticate
-
-# Melwin Search Blueprint
 from blueprints.melwin_search import MelwinSearch
-
-# Workflows as blueprints
 from blueprints.observation_workflow import ObsWorkflow
-# Watchers as blueprints
 from blueprints.observation_watchers import ObsWatchers
-
 from blueprints.weather import Weather
+from blueprints.info import Info
 
-# Cusotm url mappings (for flask)
+# Custom url mappings (for flask)
 from ext.url_maps import ObjectIDConverter, RegexConverter
-
-# Debug output use pprint
-from pprint import pprint
 
 # Custom extensions
 from ext.tokenauth import TokenAuth
 
 import sys
 
-
+# Debug output use pprint
+from pprint import pprint
 
 
 # Start Eve (and flask)
@@ -96,7 +89,10 @@ import sys
 app = Eve(auth=TokenAuth)
 #app = Eve()
 
-# Define global configs
+""" Define global settings
+These settings are mirrored from Eve and should not be
+@todo: use app.config instead
+"""
 app.globals = {"prefix": "/api/v1"}
 
 app.globals.update({"auth": {}})
@@ -104,12 +100,10 @@ app.globals['auth'].update({"auth_collection": "users_auth",
                             "users_collection": "users",
                             })
 
-pprint(app.globals)
-
-# Start Bootstrap (should be a blueprint?)
+# Start Bootstrap (needed by eve-docs)
 Bootstrap(app)
 
-#Custom url mapping
+#Custom url mapping (needed by native flask routes)
 app.url_map.converters['objectid'] = ObjectIDConverter
 app.url_map.converters['regex'] = RegexConverter
 
@@ -119,13 +113,27 @@ app.register_blueprint(eve_docs, url_prefix="%s/docs" % app.globals['prefix'])
 # Register custom blueprints
 app.register_blueprint(Authenticate, url_prefix="%s/user" % app.globals['prefix'])
 app.register_blueprint(MelwinSearch, url_prefix="%s/melwin/users/search" % app.globals['prefix'])
+app.register_blueprint(Weather, url_prefix="%s/weather" % app.globals['prefix'])
+app.register_blueprint(Info, url_prefix="%s/info" % app.globals['prefix'])
 
-# Register workflow endpoints
+# Register observation endpoints
 app.register_blueprint(ObsWorkflow, url_prefix="%s/observations/workflow" % app.globals['prefix'])
 app.register_blueprint(ObsWatchers, url_prefix="%s/observations/watchers" % app.globals['prefix'])
-app.register_blueprint(Weather, url_prefix="%s/weather" % app.globals['prefix'])
 
 
+""" A simple python logger setup
+Eve do not yet support logging, but will for 0.5
+Use app.logger.<level>(<message>) for manual logging"""
+if not app.debug:
+    import logging
+    from logging.handlers import RotatingFileHandler
+    file_handler = RotatingFileHandler('log/fnlf-backend.log', 'a', 1 * 1024 * 1024, 10)
+    file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
+    app.logger.setLevel(logging.INFO)
+    file_handler.setLevel(logging.INFO)
+    app.logger.addHandler(file_handler)
+    app.logger.info('FNLF-backend startup')
+    
 """
 
     Eve compatible error message:
@@ -148,47 +156,6 @@ def eve_error_msg(message, http_code='404'):
                                  }
                       })
 
-
-
-
-
-
-"""
-    Start Eve & friends
-    ===================
-    
-"""
-
-
-
-
-"""
-    Custom Flask routes 2:
-    ======================
-    
-    Dummy stuff, simple as py....
-    
-    A catch all when not hitting correct path
-    
-    This should be blueprints from /apps/ directory per application
-
-"""
-@app.route("%s/info" % app.globals['prefix'], methods=['GET'])
-def api_info():
-    # Build a dictionary
-    dict = {'api': 'F/NLF Elektroniske tjenester', 
-            'version': '0.1.0', 
-            'contact': 'Jan Erik Wang', 
-            'email': 'Jan Erik Wang <janerik.wang@nlf.no>', 
-            'api_url': request.base_url, 
-            'doc_url': request.base_url + '/docs',
-            'base_url': request.base_url,
-            }
-    
-    # Jsonify the dictionary and return it
-    return jsonify(**dict)
-
-
 """
 
     Event hooks:
@@ -201,6 +168,8 @@ def api_info():
     A more advanced use could be to emit a message through a websocket for every defined interaction.
     
     NB: To run a websocket server you need gunicorn or others with support for wsgi.websocket...
+    
+    @todo: Seperate hooks out 
 
 """
 def pre_persons(request, lookup):
@@ -218,7 +187,6 @@ app.on_pre_GET_persons += pre_persons
 def before_insert_oplog(items):
     
     print(items)
-    #items['u'] = 45199
     
 app.on_insert_dev += before_insert_oplog
 
@@ -238,9 +206,11 @@ app.on_pre_POST_avvik += pre_avvik
     START:
     ======
     
-    Starting the wsgi development server with Eve
+    Start the wsgi development server with Eve
     
     Localhost and port 8080
+    
+    @todo: Use gunicorn
 
 """
 if __name__ == '__main__':
