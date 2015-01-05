@@ -183,9 +183,8 @@ def observations_after_patch(request, response):
         u = observation.update({'_id': ObjectId(_id)}, 
                                { "$set": {"owner": app.globals.get('user_id')} 
                                 })
-        pprint(u)
     except:
-        print("SOMTHING AWFUL HAPPENED")
+        #Log error here
         pprint(u)
         
     
@@ -250,7 +249,6 @@ def observations_before_get(request, lookup):
 app.on_post_POST_observations += observations_after_post
 app.on_post_PATCH_observations += observations_after_patch
 
-
 """
     Where can user id be added?
     Oplog comes with a auto feature for this
@@ -258,9 +256,13 @@ app.on_post_PATCH_observations += observations_after_patch
 """
 def before_insert_oplog(items):
     
-    print(items)
+    # app.globals.get('user_id')
     
-app.on_insert_dev += before_insert_oplog
+    print('OP LOG')
+    pprint(items)
+    
+app.on_insert_oplog += before_insert_oplog
+
 
 
 

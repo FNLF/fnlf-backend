@@ -124,10 +124,6 @@ class ObservationWorkflow(Machine):
         
         self.db_wf = col.find_one({'_id': ObjectId(object_id)}, {'workflow': 1, '_etag': 1, '_version': 1})
         
-        pprint(self.db_wf)
-        
-        print(self.db_wf.get('workflow').get('state'))
-        
         initial_state = self.db_wf.get('workflow').get('state')
         
         if initial_state == None or initial_state not in self._states:
@@ -191,12 +187,10 @@ class ObservationWorkflow(Machine):
             return True
         return False"""
         
-        print("%s is the current transition " % event.event.name)
         if self.user_id in self._trigger_attrs.get(event.event.name).get('permission'):
             print("%s has permission" % self.user_id)
             return True
         
-        print("%s has not permission" % self.user_id)
         return False
     
     def condition_completed_tasks(self):
@@ -204,7 +198,7 @@ class ObservationWorkflow(Machine):
         #Check if has completed all tasks,
         # Have "current tasks" and then
         
-        raise NotImplemented
+        raise NotImplementedError
         
         return self.db_wf['workflow']['audit']
         
