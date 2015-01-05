@@ -11,6 +11,11 @@ from eve.methods.patch import patch_internal
 from datetime import datetime
 
 class ObservationWorkflow(Machine):
+    """ For further work, should use https://github.com/ehu/transitions instead
+    This fork will support the requirements in this project and also keep track of origin
+    @todo: add https://github.com/ehu/transitions to site-packages
+    @todo: pip install git+https://github.com/ehu/transitions
+    """
     
     
     
@@ -60,12 +65,12 @@ class ObservationWorkflow(Machine):
         """
         
         """
-        Workflows has also wathcers, so call them when something happens!
-        And all involved ARE watchers, aren't they=
+        Workflows also have wathcers, so call them when something happens!
+        And all involved ARE watchers
+        @todo: Signals implementation with watchers
         
         """
         
-        # def __init__(self, source, dest, conditions=None, before=None, after=None)
         
         """ The transition definition
         """
@@ -91,8 +96,8 @@ class ObservationWorkflow(Machine):
         # Users - Groups
         su = [5766, 4455, 3322, 32233, 45199]
         fs = [5766, 45199]
-        hi = [45199]
-        owner = [45199]
+        hi = [45199] # current club observation is registered on
+        owner = app.globals.get('user_id')
         #self.user_id 
         
         """ Extra attributes needed for sensible feedback from API to client
@@ -198,8 +203,9 @@ class ObservationWorkflow(Machine):
         
         #Check if has completed all tasks,
         # Have "current tasks" and then
-        print("AUDIT")
-        pprint(self.db_wf['workflow']['audit'])
+        
+        raise NotImplemented
+        
         return self.db_wf['workflow']['audit']
         
     
@@ -208,7 +214,6 @@ class ObservationWorkflow(Machine):
         # Get which trigger where done, and by who?
         # This is called before the save_state
         
-        print("AUDIT")
         trail = {'trail': self.db_wf['workflow']['audit']}
         pprint(trail)
         return trail
@@ -218,14 +223,14 @@ class ObservationWorkflow(Machine):
         # app.data... update OR patch_internal
         # Save *.workflow dictionary
         
-        return NotImplemented
+        raise NotImplemented
         
     def save_workflow(self, event):
         """ Will only trigger when it actually IS changed, so save every time this is called!
         patch_internal(self.known_resource, data, concurrency_check=False,**{'_id': self.item_id})
         patch_internal(resource, payload=None, concurrency_check=False,skip_validation=False, **lookup):
         
-        Hmmm, need audit trail since version control will not cut this. Workflow should also increase the number
+        Hmmm, need audit trail since version control will not cut this. Workflow should also increase the version number
         """
         _id = self.db_wf.get('_id')
         _etag = self.db_wf.get('_etag')
@@ -236,14 +241,6 @@ class ObservationWorkflow(Machine):
         # Make a new without _id etc
         new = {'workflow': self.db_wf.get('workflow')}
         
-        # Make new audit
-        """ "action": "init",
-                "dst": "draft",
-                "by": 45199,
-                "date": "2014-12-30T14:03:00UTC",
-                "src": "",
-                "comment": "Initialized state draft"
-                """
         audit = {'a': event.event.name,
                  'r': self._trigger_attrs.get(event.event.name).get('resource'),
                  'u': self.user_id,
@@ -266,11 +263,12 @@ class ObservationWorkflow(Machine):
         result = patch_internal("observations", payload=new, concurrency_check=False,skip_validation=True, **{'_id': "%s" % _id, '_etag': "%s" % _etag})
         # test_client().post('/add', data = {'input1': 'a'}}
         #app.test_client().patch('/observations/%s' % _id, data=new, headers=[('If-Match', _etag)])
-        pprint(result)
         
-        if self.state != self.initial_state:
-            print("SAVING WORKFLOW NOW!!!")
-        else:
-            print("No changes, should not change it should I?")    
+        #if self.state != self.initial_state:
+        
+        if result:
+            return True
+        
+        return False
     
 

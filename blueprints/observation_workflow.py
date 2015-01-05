@@ -2,41 +2,10 @@
     Observation Workflow Controller
     ===============================
     
-    Model: workflows.observation class ObservationWorkflow
-    
-    
-    
-    simple_page = Blueprint('simple_page', __name__)
-
-    class UserAPI(MethodView):
-    
-         def get(self):
-             users = User.query.all()
-    
-         def post(self):
-             user = User.from_form_data(request.form)
-    
-        simple_page .add_url_rule('/', view_func=UserAPI.as_view('users'))
-    
-    ===> So this should ALL be contained in the workflow class?? No need to add an extra layer or??
-    
-    Or rather keep this as a blueprint with the routes being:
-    ready
-    withdraw
-    approve
-    reject
-    close
+    Model: workflows.observation.ObservationWorkflow
     
     @todo: Signals on change signal to communications to dispatch an update to the watchers
            http://stackoverflow.com/questions/16163139/catch-signals-in-flask-blueprint
-           
-    
-    @todo: HATEOAS links to actions?
-        "_links": {
-        "reject": {
-            "href": "observations/workflow/5396b800e4b0220ae2b05797/reject",
-            "title": "Reject"
-        },
 
 """
 
@@ -108,9 +77,11 @@ def transition(observation_id, action):
     
     return Response(json.dumps(wf.state),  mimetype='application/json')
 
+    """
+    @todo: For removal:
     r = wf.get_current_state()
     
-    resp = {'Something': 'Went wrong you jerk'}
+    resp = {'Something': 'Went wrong'}
     
     # Check if got resource <-> action mapping!
     for v in r.get('actions'):
@@ -121,7 +92,7 @@ def transition(observation_id, action):
     
     print("testing test")
     return Response(json.dumps(resp),  mimetype='application/json')
-
+    """
 
 @ObsWorkflow.route("/<objectid:observation_id>/tasks", methods=['GET'])
 #@require_token()
@@ -133,7 +104,7 @@ def tasks(observation_id):
     
     Most likely this will make for another transition where state is 'waiting for tasks to complete'
     """
-    wf = ObservationWorkflow(object_id=observation_id, user_id=45199)
+    #wf = ObservationWorkflow(object_id=observation_id, user_id=45199)
    
-    return NotImplemented
+    raise NotImplemented
 
