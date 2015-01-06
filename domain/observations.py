@@ -11,7 +11,7 @@
     @todo: Add workflow by default in pre hook
     @todo: add schema for organisation or club + location
 """
-
+from _base import workflow_schema, comments_schema, watchers_schema, audit_schema, acl_schema
 import observation_components
 
 _schema = {'id': {'type': 'integer',
@@ -55,17 +55,12 @@ _schema = {'id': {'type': 'integer',
            
            'related': {'type': 'list'},
            'labels': {'type': 'list'},
-           'comments': {'type': 'list',
-                        'schema': {'date': 'datetime',
-                                   'user': 'integer',
-                                   'comment': 'string'
-                                   }
-                        },
-           'workflow': {'type': 'dict', 'readonly': True},
-           'watchers': {'type': 'list', 'readonly': True},
+           'comments': comments_schema,
+           'workflow': workflow_schema,
+           'watchers': watchers_schema,
            'actions': {'type': 'dict'},
-           'audit': {'type': 'list'},
-           'acl': {'type': 'dict'},
+           'audit': audit_schema,
+           'acl': acl_schema,
            
            
            }
