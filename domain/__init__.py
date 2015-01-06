@@ -19,6 +19,10 @@ import users
 import licenses
 import clubs
 
+# Gear
+import gear
+import gear_manufacturers
+
 # Incident Reporting
 import observations
 import observation_components
@@ -31,18 +35,20 @@ import dev
 
 # Build the Domain to be presented
 DOMAIN = {
-    'users' : users.definition,
-    #'users_auth': users_auth.definition, No, pure Flask
-    'melwin/clubs': melwin_clubs.definition,
-    'melwin/users': melwin_users.definition,
-    'melwin/licenses': melwin_licenses.definition,
-    'melwin/memberships': melwin_membership.definition,
-    'licenses': licenses.definition,
-    'clubs': clubs.definition,
-    'observations' : observations.definition,
-    'observations-components' : observation_components.definition,
-    'dev' : dev.definition,
-    'files' : files.definition,
+    "users" : users.definition,
+    #"users_auth": users_auth.definition, No, pure Flask
+    "melwin/clubs": melwin_clubs.definition,
+    "melwin/users": melwin_users.definition,
+    "melwin/licenses": melwin_licenses.definition,
+    "melwin/memberships": melwin_membership.definition,
+    "licenses": licenses.definition,
+    "clubs": clubs.definition,
+    "gear": gear.definition,
+    "gear/manufacturers": gear_manufacturers.definition,
+    "observations" : observations.definition,
+    "observations/components" : observation_components.definition,
+    "dev" : dev.definition,
+    "files" : files.definition,
    
 }
 
