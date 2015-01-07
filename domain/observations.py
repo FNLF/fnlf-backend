@@ -78,6 +78,8 @@ definition = {
             'url': 'regex("[\d{1,9}]+")',
             'field': 'id',
         },
+        #makes only user access those...
+        #'auth_field': 'owner',
         
         'versioning': True,
         
