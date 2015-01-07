@@ -15,6 +15,7 @@ class ObservationWorkflow(Machine):
     This fork will support the requirements in this project and also keep track of origin
     @todo: add https://github.com/ehu/transitions to site-packages
     @todo: pip install git+https://github.com/ehu/transitions
+    @todo: state groups -> then you can see if "in review", "is open" etc
     """
     
     
