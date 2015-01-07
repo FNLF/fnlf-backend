@@ -30,9 +30,6 @@ import jump_categories
 import observations
 import observation_components
 
-# Activity logger
-import activity
-
 # Files - just a test collection
 import files
 
@@ -56,7 +53,6 @@ DOMAIN = {
     "jumps/categories": jump_categories.definition,
     "dev" : dev.definition,
     "files" : files.definition,
-    "activity": activity.definition
    
 }
 
