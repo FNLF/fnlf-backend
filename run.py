@@ -31,6 +31,13 @@
     @license: MIT, see LICENSE for more details. Note that Eve is BSD licensed
 """
 
+__version_info__ = ('0', '1', '0')
+__version__ = '.'.join(__version_info__)
+__author__ = 'Einar Huseby'
+__license__ = 'MIT'
+__copyright__ = '(c) 2014 F/NLF'
+__all__ = ['fnlf-backend']
+
 import os
 from eve import Eve
 
@@ -49,6 +56,10 @@ from blueprints.observation_workflow import ObsWorkflow
 from blueprints.observation_watchers import ObsWatchers
 from blueprints.weather import Weather
 from blueprints.info import Info
+
+#import signals from hooks
+from ext.signals import signal_activity_log, signal_insert_workflow, \
+                      signal_change_owner
 
 # Custom url mappings (for flask)
 from ext.url_maps import ObjectIDConverter, RegexConverter
@@ -69,6 +80,7 @@ from pprint import pprint
 app = Eve(auth=TokenAuth)
 #app = Eve()
 
+
 """ Define global settings
 These settings are mirrored from Eve and should not be
 @todo: use app.config instead
@@ -88,17 +100,17 @@ app.url_map.converters['objectid'] = ObjectIDConverter
 app.url_map.converters['regex'] = RegexConverter
 
 # Register eve-docs blueprint 
-app.register_blueprint(eve_docs, url_prefix="%s/docs" % app.globals['prefix'])
+app.register_blueprint(eve_docs, url_prefix="%s/docs" % app.globals.get('prefix'))
 
 # Register custom blueprints
-app.register_blueprint(Authenticate, url_prefix="%s/user" % app.globals['prefix'])
-app.register_blueprint(MelwinSearch, url_prefix="%s/melwin/users/search" % app.globals['prefix'])
-app.register_blueprint(Weather, url_prefix="%s/weather" % app.globals['prefix'])
-app.register_blueprint(Info, url_prefix="%s/info" % app.globals['prefix'])
+app.register_blueprint(Authenticate, url_prefix="%s/user" % app.globals.get('prefix'))
+app.register_blueprint(MelwinSearch, url_prefix="%s/melwin/users/search" % app.globals.get('prefix'))
+app.register_blueprint(Weather, url_prefix="%s/weather" % app.globals.get('prefix'))
+app.register_blueprint(Info, url_prefix="%s/info" % app.globals.get('prefix'))
 
 # Register observation endpoints
-app.register_blueprint(ObsWorkflow, url_prefix="%s/observations/workflow" % app.globals['prefix'])
-app.register_blueprint(ObsWatchers, url_prefix="%s/observations/watchers" % app.globals['prefix'])
+app.register_blueprint(ObsWorkflow, url_prefix="%s/observations/workflow" % app.globals.get('prefix'))
+app.register_blueprint(ObsWatchers, url_prefix="%s/observations/watchers" % app.globals.get('prefix'))
 
 
 """ A simple python logger setup
@@ -141,16 +153,19 @@ def eve_error_msg(message, http_code='404'):
     Event hooks:
     ============
     
-    Using Eve events
+    Using Eve defined events 
     
-    Applies to request and database makes it very extensible
+    Mixed with signals to ext.hooks for flask and direct database access compatibility
     
-    A more advanced use could be to emit a message through a websocket for every defined interaction.
+    Eve specific hooks are defined according to
     
-    NB: To run a websocket server you need gunicorn or others with support for wsgi.websocket...
+    def <resource>_<when>_<method>():
     
-    @todo: How to run in seperate file
+    When attaching to app, remember to use post and pre for request hooks
     
+    @note: For eve.methods.common to make oplog support user logging in oplog_push; 
+            if app.auth:
+                entry.update({'u': app.auth.get_user_id()})
     @note: all requests are supported: GET, POST, PATCH, PUT, DELETE
     @note: POST (resource, request, payload)
     @note: POST_resource (request, payload)
@@ -168,74 +183,21 @@ def observations_before_patch(request, lookup):
     raise NotImplementedError
 
 def observations_after_patch(request, response):
-    """ Need to get data from response
+    """ Change owner, owner is readonly
     """
-    import json
-    from bson.objectid import ObjectId
+    signal_change_owner.send(app,response=response)
     
-    r = json.loads(response.get_data().decode())
-    pprint(r.get('_id'))
-    _id = r.get('_id') #ObjectId(r['_id'])
-    pprint(ObjectId(_id))
-    
-    try:
-        observation = app.data.driver.db['observations']
-        u = observation.update({'_id': ObjectId(_id)}, 
-                               { "$set": {"owner": app.globals.get('user_id')} 
-                                })
-    except:
-        #Log error here
-        pprint(u)
-        
-    
-    pass
-
 def observations_after_post(request, payload):
     """ When payload as json, request.get_json()
     Else; payload
     @todo: Integrate with ObservationWorkflow!
     @todo: Set expiry as attribute for states!
     """
-    r = request.get_json() #Got all _id and _etag
+
+    signal_insert_workflow(app)
     
-    _id = r.get('_id')
-    _etag = r.get('_etag')
-    _version = r.get('_version')
-    utc = arrow.utcnow()
-    
-    workflow = {"name": "ObservationWorkflow",
-                "comment": "Initialized workflow",
-                "state": "draft",
-                "last_transition": utc.datetime,
-                "expires":  utc.replace(days=+7).datetime,
-                "audit" : [{'a': "init",
-                           'r': "init",
-                           'u': app.globals.get('user_id'),
-                           's': None,
-                           'd': "draft",
-                           'v': _version,
-                           't': utc.datetime,
-                           'c': "Initialized workflow" } ]
-                }
-    
-    watchers = [app.globals.get('user_id')]
-    
-    # Make a integer increment from seq collection
-    seq = app.data.driver.db['seq']
-    seq.update({'c': 'observations'}, {'$inc': {'i': int(1)}}, True) #,fields={'i': 1, '_id': 0},new=True).get('i')
-    seq_r = seq.find_one({'c': 'observations'}, {'i': 1, '_id': 0})
-    number = int(seq_r.get('i'))
-    
-    observation = app.data.driver.db['observations']
-    observation.update({'_id': _id, '_etag': _etag}, 
-                       { "$set": {"workflow": workflow,
-                                  "id": number,
-                                  "watchers": watchers, 
-                                  "owner": app.globals.get('user_id'),
-                                  "reporter": app.globals.get('user_id')
-                                  } 
-                        })
-    
+    #action, ref, user, resource=None ref, act = None, resource=None, **extra
+
     pass
 
 def observations_before_get(request, lookup):
@@ -248,6 +210,7 @@ def observations_before_get(request, lookup):
 #app.on_pre_PATCH_observations += observations_before_patch
 app.on_post_POST_observations += observations_after_post
 app.on_post_PATCH_observations += observations_after_patch
+#app.on_pre_PATCH_observations += observations_before_patch
 
 """
     Where can user id be added?
@@ -256,16 +219,9 @@ app.on_post_PATCH_observations += observations_after_patch
 """
 def before_insert_oplog(items):
     
-    # app.globals.get('user_id')
-    
-    print('OP LOG')
-    pprint(items)
-    
+    raise NotImplementedError
+
 app.on_insert_oplog += before_insert_oplog
-
-
-
-
 
 
 """
