@@ -18,6 +18,7 @@ import arrow
 class TokenAuth(TokenAuth):
     
     is_auth = False
+    user_id = None
     
     def check_auth(self, token, allowed_roles, resource, method):
         """Simple token check. Tokens comes in the form of request.authorization['username']
@@ -35,6 +36,10 @@ class TokenAuth(TokenAuth):
         u = accounts.find_one({'auth.token': token})
 
         if u:
+            #testing if Oplog makes this happen
+            #self.set_request_auth_value(u['id'])
+            self.user_id = u['id']
+
             utc = arrow.utcnow()
             if utc.timestamp < arrow.get(u['auth']['valid']).timestamp:
 
@@ -60,6 +65,9 @@ class TokenAuth(TokenAuth):
                 return False
         else: # No token in database
             return False
+    
+    def get_user_id(self):
+        return self.user_id
     
     def _set_globals(self, id, _id):
         app.globals.update({'id': id})
