@@ -17,7 +17,10 @@ import observation_components
 _schema = {'id': {'type': 'integer',
                   'required': False},
            'title': {'type': 'string'},
-           'type': {'type': 'dict'},
+           'type': {'type': 'string',
+                    'allowed': ['unsafe_act', 'near_miss', 'incident', 'accident']},
+           'wilfull': {'type': 'boolean',
+                       'default': False},
            'owner': {'type': 'integer', 'readonly': True}, # user_id this post/patch
            'reporter': {'type': 'integer', 'readonly': True}, # user_id initial reported by!
            'when': {'type': 'datetime'},
@@ -79,7 +82,7 @@ definition = {
         'versioning': True,
         
         'resource_methods': ['GET', 'POST'],
-        'item_methods': ['GET', 'PATCH', 'PUT'],
+        'item_methods': ['GET', 'PATCH'],
         
         'schema': _schema
         
