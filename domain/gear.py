@@ -59,8 +59,8 @@ definition = {
                        'default_sort': [('name', 1)],
                        },
         
-        'resource_methods': ['GET', 'POST', 'DELETE'],
-        'item_methods': ['GET', 'PATCH', 'PUT'],
+        'resource_methods': ['GET', 'POST'],
+        'item_methods': ['GET', 'PATCH'],
         
         'versioning': True,
         
