@@ -166,6 +166,14 @@ def eve_error_msg(message, http_code='404'):
     @note: For eve.methods.common to make oplog support user logging in oplog_push; 
             if app.auth:
                 entry.update({'u': app.auth.get_user_id()})
+            To be able to retrieve the u field change _init_oplog in eve.flaskapp.py
+            if self.auth:
+                settings['schema'].update(
+                    {
+                        'u': {},
+                    }
+                )    
+                
     @note: all requests are supported: GET, POST, PATCH, PUT, DELETE
     @note: POST (resource, request, payload)
     @note: POST_resource (request, payload)
