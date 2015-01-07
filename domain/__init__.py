@@ -23,6 +23,9 @@ import clubs
 import gear
 import gear_manufacturers
 
+# Definitions
+import jump_categories
+
 # Incident Reporting
 import observations
 import observation_components
@@ -47,6 +50,7 @@ DOMAIN = {
     "gear/manufacturers": gear_manufacturers.definition,
     "observations" : observations.definition,
     "observations/components" : observation_components.definition,
+    "jumps/categories": jump_categories.definition,
     "dev" : dev.definition,
     "files" : files.definition,
    
