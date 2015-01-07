@@ -18,6 +18,7 @@ import arrow
 class TokenAuth(TokenAuth):
     
     is_auth = False
+    user_id = None
     
     def check_auth(self, token, allowed_roles, resource, method):
         """Simple token check. Tokens comes in the form of request.authorization['username']
@@ -30,12 +31,15 @@ class TokenAuth(TokenAuth):
         # Can also get the database lookup for the resource and check that here!!
         # Can also issue a new token here, and that needs to be returned by injecting to pre dispatch
         # use the abort/eve_error_msg to issue errors!
-        print("=============================================================")
         accounts = app.data.driver.db[app.globals['auth']['auth_collection']]
         
         u = accounts.find_one({'auth.token': token})
-        print(u)
+
         if u:
+            #testing if Oplog makes this happen
+            #self.set_request_auth_value(u['id'])
+            self.user_id = u['id']
+
             utc = arrow.utcnow()
             if utc.timestamp < arrow.get(u['auth']['valid']).timestamp:
 
@@ -49,10 +53,12 @@ class TokenAuth(TokenAuth):
                 #app.globals.update({'_id':  u['_id']})
                 
                 # Set acl
-              
+                app.globals.update({'user_id': u['id']})
                 #self.set_acl(u['acl'], u['_id'], u['id'])
                 self._set_globals(u['id'], u['_id'])
+                
                 self.is_auth = True
+                
                 return True # Token exists and is valid, renewed for another hour
             
             else: # Expired validity
@@ -60,11 +66,12 @@ class TokenAuth(TokenAuth):
         else: # No token in database
             return False
     
+    def get_user_id(self):
+        return self.user_id
+    
     def _set_globals(self, id, _id):
         app.globals.update({'id': id})
         app.globals.update({'_id': "%s" % _id})
-        print("App.globals")
-        print(app.globals)    
     
     def authenticate(self):
         """ Overridden by NOT returning a WWW-Authenticate header
@@ -80,9 +87,10 @@ class TokenAuth(TokenAuth):
         Sets the acl dict on current user including needed information!
     """
     def _set_acl(self, acl, _id, id):
+        
         if acl:
             app.globals.update({'acl': acl})
-        print("App.globals")
-        print(app.globals)
+            
+        raise NotImplemented
         
         

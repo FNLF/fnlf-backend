@@ -1,29 +1,7 @@
 """
-    Eve Demo
-    ========
+    FNLF-backend
+    ============
 
-    Demonstrating an example use of Eve:
-    - interfacing existing db from student project
-    - all the out of the box features available (filtering, paginating, file upload, etags, versioning, hateos etc etc)
-    - autogenerating documentation for resources via eve-docs
-    - how to use flask for custom routes, and how to do simple integration with external 3rd party modules
-    - how to use events
-    - an application structure as a package for seperation
-    
-    Proposed structure:
-    /run.py                - this script, launch with: 'python run-py'
-    /settings.py           - required by eve, only global settings imports domains from apps
-    /requirements.txt      - should be updated with all modules/packages for easy installing!
-    /setup.py              - `python run.py` should setup the entire application
-    /ext/*                 - custom library and decorators - extensions
-    /blueprints/*          - blueprinted modules
-    /apps/*                - directory with all the more or less seperated apps setting files
-        /apps/__init__.py         - package file putting it all together
-        /apps/auth.py             - the authentication 
-        /apps/avviksrapportering.py - avviksrapportering
-        /apps/clubs.py            - everything about clubs, admin, authz, locations etc
-        /apps/...
-    
     @todo: Need to implement tests! Eve got it's own tests which can be used, or eve-mocker?
     @todo: CI - via bamboo?
     @todo: Melwin: integration via suds (15 sec+ for licenses...) - make a package/module, see /mw.py
@@ -35,6 +13,9 @@
             app.logger.debug('A value for debugging')
             app.logger.warning('A warning occurred (%d apples)', 42)
             app.logger.error('An error occurred')
+    @todo: Custom eve compatible responses:
+            "_issues": {"watchers": "field is read-only", "when": "must be of datetime type"}, 
+            "_error": {"code": 422, "message": "Insertion failure: 1 document(s) contain(s) error(s)"}, "_status": "ERR"}
 
 
     @note: Pip stuff as a reminder
@@ -45,10 +26,17 @@
             Find outdated packages
             pip list --outdated
     
-    @author:  (c) 2014 by Einar Huseby
+    @author:  Einar Huseby
     @copyright: (c) 2014 Fallskjermseksjonen Norges Luftsportsforbund
     @license: MIT, see LICENSE for more details. Note that Eve is BSD licensed
 """
+
+__version_info__ = ('0', '1', '0')
+__version__ = '.'.join(__version_info__)
+__author__ = 'Einar Huseby'
+__license__ = 'MIT'
+__copyright__ = '(c) 2014 F/NLF'
+__all__ = ['fnlf-backend']
 
 import os
 from eve import Eve
@@ -61,35 +49,42 @@ from flask import jsonify, request
 from flask.ext.bootstrap import Bootstrap
 from eve_docs import eve_docs
 
-# Authentication (blueprint)
+# Import blueprints
 from blueprints.authentication import Authenticate
-
-# Melwin Search Blueprint
 from blueprints.melwin_search import MelwinSearch
-
-# Workflows as blueprints
 from blueprints.observation_workflow import ObsWorkflow
+from blueprints.observation_watchers import ObsWatchers
+from blueprints.weather import Weather
+from blueprints.info import Info
 
-# Cusotm url mappings (for flask)
+#import signals from hooks
+from ext.signals import signal_activity_log, signal_insert_workflow, \
+                      signal_change_owner
+
+# Custom url mappings (for flask)
 from ext.url_maps import ObjectIDConverter, RegexConverter
-
-# Debug output use pprint
-from pprint import pprint
 
 # Custom extensions
 from ext.tokenauth import TokenAuth
 
 import sys
 
+import arrow
 
+# Debug output use pprint
+from pprint import pprint
 
 
 # Start Eve (and flask)
-# Instantiate wit custom auth
-#app = Eve(auth=TokenAuth)
-app = Eve()
+# Instantiate with custom auth
+app = Eve(auth=TokenAuth)
+#app = Eve()
 
-# Define global configs
+
+""" Define global settings
+These settings are mirrored from Eve and should not be
+@todo: use app.config instead
+"""
 app.globals = {"prefix": "/api/v1"}
 
 app.globals.update({"auth": {}})
@@ -97,26 +92,40 @@ app.globals['auth'].update({"auth_collection": "users_auth",
                             "users_collection": "users",
                             })
 
-pprint(app.globals)
-
-# Start Bootstrap (should be a blueprint?)
+# Start Bootstrap (needed by eve-docs)
 Bootstrap(app)
 
-#Custom url mapping
+#Custom url mapping (needed by native flask routes)
 app.url_map.converters['objectid'] = ObjectIDConverter
 app.url_map.converters['regex'] = RegexConverter
 
 # Register eve-docs blueprint 
-app.register_blueprint(eve_docs, url_prefix="%s/docs" % app.globals['prefix'])
+app.register_blueprint(eve_docs, url_prefix="%s/docs" % app.globals.get('prefix'))
 
 # Register custom blueprints
-app.register_blueprint(Authenticate, url_prefix="%s/user" % app.globals['prefix'])
-app.register_blueprint(MelwinSearch, url_prefix="%s/melwin/users/search" % app.globals['prefix'])
+app.register_blueprint(Authenticate, url_prefix="%s/user" % app.globals.get('prefix'))
+app.register_blueprint(MelwinSearch, url_prefix="%s/melwin/users/search" % app.globals.get('prefix'))
+app.register_blueprint(Weather, url_prefix="%s/weather" % app.globals.get('prefix'))
+app.register_blueprint(Info, url_prefix="%s/info" % app.globals.get('prefix'))
 
-# Register workflow endpoints
-app.register_blueprint(ObsWorkflow, url_prefix="%s/observations/workflow" % app.globals['prefix'])
+# Register observation endpoints
+app.register_blueprint(ObsWorkflow, url_prefix="%s/observations/workflow" % app.globals.get('prefix'))
+app.register_blueprint(ObsWatchers, url_prefix="%s/observations/watchers" % app.globals.get('prefix'))
 
 
+""" A simple python logger setup
+Eve do not yet support logging, but will for 0.5
+Use app.logger.<level>(<message>) for manual logging"""
+if not app.debug:
+    import logging
+    from logging.handlers import RotatingFileHandler
+    file_handler = RotatingFileHandler('log/fnlf-backend.log', 'a', 1 * 1024 * 1024, 10)
+    file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
+    app.logger.setLevel(logging.INFO)
+    file_handler.setLevel(logging.INFO)
+    app.logger.addHandler(file_handler)
+    app.logger.info('FNLF-backend startup')
+    
 """
 
     Eve compatible error message:
@@ -139,110 +148,77 @@ def eve_error_msg(message, http_code='404'):
                                  }
                       })
 
-
-
-
-
-
-"""
-    Start Eve & friends
-    ===================
-    
-"""
-
-
-
-"""
-
-    Custom Flask routes 1:
-    =====================
-    
-    Example using a flask route decorator with an external package
-    
-    Fetching yr.no data for all practical purposes just proxying via the route...
-    
-    Depends on libyr:
-    >>>pip install git+https://github.com/wckd/python-yr.git
-    
-    Routes can also be packaged, say we have a 'avvik_custom_routes' package:
-    import avvik_custom_routes
-    And in the __init__.py the routes are defined, and makes this nice and clean!
-    
-    This is an example of a 'multiroute', ie the switch is the 'what' variable
-    
-    Also:
-    =====
-    
-    Can also fetch data (forecast, metar & taf) as a supplement to the anomaly/avvik without user intervention
-
-"""
-@app.route("%s/weather/<what>" % app.globals['prefix'], methods=['GET'])
-def wx(what):
-    
-    from yr.libyr import Yr #This should not be here
-    weather = Yr(location_name='Norge/Vestfold/Tønsberg/Jarlsberg_flyplass')
-    
-    if what == 'now':
-        return weather.now(as_json=True)
-    
-    elif what == 'forecast':
-        return jsonify(**weather.dictionary['weatherdata']['forecast'])
-    
-    elif what == 'wind':
-        wind_speed = dict()
-        wind_speed['wind_forecast'] = [{'from': forecast['@from'], 'to': forecast['@to'],'@unit': 'knots', 'speed': round(float(forecast['windSpeed']['@mps'])*1.943844, 2)} for forecast in weather.forecast()]
-        return jsonify(**wind_speed)
-        
-    else:
-        return eve_error_msg('There is nothing defined for "' + what + '". Only /weather/now, /weather/wind and /weather/forecast are allowed.', 503)
-
-"""
-    Custom Flask routes 2:
-    ======================
-    
-    Dummy stuff, simple as py....
-    
-    A catch all when not hitting correct path
-    
-    This should be blueprints from /apps/ directory per application
-
-"""
-@app.route("%s/info" % app.globals['prefix'], methods=['GET'])
-def api_info():
-    # Build a dictionary
-    dict = {'api': 'F/NLF Elektroniske tjenester', 
-            'version': '0.1.0', 
-            'contact': 'Jan Erik Wang', 
-            'email': 'Jan Erik Wang <janerik.wang@nlf.no>', 
-            'api_url': request.base_url, 
-            'doc_url': request.base_url + '/docs',
-            'base_url': request.base_url,
-            }
-    
-    # Jsonify the dictionary and return it
-    return jsonify(**dict)
-
-
 """
 
     Event hooks:
     ============
     
-    Using Eve events
+    Using Eve defined events 
     
-    Applies to request and database makes it very extensible
+    Mixed with signals to ext.hooks for flask and direct database access compatibility
     
-    A more advanced use could be to emit a message through a websocket for every defined interaction.
+    Eve specific hooks are defined according to
     
-    NB: To run a websocket server you need gunicorn or others with support for wsgi.websocket...
+    def <resource>_<when>_<method>():
+    
+    When attaching to app, remember to use post and pre for request hooks
+    
+    @note: For eve.methods.common to make oplog support user logging in oplog_push; 
+            if app.auth:
+                entry.update({'u': app.auth.get_user_id()})
+            To be able to retrieve the u field change _init_oplog in eve.flaskapp.py
+            if self.auth:
+                settings['schema'].update(
+                    {
+                        'u': {},
+                    }
+                )    
+                
+    @note: all requests are supported: GET, POST, PATCH, PUT, DELETE
+    @note: POST (resource, request, payload)
+    @note: POST_resource (request, payload)
+    @note: GET (resource, request, lookup)
+    @note: GET_resource (request, lookup)
 
 """
-def pre_persons(request, lookup):
-    # Print something
-    print("Invoked Pre Get Lookup - on persons!")
+
+def observations_before_post(request, payload=None):
     
-# Register event
-app.on_pre_GET_persons += pre_persons
+    raise NotImplementedError
+
+def observations_before_patch(request, lookup):
+    
+    raise NotImplementedError
+
+def observations_after_patch(request, response):
+    """ Change owner, owner is readonly
+    """
+    signal_change_owner.send(app,response=response)
+    
+def observations_after_post(request, payload):
+    """ When payload as json, request.get_json()
+    Else; payload
+    @todo: Integrate with ObservationWorkflow!
+    @todo: Set expiry as attribute for states!
+    """
+
+    signal_insert_workflow(app)
+    
+    #action, ref, user, resource=None ref, act = None, resource=None, **extra
+
+    pass
+
+def observations_before_get(request, lookup):
+    
+    raise NotImplementedError
+    pass
+
+#app.on_pre_GET_observations += observations_before_get
+#app.on_pre_POST_observations += observations_before_post
+#app.on_pre_PATCH_observations += observations_before_patch
+app.on_post_POST_observations += observations_after_post
+app.on_post_PATCH_observations += observations_after_patch
+#app.on_pre_PATCH_observations += observations_before_patch
 
 """
     Where can user id be added?
@@ -251,20 +227,9 @@ app.on_pre_GET_persons += pre_persons
 """
 def before_insert_oplog(items):
     
-    print(items)
-    #items['u'] = 45199
-    
-app.on_insert_dev += before_insert_oplog
+    raise NotImplementedError
 
-"""
-    Let's see what's getting posted!
-"""
-def pre_avvik(request):
-    print(request.data)
-    
-app.on_pre_POST_avvik += pre_avvik
-
-
+app.on_insert_oplog += before_insert_oplog
 
 
 """
@@ -272,9 +237,11 @@ app.on_pre_POST_avvik += pre_avvik
     START:
     ======
     
-    Starting the wsgi development server with Eve
+    Start the wsgi development server with Eve
     
     Localhost and port 8080
+    
+    @todo: Use gunicorn
 
 """
 if __name__ == '__main__':

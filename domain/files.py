@@ -33,6 +33,8 @@ _schema = {
 definition = {
         
         'item_title': 'testfiles',
+        'resource_methods': ['GET', 'POST'],
+        'item_methods': ['GET', 'PATCH'],
         'versioning': True,        
         'schema': _schema,
         'projection': {'file': 0}

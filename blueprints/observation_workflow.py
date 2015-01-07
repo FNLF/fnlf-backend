@@ -2,41 +2,10 @@
     Observation Workflow Controller
     ===============================
     
-    Model: workflows.observation class ObservationWorkflow
-    
-    
-    
-    simple_page = Blueprint('simple_page', __name__)
-
-    class UserAPI(MethodView):
-    
-         def get(self):
-             users = User.query.all()
-    
-         def post(self):
-             user = User.from_form_data(request.form)
-    
-        simple_page .add_url_rule('/', view_func=UserAPI.as_view('users'))
-    
-    ===> So this should ALL be contained in the workflow class?? No need to add an extra layer or??
-    
-    Or rather keep this as a blueprint with the routes being:
-    ready
-    withdraw
-    approve
-    reject
-    close
+    Model: workflows.observation.ObservationWorkflow
     
     @todo: Signals on change signal to communications to dispatch an update to the watchers
            http://stackoverflow.com/questions/16163139/catch-signals-in-flask-blueprint
-           
-    
-    @todo: HATEOAS links to actions?
-        "_links": {
-        "reject": {
-            "href": "observations/workflow/5396b800e4b0220ae2b05797/reject",
-            "title": "Reject"
-        },
 
 """
 
@@ -58,11 +27,11 @@ Get current state, actions, transitions and permissions
 """
 @ObsWorkflow.route("/<objectid:observation_id>", methods=['GET'])
 @ObsWorkflow.route("/<objectid:observation_id>/state", methods=['GET'])
-#@require_token()
+@require_token()
 def state(observation_id):
     
     # No need for user_id, ObservatoinWorkflow already has that!
-    wf = ObservationWorkflow(object_id=observation_id, user_id=45199)
+    wf = ObservationWorkflow(object_id=observation_id, user_id=app.globals.get('user_id'))
     
     return Response(json.dumps(wf.get_current_state()),  mimetype='application/json')
 
@@ -70,17 +39,17 @@ def state(observation_id):
 Get audit trail for observation
 """
 @ObsWorkflow.route("/<objectid:observation_id>/audit", methods=['GET'])
-#@require_token()
+@require_token()
 def audit(observation_id):
     
-    wf = ObservationWorkflow(object_id=observation_id, user_id=45199)
+    wf = ObservationWorkflow(object_id=observation_id, user_id=app.globals.get('user_id'))
    
     return Response(json.dumps(wf.get_audit(), default=json_util.default), mimetype='application/json')
 
 
   
 @ObsWorkflow.route('/<objectid:observation_id>/<regex("(approve|reject|withdraw|reopen)"):action>', methods=['POST'])
-#@require_token()
+@require_token()
 def transition(observation_id, action):
     """
     Perform action on observation
@@ -90,11 +59,18 @@ def transition(observation_id, action):
     @todo: include comment in post!
     """
     
-    args = request.get_json() #use force=True to do anyway!
-    comment = args.get('comment')
-    print("Comment: %s" % comment)
+    
+    
+    comment = None
+    try:
+        args = request.get_json() #use force=True to do anyway!
+        comment = args.get('comment')
+    except:
+        # Could try form etc
+        pass
+    
     # Instantiate with observation_id and current user (user is from app.globals.user_id
-    wf = ObservationWorkflow(object_id=observation_id, user_id=45199, comment=comment)
+    wf = ObservationWorkflow(object_id=observation_id, user_id=app.globals.get('user_id'), comment=comment)
     
     # Now just do a
     
@@ -104,13 +80,14 @@ def transition(observation_id, action):
         
         # This is actually safe!
         result = eval('wf.' + wf.get_resource_mapping().get(action) + '()')
-        print("State triggered: %s" % result)
-    
+       
     return Response(json.dumps(wf.state),  mimetype='application/json')
 
+    """
+    @todo: For removal:
     r = wf.get_current_state()
     
-    resp = {'Something': 'Went wrong you jerk'}
+    resp = {'Something': 'Went wrong'}
     
     # Check if got resource <-> action mapping!
     for v in r.get('actions'):
@@ -121,10 +98,10 @@ def transition(observation_id, action):
     
     print("testing test")
     return Response(json.dumps(resp),  mimetype='application/json')
-
+    """
 
 @ObsWorkflow.route("/<objectid:observation_id>/tasks", methods=['GET'])
-#@require_token()
+@require_token()
 def tasks(observation_id):
     """
     Get tasks for observation
@@ -133,7 +110,7 @@ def tasks(observation_id):
     
     Most likely this will make for another transition where state is 'waiting for tasks to complete'
     """
-    wf = ObservationWorkflow(object_id=observation_id, user_id=45199)
+    #wf = ObservationWorkflow(object_id=observation_id, user_id=app.globals.get('user_id'))
    
-    return NotImplemented
+    raise NotImplemented
 
