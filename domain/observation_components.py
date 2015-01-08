@@ -35,7 +35,7 @@ _schema = {'what': {'type': 'string',
                                'violation': {'type': 'boolean'}
                                  }
                           }, 
-           'labels': {'type': 'list'},
+           'tags': {'type': 'list'},
            
            'files': {'type': 'list', 
                      'schema': {'type': 'media'}

@@ -57,7 +57,7 @@ _schema = {'id': {'type': 'integer',
                         },
            
            'related': {'type': 'list'},
-           'labels': {'type': 'list'},
+           'tags': {'type': 'list'},
            'comments': comments_schema,
            'workflow': workflow_schema,
            'watchers': watchers_schema,
