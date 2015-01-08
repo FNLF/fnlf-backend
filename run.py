@@ -202,7 +202,7 @@ def observations_after_post(request, payload):
     @todo: Set expiry as attribute for states!
     """
 
-    signal_insert_workflow(app)
+    signal_insert_workflow.send(app)
     
     #action, ref, user, resource=None ref, act = None, resource=None, **extra
 
