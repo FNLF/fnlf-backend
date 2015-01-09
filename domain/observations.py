@@ -15,7 +15,8 @@ from _base import workflow_schema, comments_schema, watchers_schema, audit_schem
 import observation_components
 
 _schema = {'id': {'type': 'integer',
-                  'required': False},
+                  'required': False,
+                  'readonly': True},
            'title': {'type': 'string'},
            'type': {'type': 'string',
                     'allowed': ['unsafe_act', 'near_miss', 'incident', 'accident']},
