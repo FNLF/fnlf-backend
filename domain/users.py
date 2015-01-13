@@ -3,9 +3,8 @@
     User
     ====
     
-    A simple user collection as a cache before requests goes to Melwin.
+    User collection to hold information not in Melwin
     
-    Do NOT contain any personal information
     
 """
 
@@ -13,6 +12,7 @@ _schema = {
             # Medlemsnummer
             'id': {'type': 'integer',
                    'required': True,
+                   'readonly': True
                    },
            
             'avatar': {'type': 'media',},
@@ -27,7 +27,8 @@ _schema = {
             'info': {'type': 'dict',},
             
             # Generated information, better as an internal one?
-            'statistics': {'type': 'dict',},
+            'statistics': {'type': 'dict',
+                           'readonly': True},
             
             # Should these be here or seperate?
             #'notes': {'type': 'dict',},
@@ -45,6 +46,7 @@ definition = {
         
         'resource_methods': ['GET', 'POST'], #No post, only internal!!
         'item_methods': ['GET', 'PATCH'],
+        'auth_field': 'id', #This will limit only users who has
         
         'versioning': True,
         

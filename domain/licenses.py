@@ -18,6 +18,7 @@
 _schema = {
             'id': {'type': 'string',
                    'required': True,
+                   'readonly': True
                  },
             'name': {'type': 'string',
                    },

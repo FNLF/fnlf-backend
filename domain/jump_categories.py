@@ -19,7 +19,9 @@ from _base import workflow_schema, comments_schema, watchers_schema, audit_schem
 
 _schema = {
            'id': {'type': 'string',
-                    'required': True},
+                  'required': True,
+                  'readonly': True
+                  },
            'name': {'type': 'string',
                     'required': True},
            'description': {'type': 'string'},
