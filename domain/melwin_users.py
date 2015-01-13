@@ -37,6 +37,8 @@ _schema = {
             'lastname' : {'type': 'string',
                           'required': True,},
             
+            'fullname': {'type': 'string'},
+            
             'birthdate' : {'type': 'datetime'},
             
             'gender': {'type': 'string',
