@@ -74,10 +74,12 @@ import arrow
 # Debug output use pprint
 from pprint import pprint
 
+# Make sure gunicorn passes settings.py
+SETTINGS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'settings.py')
 
 # Start Eve (and flask)
 # Instantiate with custom auth
-app = Eve(auth=TokenAuth)
+app = Eve(auth=TokenAuth, settings=SETTINGS_PATH)
 #app = Eve()
 
 
@@ -162,18 +164,7 @@ def eve_error_msg(message, http_code='404'):
     def <resource>_<when>_<method>():
     
     When attaching to app, remember to use post and pre for request hooks
-    
-    @note: For eve.methods.common to make oplog support user logging in oplog_push; 
-            if app.auth:
-                entry.update({'u': app.auth.get_user_id()})
-            To be able to retrieve the u field change _init_oplog in eve.flaskapp.py
-            if self.auth:
-                settings['schema'].update(
-                    {
-                        'u': {},
-                    }
-                )    
-                
+           
     @note: all requests are supported: GET, POST, PATCH, PUT, DELETE
     @note: POST (resource, request, payload)
     @note: POST_resource (request, payload)
@@ -241,7 +232,8 @@ app.on_insert_oplog += before_insert_oplog
     
     Localhost and port 8080
     
-    @todo: Use gunicorn
+    @note: Run via gunicorn as 'gunicorn -b localhost:8080 run:app'
+    @todo: Config file for deployment via -C see http://gunicorn-docs.readthedocs.org/en/latest/settings.html
 
 """
 if __name__ == '__main__':
