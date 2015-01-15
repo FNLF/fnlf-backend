@@ -31,7 +31,7 @@
     @license: MIT, see LICENSE for more details. Note that Eve is BSD licensed
 """
 
-__version_info__ = ('0', '1', '0')
+__version_info__ = ('0', '1', '1')
 __version__ = '.'.join(__version_info__)
 __author__ = 'Einar Huseby'
 __license__ = 'MIT'
@@ -234,8 +234,9 @@ app.on_insert_oplog += before_insert_oplog
     
     Localhost and port 8080
     
+    @note: Run development server in background with log as 'nohup python run.py >> nlf.log 2>&1&' 
     @note: Run via gunicorn as 'gunicorn -b localhost:8080 run:app'
-    @todo: Config file for deployment via -C see http://gunicorn-docs.readthedocs.org/en/latest/settings.html
+    @todo: Config file for gunicorn deployment and -C see http://gunicorn-docs.readthedocs.org/en/latest/settings.html
 
 """
 if __name__ == '__main__':
