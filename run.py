@@ -31,7 +31,7 @@
     @license: MIT, see LICENSE for more details. Note that Eve is BSD licensed
 """
 
-__version_info__ = ('0', '1', '0')
+__version_info__ = ('0', '1', '1')
 __version__ = '.'.join(__version_info__)
 __author__ = 'Einar Huseby'
 __license__ = 'MIT'
@@ -56,6 +56,7 @@ from blueprints.observation_workflow import ObsWorkflow
 from blueprints.observation_watchers import ObsWatchers
 from blueprints.weather import Weather
 from blueprints.info import Info
+from blueprints.locations import Locations
 
 #import signals from hooks
 from ext.signals import signal_activity_log, signal_insert_workflow, \
@@ -74,10 +75,12 @@ import arrow
 # Debug output use pprint
 from pprint import pprint
 
+# Make sure gunicorn passes settings.py
+SETTINGS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'settings.py')
 
 # Start Eve (and flask)
 # Instantiate with custom auth
-app = Eve(auth=TokenAuth)
+app = Eve(auth=TokenAuth, settings=SETTINGS_PATH)
 #app = Eve()
 
 
@@ -111,6 +114,7 @@ app.register_blueprint(Info, url_prefix="%s/info" % app.globals.get('prefix'))
 # Register observation endpoints
 app.register_blueprint(ObsWorkflow, url_prefix="%s/observations/workflow" % app.globals.get('prefix'))
 app.register_blueprint(ObsWatchers, url_prefix="%s/observations/watchers" % app.globals.get('prefix'))
+app.register_blueprint(Locations, url_prefix="%s/locations" % app.globals.get('prefix'))
 
 
 """ A simple python logger setup
@@ -162,18 +166,7 @@ def eve_error_msg(message, http_code='404'):
     def <resource>_<when>_<method>():
     
     When attaching to app, remember to use post and pre for request hooks
-    
-    @note: For eve.methods.common to make oplog support user logging in oplog_push; 
-            if app.auth:
-                entry.update({'u': app.auth.get_user_id()})
-            To be able to retrieve the u field change _init_oplog in eve.flaskapp.py
-            if self.auth:
-                settings['schema'].update(
-                    {
-                        'u': {},
-                    }
-                )    
-                
+           
     @note: all requests are supported: GET, POST, PATCH, PUT, DELETE
     @note: POST (resource, request, payload)
     @note: POST_resource (request, payload)
@@ -202,7 +195,7 @@ def observations_after_post(request, payload):
     @todo: Set expiry as attribute for states!
     """
 
-    signal_insert_workflow(app)
+    signal_insert_workflow.send(app)
     
     #action, ref, user, resource=None ref, act = None, resource=None, **extra
 
@@ -241,7 +234,9 @@ app.on_insert_oplog += before_insert_oplog
     
     Localhost and port 8080
     
-    @todo: Use gunicorn
+    @note: Run development server in background with log as 'nohup python run.py >> nlf.log 2>&1&' 
+    @note: Run via gunicorn as 'gunicorn -b localhost:8080 run:app'
+    @todo: Config file for gunicorn deployment and -C see http://gunicorn-docs.readthedocs.org/en/latest/settings.html
 
 """
 if __name__ == '__main__':

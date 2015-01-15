@@ -11,35 +11,22 @@ _schema = {'what': {'type': 'string',
                     'required': True},
            'when': {'type': 'datetime'},
            'where': {'type': 'dict',
-                     'schema': {'at': {'type': 'string', 
-                                       'allowed': ['pakkeområde', 'pakking', 'innlastingsområde', 'publikumsområde', 'innlastning', 'flyet', 'flyet (ned)', \
-                                                   'utstabling', 'exit', 'frittfall', 'seperasjon', 'wave-off', 'skjermåpning', 'innflyging', 'finale', \
-                                                   'landing', 'landingsområdet', 'fjellet', 'vannet (ute)', 'treet (ute)', 'skogen (ute)', \
-                                                   'jordet (ute)', 'tettbebyggelse (ute)','annet'],
-                                       },
-                                #retur fra landingsområdet
+                     'schema': {'at': {'type': 'string',},
                                 'altitude': {'type': 'integer'}
                                 }
                      },
            'how': {'type': 'string'},
            'who': {'type': 'list',}, #List of id's
            
-           'freetext': {'type': 'string'},
-           
+           # Flags a component according to the timeline
            'flags': {'type': 'dict',
                     'schema': {'root_cause': {'type': 'boolean'},
                                'final_consequence': {'type': 'boolean'},
                                'barrier': {'type': 'boolean'},
                                'incident': {'type': 'boolean'},
-                               'wilfull': {'type': 'boolean'},
-                               'violation': {'type': 'boolean'}
                                  }
                           }, 
-           'labels': {'type': 'list'},
-           
-           'files': {'type': 'list', 
-                     'schema': {'type': 'media'}
-                     },
+           'tags': {'type': 'list'},
            
            'related': {'type': 'list',
                        'schema': {'type': 'objectid',
@@ -50,14 +37,19 @@ _schema = {'what': {'type': 'string',
                                          }
                                   },
                      },
+           # Attributes tell us more about what happened at this component
            'attributes': {'type': 'dict',
-                          'schema': {'injury': {'type': 'boolean'},
+                          'schema': {'wilfull': {'type': 'boolean'},
+                                     'violation': {'type': 'boolean'},
+                                     'injury': {'type': 'boolean'},
                                      'death': {'type': 'boolean'},
                                      'gear_failure': {'type': 'boolean'},
                                      'gear_malfunction': {'type': 'boolean'},
                                      'damage': {'type': 'boolean'}
                                      },
-                          }
+                          },
+           
+           'help': {'type': 'dict'},
            }
 
 definition = {
@@ -68,7 +60,7 @@ definition = {
         'versioning': True,
         
         'resource_methods': ['GET', 'POST'],
-        'item_methods': ['GET', 'PATCH'],
+        'item_methods': ['GET', 'PATCH', 'PUT'],
         
         'schema': _schema
         

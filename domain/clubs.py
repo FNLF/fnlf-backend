@@ -1,5 +1,4 @@
 """
-
     Clubs
     =====
     
@@ -10,6 +9,7 @@
 _schema = {
             'id': {'type': 'string',
                    'required': True,
+                   'readonly': True
                  },
             'name': {'type': 'string',
                    },
@@ -38,7 +38,7 @@ definition = {
                        },
         
         'resource_methods': ['GET', 'POST'],
-        'item_methods': ['GET', 'PATCH'],
+        'item_methods': ['GET', 'PATCH', 'PUT'],
         
         'versioning': True,
         
