@@ -21,9 +21,9 @@ Locations = Blueprint('Location service via kartverket', __name__,)
 @require_token()
 def search(name=None, max=10, epgs=4326):
     """ Search via kartverket's REST service
-    Response is xml, convert to dict with xmltodict
-    Transform each item to our format including geojson for coordinates
-    Transform items into list even if only one result
+    - Response is xml, convert to dict with xmltodict
+    - Transform each item to our format including geojson for coordinates
+    - Transform items into list even if only one result
     
     @todo: need some length don't we? Well we have places like Å so maybe not.
     @todo: verify before http
@@ -51,7 +51,7 @@ def search(name=None, max=10, epgs=4326):
     """
     
     final.update({'_meta': {"page": 1, "total": 1, "max_results": p.get('sokRes').get('totaltAntallTreff')}})
-    final.update({'_links': {"self": {"title": "locations for %s" %name, "href": "locations/%s" % name},
+    final.update({'_links': {"self": {"title": "locations for %s" % q, "href": "locations/search?q=%s" % q},
                              "parent": {"title": "locations", "href": "locations"}
                             }
                   })
