@@ -13,11 +13,12 @@ import urllib.parse
 
 import xmltodict
 
-import json
+from ext.decorators import require_token
 
 Locations = Blueprint('Location service via kartverket', __name__,)
 
 @Locations.route("/search", methods=['GET'])
+@require_token()
 def search(name=None, max=10, epgs=4326):
     """ Search via kartverket's REST service
     Response is xml, convert to dict with xmltodict
