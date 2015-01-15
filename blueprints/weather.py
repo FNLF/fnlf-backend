@@ -65,14 +65,14 @@ def yr(what):
         
 
 
-@Weather.route("/aero/<regex('(metar|taf|shorttaf)'):what>/<icao>", methods=['GET'])
+@Weather.route("/aero/<regex('[aA-zZ]{4}'):icao>/<regex('(metar|taf|shorttaf)'):what>", methods=['GET'])
 def aero(what, icao):
     """ Aero resource retrieves metar and taf for given icao code
     @todo: support switches for raw and decoded messages
     @todo: support for historical data
     """
     
-    w = Aeromet(icao)
+    w = Aeromet(icao.upper())
     
     if what == 'metar':
         return jsonify(**{'metar': w.metar()})

@@ -36,8 +36,7 @@ class TokenAuth(TokenAuth):
         u = accounts.find_one({'auth.token': token})
 
         if u:
-            #testing if Oplog makes this happen
-            #self.set_request_auth_value(u['id'])
+
             self.user_id = u['id']
 
             utc = arrow.utcnow()
@@ -58,6 +57,13 @@ class TokenAuth(TokenAuth):
                 self._set_globals(u['id'], u['_id'])
                 
                 self.is_auth = True
+                
+                # Set request auth value IF on users resource
+                # This effectively limits all operations except GET
+                # hence only the authenticated user can change the corresponding users item (by id)
+                # @note: This corresponds to domain definition 'auth_field': 'id'
+                if method != 'GET' and resource == 'users':
+                    self.set_request_auth_value(u['id'])
                 
                 return True # Token exists and is valid, renewed for another hour
             

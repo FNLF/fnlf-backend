@@ -50,11 +50,18 @@ JSON = True
 
 ALLOW_UNKNOWN = False
 
+# ISO 
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
 # File storage
 EXTENDED_MEDIA_INFO = ['content_type', 'name', 'length']
-RETURN_MEDIA_AS_BASE64_STRING = False # When true loads the file references as base64. Ok for (small) images, rubbish for files (video, documents) and large images Should make a seperate download/streaming resource
+RETURN_MEDIA_AS_BASE64_STRING = True # When true loads the file references as base64. Ok for (small) images, rubbish for files (video, documents) and large images Should make a seperate download/streaming resource
+
+# CORS, see http://python-eve.org/config.html#global-configuration:
+#X_DOMAINS = ['nlf-az.db02.cloudapp.net','kartverket.no']
+#X_HEADERS = None
+#X_EXPOSE_HEADERS = None
+#X_MAX_AGE = 21600
 
 """
     OP Log

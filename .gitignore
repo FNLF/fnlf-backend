@@ -6,7 +6,8 @@ bin/
 include/
 lib64
 log/
-
+database*
+fnlf-database*
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
