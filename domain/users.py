@@ -45,7 +45,7 @@ definition = {
                        },
         
         'resource_methods': ['GET', 'POST'], #No post, only internal!!
-        'item_methods': ['GET', 'PATCH'],
+        'item_methods': ['GET', 'PATCH', 'PUT'],
         'auth_field': 'id', #This will limit only users who has
         
         'versioning': True,
