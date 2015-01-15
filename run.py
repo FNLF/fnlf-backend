@@ -56,6 +56,7 @@ from blueprints.observation_workflow import ObsWorkflow
 from blueprints.observation_watchers import ObsWatchers
 from blueprints.weather import Weather
 from blueprints.info import Info
+from blueprints.locations import Locations
 
 #import signals from hooks
 from ext.signals import signal_activity_log, signal_insert_workflow, \
@@ -113,6 +114,7 @@ app.register_blueprint(Info, url_prefix="%s/info" % app.globals.get('prefix'))
 # Register observation endpoints
 app.register_blueprint(ObsWorkflow, url_prefix="%s/observations/workflow" % app.globals.get('prefix'))
 app.register_blueprint(ObsWatchers, url_prefix="%s/observations/watchers" % app.globals.get('prefix'))
+app.register_blueprint(Locations, url_prefix="%s/locations" % app.globals.get('prefix'))
 
 
 """ A simple python logger setup
