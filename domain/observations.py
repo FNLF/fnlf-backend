@@ -17,16 +17,21 @@ import observation_components
 _schema = {'id': {'type': 'integer',
                   'required': False,
                   'readonly': True},
-           'title': {'type': 'string'},
+           
            'type': {'type': 'string',
                     'allowed': ['unsafe_act', 'near_miss', 'incident', 'accident']},
-           'wilfull': {'type': 'boolean',
-                       'default': False},
+           
+           'tags': {'type': 'list'},
+           
            'owner': {'type': 'integer', 'readonly': True}, # user_id this post/patch
            'reporter': {'type': 'integer', 'readonly': True}, # user_id initial reported by!
+           
            'when': {'type': 'datetime'},
+           
            'involved': {'type': 'list'},
+           
            'organisation': {'type': 'dict'},
+           
            'rating': {'type': 'dict',
                       'schema': {'actual': {'type': 'integer'},
                                  'potential': {'type': 'integer'},
@@ -48,21 +53,13 @@ _schema = {'id': {'type': 'integer',
            'files': {'type': 'list', 
                      'schema': {'type': 'media'}
                      },
-           'freetext': {'type': 'dict',
-                        'schema': {'jumper': {'type': 'string'},
-                                   'hl': {'type': 'string'},
-                                   'hi': {'type': 'string'},
-                                   'fs': {'type': 'string'},
-                                   'su': {'type': 'string'},
-                                   }
-                        },
            
            'related': {'type': 'list'},
-           'tags': {'type': 'list'},
+           'actions': {'type': 'dict'},
+           
            'comments': comments_schema,
            'workflow': workflow_schema,
            'watchers': watchers_schema,
-           'actions': {'type': 'dict'},
            'audit': audit_schema,
            'acl': acl_schema,
            
