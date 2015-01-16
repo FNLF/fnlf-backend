@@ -23,6 +23,10 @@ _schema = {'id': {'type': 'integer',
            
            'tags': {'type': 'list'},
            
+           'club': {'type': 'string'},
+           
+           'location': {'type': 'dict'},
+           
            'owner': {'type': 'integer', 'readonly': True}, # user_id this post/patch
            'reporter': {'type': 'integer', 'readonly': True}, # user_id initial reported by!
            
@@ -30,7 +34,7 @@ _schema = {'id': {'type': 'integer',
            
            'involved': {'type': 'list'},
            
-           'organisation': {'type': 'dict'},
+           'organization': {'type': 'dict'},
            
            'rating': {'type': 'dict',
                       'schema': {'actual': {'type': 'integer'},
