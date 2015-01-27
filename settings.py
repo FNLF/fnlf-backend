@@ -51,7 +51,7 @@ JSON = True
 ALLOW_UNKNOWN = False
 
 # ISO 
-DATE_FORMAT = "%Y-%m-%dT%H:%M:%S"
+DATE_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
 # File storage
 EXTENDED_MEDIA_INFO = ['content_type', 'name', 'length']
