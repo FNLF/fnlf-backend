@@ -37,7 +37,7 @@ definition = {
         'datasource': {'source': 'licenses',
                        'default_sort': [('id', 1)],
                        },
-        
+        'extra_response_fields': ['id'],
         'resource_methods': ['GET', 'POST'],
         'item_methods': ['GET', 'PATCH', 'PUT'],
         
