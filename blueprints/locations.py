@@ -68,8 +68,7 @@ def search(name=None, max=10, epgs=4326):
         
     else:
         places = [transform(p.get('sokRes').get('stedsnavn'))]
-        
-    
+           
     final.update({'_items': places})
     
     return jsonify(**final)

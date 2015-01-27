@@ -19,7 +19,7 @@ _schema = {'id': {'type': 'integer',
                   'readonly': True},
            
            'type': {'type': 'string',
-                    'allowed': ['unsafe_act', 'near_miss', 'incident', 'accident']},
+                    'allowed': ['sharing', 'unsafe_act', 'near_miss', 'incident', 'accident']},
            
            'tags': {'type': 'list'},
            
