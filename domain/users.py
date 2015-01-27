@@ -43,7 +43,7 @@ definition = {
         'datasource': {'source': 'users',
                        'default_sort': [('id', 1)],
                        },
-        
+        'extra_response_fields': ['id'],
         'resource_methods': ['GET', 'POST'], #No post, only internal!!
         'item_methods': ['GET', 'PATCH', 'PUT'],
         'auth_field': 'id', #This will limit only users who has
