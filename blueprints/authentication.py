@@ -149,7 +149,8 @@ def login():
         return jsonify(**{'success': True, 
                           'token': token,
                           'token64': b64,
-                          'valid': valid.datetime})
+                          'valid': valid.datetime,
+                          '_id': str(_id)})
     
     # On error sleep a little against brute force
     sleep(1)

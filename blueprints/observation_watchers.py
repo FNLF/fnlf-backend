@@ -49,7 +49,7 @@ def is_watching(observation_id):
     
     return jsonify(**{'watching': False})
 
-@ObsWatchers.route("/<objectid:observation_id>/start", methods=['GET'])
+@ObsWatchers.route("/<objectid:observation_id>/start", methods=['POST'])
 @require_token()
 def start(observation_id):
     """ Start watching an observation """
@@ -68,7 +68,7 @@ def start(observation_id):
     
     return jsonify(**{'watching': False})
 
-@ObsWatchers.route("/<objectid:observation_id>/stop", methods=['GET'])
+@ObsWatchers.route("/<objectid:observation_id>/stop", methods=['POST'])
 @require_token()
 def stop(observation_id):
     
