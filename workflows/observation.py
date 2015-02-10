@@ -96,7 +96,7 @@ class ObservationWorkflow(Machine):
         
         # Users - Groups
         su = [5766, 4455, 3322, 32233, 45199]
-        fs = [5766, 45199]
+        fs = [5766,45199]
         hi = [45199] # current club observation is registered on
         owner = [app.globals.get('user_id')]
         #self.user_id 
