@@ -26,6 +26,8 @@
             Find outdated packages
             pip list --outdated
     
+    @note: Run as `nohup python run.py >> nlf.log 2>&1&` NB in virtualenv!
+    
     @author:  Einar Huseby
     @copyright: (c) 2014 Fallskjermseksjonen Norges Luftsportsforbund
     @license: MIT, see LICENSE for more details. Note that Eve is BSD licensed
