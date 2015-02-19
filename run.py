@@ -59,6 +59,7 @@ from blueprints.observation_watchers import ObsWatchers
 from blueprints.weather import Weather
 from blueprints.info import Info
 from blueprints.locations import Locations
+from blueprints.files import Files
 
 #import signals from hooks
 from ext.signals import signal_activity_log, signal_insert_workflow, \
@@ -112,6 +113,7 @@ app.register_blueprint(Authenticate, url_prefix="%s/user" % app.globals.get('pre
 app.register_blueprint(MelwinSearch, url_prefix="%s/melwin/users/search" % app.globals.get('prefix'))
 app.register_blueprint(Weather, url_prefix="%s/weather" % app.globals.get('prefix'))
 app.register_blueprint(Info, url_prefix="%s/info" % app.globals.get('prefix'))
+app.register_blueprint(Files, url_prefix="%s/download" % app.globals.get('prefix'))
 
 # Register observation endpoints
 app.register_blueprint(ObsWorkflow, url_prefix="%s/observations/workflow" % app.globals.get('prefix'))
