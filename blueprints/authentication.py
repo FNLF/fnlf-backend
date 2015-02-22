@@ -91,15 +91,14 @@ def login():
             melwin_api = app.data.driver.db['melwin_users']
             melwin_user = melwin_api.find_one({'id': username})
             
-            pprint(melwin_user)
             if melwin_user:
                 
                 try: # Users 
-                    r_user = post_internal(app.globals['auth']['users_collection'], {'id': melwin_user['id']})
+                    r_user = post_internal(app.globals['auth']['users_collection'], {'id': melwin_user['id']},skip_validation=True)
                     
                 except:
                     print("Could not insert users_collection")
-                
+                    
                 try:# Users auth collection
                     users_auth_collection = app.data.driver.db[app.globals['auth']['auth_collection']]
                     r_auth = users_auth_collection.insert({'id': melwin_user['id'], 'user': r_user[0]['_id'], 'auth': {"token": "", "valid": ""}})
