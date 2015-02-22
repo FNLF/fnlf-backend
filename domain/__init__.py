@@ -33,6 +33,8 @@ import observation_components
 # Files - just a test collection
 import files
 
+import tags
+
 # A custom endpoint for developement flexibility!
 import dev
 
@@ -53,6 +55,7 @@ DOMAIN = {
     "jumps/categories": jump_categories.definition,
     "dev" : dev.definition,
     "files" : files.definition,
+    "tags" : tags.definition,
    
 }
 

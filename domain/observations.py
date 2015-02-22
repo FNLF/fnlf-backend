@@ -19,7 +19,7 @@ _schema = {'id': {'type': 'integer',
                   'readonly': True},
            
            'type': {'type': 'string',
-                    'allowed': ['unsafe_act', 'near_miss', 'incident', 'accident']},
+                    'allowed': ['sharing', 'unsafe_act', 'near_miss', 'incident', 'accident']},
            
            'tags': {'type': 'list'},
            
@@ -55,7 +55,8 @@ _schema = {'id': {'type': 'integer',
                           },
            
            'files': {'type': 'list', 
-                     'schema': {'type': 'media'}
+                     'schema': {'type': 'string'}, #objectid
+                     'default': [],
                      },
            
            'related': {'type': 'list'},
@@ -73,7 +74,8 @@ _schema = {'id': {'type': 'integer',
 definition = {
         'item_title': 'observations',
         'datasource': {'source': 'observations',
-                       'projection': {'files': 0, 'acl': 0} },
+                       'projection': {'acl': 0} #'files': 0,  
+                       },
         
         # Make a counter so we can have a lookup for #455
         'additional_lookup': {

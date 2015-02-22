@@ -44,7 +44,7 @@ ITEM_METHODS = ['GET', 'PATCH', 'DELETE', 'PUT']
 CACHE_CONTROL = 'max-age=20'
 CACHE_EXPIRES = 20
 
-# Support what response rendering?
+# Support only json response
 XML = False
 JSON = True
 
