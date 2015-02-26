@@ -42,17 +42,18 @@ def index():
     
     return jsonify(**{'message': 'Use yr or aero resources'})
 
-@Weather.route("/yr/<regex('(now|forecast|wind)'):what>", methods=['GET'])
-def yr(what):
+@Weather.route("/yr/<string:county>/<string:municipality>/<string:name>/<regex('(now|forecast|wind)'):what>", methods=['GET'])
+def yr(what,county,municipality,name):
     """ Downloads data from yr.no
     @todo: Should fix units
     @todo: Should be based on locations and/or clubs default location in clubs '/yr/wind/375-F'
     """
-    
-    
-    weather = Yr(location_name='Norge/Vestfold/Tønsberg/Jarlsberg_flyplass')
+
+    yrpath = ("Norge/%s/%s/%s" % (county, municipality, name))
+    weather = Yr(location_name=yrpath)
     
     if what == 'now':
+        
         return weather.now(as_json=True)
     
     elif what == 'forecast':
