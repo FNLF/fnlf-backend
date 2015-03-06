@@ -60,14 +60,14 @@ def login():
     # Only integers for Melwin:
     try:
         username = int(rq['username'])
-        password = int(rq['password'])
+        password = rq['password']
     except:
         # Now it will fail in the if
         pass  
     
     #if request.form.get('username',type=int) == 45199 and request.form.get('password',type=int) == 45199:
     #if m.login(request.form.get('username',type=int), request.form.get('password',type=int)):
-    if isinstance( username, int ) and isinstance( password, int ) and m.login(username, password):
+    if isinstance( username, int ) and len(password) == 9 and m.login(username, password):
         
         #app = current_app._get_current_object()
         
@@ -93,8 +93,12 @@ def login():
             
             if melwin_user:
                 
+                # NB set up acl!
+                acl = {'groups': [],
+                       'roles': []}
+                
                 try: # Users 
-                    r_user = post_internal(app.globals['auth']['users_collection'], {'id': melwin_user['id']},skip_validation=True)
+                    r_user = post_internal(app.globals['auth']['users_collection'], {'id': melwin_user['id'], 'acl': acl},skip_validation=True)
                     
                 except:
                     print("Could not insert users_collection")
