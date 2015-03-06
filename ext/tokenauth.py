@@ -12,6 +12,7 @@ from eve.auth import TokenAuth
 
 from flask import current_app as app, request, Response, abort
 
+from eve.methods.get import getitem as get_internal
 # TIME & DATE - better with arrow only?
 import arrow
 
@@ -19,6 +20,7 @@ class TokenAuth(TokenAuth):
     
     is_auth = False
     user_id = None
+    
     
     def check_auth(self, token, allowed_roles, resource, method):
         """Simple token check. Tokens comes in the form of request.authorization['username']
@@ -54,7 +56,10 @@ class TokenAuth(TokenAuth):
                 # Set acl
                 app.globals.update({'user_id': u['id']})
                 #self.set_acl(u['acl'], u['_id'], u['id'])
-                self._set_globals(u['id'], u['_id'])
+                self._set_globals(u['id'], u['user'])
+                
+                #Set acl - use id to make sure
+                self.set_acl(u['id'])
                 
                 self.is_auth = True
                 
@@ -86,12 +91,32 @@ class TokenAuth(TokenAuth):
         resp = Response(None, 401)
         abort(401, description='Please provide proper credentials', response=resp)
             
-    """
-        Set ACL
-        =======
+    
+    def set_acl(self, id):
+        """ Sets the acl dict on the current authenticated user
+        Needs to get clubs from melwin in order to sport the acl_groups.ref link
+        """
+        # Get users acl
+        col = app.data.driver.db[app.globals['auth']['users_collection']]
+        user = col.find_one({'id': id}, {'acl': 1})
+        acl = user['acl']
         
-        Sets the acl dict on current user including needed information!
-    """
+        # Now get from all clubs!
+        melwin = app.data.driver.db['melwin_users']
+        melwin_user = melwin.find_one({'id': id}, {'membership': 1})
+        clubs = melwin_user['membership']['clubs']
+        print(clubs)
+        
+        # Then those pescy groups from clubs!
+        acl_groups = app.data.driver.db['acl_groups']
+        groups = acl_groups.find({'ref': {'$in': clubs}})
+        groups_list = []
+        for key, _id in enumerate(d['_id'] for d in groups):
+            acl['groups'].append(_id)
+            
+        app.globals.update({'acl': acl})
+        
+    
     def _set_acl(self, acl, _id, id):
         
         if acl:
