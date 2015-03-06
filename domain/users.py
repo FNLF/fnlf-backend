@@ -18,7 +18,8 @@ _schema = {
             'avatar': {'type': 'media',},
             
             # Settings for user
-            'config': {'type': 'dict',},
+            'settings': {'type': 'dict',
+                         'default': {}},
             
             # 
             'custom': {'type': 'dict',},
@@ -35,8 +36,17 @@ _schema = {
             #'flags': {'type': 'dict',},
             #'verdicts': {'type': 'dict',},
             
+            'acl': {'type': 'dict',
+                    'readonly': False,
+                    'schema': {'groups': {'type': 'list', 'default': [],'schema': {'type': 'objectid'}},
+                               'roles': {'type': 'list', 'default': [],'schema': {'type': 'objectid'}},
+                               },
+                    },
+                    
+            
+            
             }
-
+           
 definition = {
         'item_title': 'users',
         'url': 'users',
@@ -45,7 +55,7 @@ definition = {
                        },
         'extra_response_fields': ['id'],
         'resource_methods': ['GET', 'POST'], #No post, only internal!!
-        'item_methods': ['GET', 'PATCH', 'PUT'],
+        'item_methods': ['GET', 'PATCH'],
         'auth_field': 'id', #This will limit only users who has
         
         'versioning': True,
