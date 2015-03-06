@@ -15,6 +15,9 @@ from flask.signals import Namespace
 from eve.methods.post import post_internal
 from eve.methods.common import oplog_push
 
+import json
+from bson.objectid import ObjectId
+    
 # TIME & DATE - better with arrow only?
 import arrow
 
@@ -25,6 +28,8 @@ _signals = Namespace()
 signal_activity_log     = _signals.signal('user-activity-logger')
 signal_insert_workflow  = _signals.signal('insert-workflow')
 signal_change_owner     = _signals.signal('change-owner')
+signal_change_acl       = _signals.signal('change-acl')
+signal_init_acl         = _signals.signal('init-acl')
 
 @signal_insert_workflow.connect
 def insert_workflow(c_app, **extra):
@@ -76,14 +81,43 @@ def insert_workflow(c_app, **extra):
                                       } 
                             })
         
+@signal_init_acl.connect
+def init_acl(c_app, **extra):
+    """ Set user as read, write and execute!
+    Only the current user since this is the POST to DRAFT
+    @todo: Investigate wether to keep in workflow or not.
+    """
+    
+    if request.method == 'POST':
+    
+        r = request.get_json()
+        _id = r.get('_id')
+    
+        obs = c_app.data.driver.db['observations']
+        
+        acl = {'read': {'users': [app.globals.get('user_id')], 'groups': [], 'roles': []},
+               'write': {'users': [app.globals.get('user_id')], 'groups': [], 'roles': []},
+               'execute': {'users': [app.globals.get('user_id')], 'groups': [], 'roles': []}
+               }
+        
+        obs.update({'_id': _id}, {'$set': {'acl': acl}})
+        
+        """
+        obs.update({'_id': _id}, { '$addToSet': {'acl.read.users': app.globals.get('user_id')}})
+        obs.update({'_id': _id}, { '$addToSet': {'acl.write.users': app.globals.get('user_id')}})
+        obs.update({'_id': _id}, { '$addToSet': {'acl.execute.users': app.globals.get('user_id')}})
+        """
+        
+        
+    
+
 @signal_change_owner.connect
 def change_owner(c_app, response, **extra):
     """ This solution hooks into after a PATCH request and thus needs the response obj
     The trick is to take the body returned via .get_data() and load it as json
     This ONLY works for Eve specific calls if you do not return the _id included in a json string
     """
-    import json
-    from bson.objectid import ObjectId
+
     r = json.loads(response.get_data().decode())
     _id = r.get('_id') #ObjectId(r['_id'])
     
@@ -94,6 +128,13 @@ def change_owner(c_app, response, **extra):
                                 })
     except:
         pass
+
+@signal_change_acl.connect
+def change_obs_acl(c_app, acl, **extra):
+    
+    #observation = c_app.data.driver.db['observations']
+    #u = observation.update({})
+    pass
 
 @signal_activity_log.connect
 def oplog_wrapper( c_app, ref=None, updates=None, action=None, resource=None, **extra):
