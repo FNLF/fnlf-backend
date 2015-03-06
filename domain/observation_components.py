@@ -8,7 +8,8 @@
 """
 
 _schema = {'what': {'type': 'string',
-                    'required': True},
+                    'required': True,
+                    'unique': True,},
            'when': {'type': 'datetime'},
            'where': {'type': 'dict',
                      'schema': {'at': {'type': 'string',},
