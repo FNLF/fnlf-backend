@@ -45,7 +45,7 @@ from eve import Eve
 
 # We need the json serializer from flask.jsonify (faster than "".json())
 # flask.request for custom flask routes (no need for schemas, database or anything else) 
-from flask import jsonify, request
+from flask import jsonify, request, abort, Response
 
 # Eve docs (blueprint)
 from flask.ext.bootstrap import Bootstrap
@@ -61,10 +61,11 @@ from blueprints.info import Info
 from blueprints.locations import Locations
 from blueprints.files import Files
 from blueprints.tags import Tags
+from blueprints.acl import ACL
 
 #import signals from hooks
 from ext.signals import signal_activity_log, signal_insert_workflow, \
-                      signal_change_owner
+                      signal_change_owner, signal_init_acl
 
 # Custom url mappings (for flask)
 from ext.url_maps import ObjectIDConverter, RegexConverter
@@ -121,6 +122,7 @@ app.register_blueprint(ObsWorkflow, url_prefix="%s/observations/workflow" % app.
 app.register_blueprint(ObsWatchers, url_prefix="%s/observations/watchers" % app.globals.get('prefix'))
 app.register_blueprint(Locations, url_prefix="%s/locations" % app.globals.get('prefix'))
 app.register_blueprint(Tags, url_prefix="%s/tags" % app.globals.get('prefix'))
+app.register_blueprint(ACL, url_prefix="%s/users/acl" % app.globals.get('prefix'))
 
 
 """ A simple python logger setup
@@ -203,6 +205,8 @@ def observations_after_post(request, payload):
 
     signal_insert_workflow.send(app)
     
+    signal_init_acl.send(app)
+    
     #action, ref, user, resource=None ref, act = None, resource=None, **extra
 
     pass
@@ -211,6 +215,13 @@ def observations_before_get(request, lookup):
     
     raise NotImplementedError
     pass
+
+def users_before_patch(request, response):
+    
+    #id == id!!
+    if app.globals._id != request._id:
+        resp = Response(None, 401)
+        abort(401, description='You cant edit someone elses account', response=resp)
 
 #app.on_pre_GET_observations += observations_before_get
 #app.on_pre_POST_observations += observations_before_post
@@ -231,6 +242,37 @@ def before_insert_oplog(items):
 app.on_insert_oplog += before_insert_oplog
 
 
+# A simple implementation!
+#{ $or: [{ "acl.read.groups": {$in: [6,7]}}, {"acl.read.roles": {$in: [55]}}] }
+#NB det er AND mellom disse!!!
+# Når lookup er empty, da er det list
+#if not - item lookup!
+# where etc will be in request to be parsed later!
+def gget(resource, request, lookup):
+
+    if resource == 'melwin/usersss':
+        #del lookup['id'] #= 57696 #{'$in': [45199,5766]}
+        lookup['id'] = 45199
+        lookup['$or'] = [{'firstname': 'Einar'}, {'lastname': 'Huseby'}]
+        
+        #resp = Response(None, 403)
+        #abort(403, description='You cant edit someone elses account', response=resp)
+    
+    pass
+
+
+
+def get_pre_observation(request, lookup):
+
+    lookup.update({ '$or': [{ "acl.read.groups": {'$in': app.globals['acl']['groups']}}, {"acl.read.roles": {'$in': app.globals['acl']['roles']}}, { "acl.read.users": {'$in': [app.globals.get('user_id')]}}] })
+
+app.on_pre_GET_observations += get_pre_observation
+
+def patch_pre_observation(request, lookup):
+
+    lookup.update({ '$or': [{ "acl.write.groups": {'$in': app.globals['acl']['groups']}}, {"acl.write.roles": {'$in': app.globals['acl']['roles']}}, { "acl.write.users": {'$in': [app.globals.get('user_id')]}}] })
+
+app.on_pre_PATCH_observations += patch_pre_observation
 """
 
     START:
