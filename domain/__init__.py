@@ -35,6 +35,8 @@ import files
 
 import tags
 
+import acl_groups, acl_roles, users_acl
+
 # A custom endpoint for developement flexibility!
 import dev
 
@@ -56,6 +58,9 @@ DOMAIN = {
     "dev" : dev.definition,
     "files" : files.definition,
     "tags" : tags.definition,
+    "acl/groups" : acl_groups.definition,
+    "acl/roles" : acl_roles.definition,
+    "users/acl" : users_acl.definition,
    
 }
 

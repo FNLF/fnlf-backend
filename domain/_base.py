@@ -4,6 +4,23 @@
     ============
     
     Reusable schemas for resource definitions
+    
+    'schema': {
+              {'groups': {'type': 'list', 'default': [],'schema': {'type': 'objectid'}}},
+              {'roles':  {'type': 'list', 'default': [],'schema': {'type': 'objectid'}}},
+              {'users':  {'type': 'list', 'default': [],'schema': {'type': 'integer'}}},
+              },
+    'schema': {
+              {'groups': {'type': 'list', 'default': [],'schema': {'type': 'objectid'}}},
+              {'roles':  {'type': 'list', 'default': [],'schema': {'type': 'objectid'}}},
+              {'users':  {'type': 'list', 'default': [],'schema': {'type': 'integer'}}},
+              },
+    'schema': {
+              {'groups': {'type': 'list', 'default': [],'schema': {'type': 'objectid'}}},
+              {'roles':  {'type': 'list', 'default': [],'schema': {'type': 'objectid'}}},
+              {'users':  {'type': 'list', 'default': [],'schema': {'type': 'integer'}}},
+              },
+    
            
 """
 
@@ -30,10 +47,22 @@ audit_schema = {'type': 'list',
                 'default': []
                 }
 
-acl_schema = {'type': 'dict', 
-              'readonly': True,
-              'default': {}
-              }
+acl_item_schema = {'type': 'dict', 
+                  'readonly': True,
+                  
+                'schema': {'read': {'type': 'dict', 
+                                   
+                                    },
+                           'write': {'type': 'dict', 
+                                    
+                                    },
+                           'execute': {'type': 'dict', 
+  
+                                    },
+                  
+                           },
+                   }
+                  
 
 labels_schema = {'type': 'list',
                  'default': []
