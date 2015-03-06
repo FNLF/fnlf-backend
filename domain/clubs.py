@@ -17,7 +17,7 @@ _schema = {
                        },
             'org': {'type': 'string',
                     },
-            'locations': {'type': 'dict'}, #Should be refs or embedded locations??
+            'locations': {'type': 'list'}, #Should be refs or embedded locations??
             'planes': {'type': 'dict'}, #Should be refs or embedded planes??
             'roles' : {'type': 'dict'}, #Should be refs or embedded roles
             'ot': {'type': 'integer',

@@ -9,7 +9,7 @@
     
 """
 
-from _base import acl_schema
+from _base import acl_item_schema
 
 _schema = { 'name': {'type': 'string'},
             'description': {'type': 'string'},
@@ -17,7 +17,7 @@ _schema = { 'name': {'type': 'string'},
             'ref': {'type': 'string', 'required': True}, #say observations
             'ref_id': {'type': 'objectid','required': True}, #say ObjectId(545bda27a01ed25c57a10ad0) maybe a db ref?
             'file': {'type': 'media', 'required': True}, #Now, this is just a bunch of references is it?
-            'acl': acl_schema,
+            'acl': acl_item_schema,
             }
 
 definition = {
