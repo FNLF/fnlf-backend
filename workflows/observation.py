@@ -11,10 +11,10 @@ from eve.methods.patch import patch_internal
 from datetime import datetime
 
 class ObservationWorkflow(Machine):
-    """ For further work, should use https://github.com/ehu/transitions instead
+    """ For further work, should use https://github.com/einarhuseby/transitions instead of https://github.com/tyarkoni/transitions
     This fork will support the requirements in this project and also keep track of origin
-    @todo: add https://github.com/ehu/transitions to site-packages
-    @todo: pip install git+https://github.com/ehu/transitions
+    @todo: add https://github.com/einarhuseby/transitions to site-packages
+    @todo: pip install git+https://github.com/einarhuseby/transitions
     @todo: state groups -> then you can see if "in review", "is open" etc
     """
     
@@ -94,7 +94,13 @@ class ObservationWorkflow(Machine):
             #{'trigger': '*', 'source': '*', 'dest': '*', 'after': 'save_workflow'},
             ]
         
-        # Users - Groups
+        # Users - Groups 
+        """
+        Pseudo - get groups! Or just make them manually here?
+        
+        
+        """
+        
         su = [5766, 4455, 3322, 32233, 45199]
         fs = [5766,45199]
         hi = [45199] # current club observation is registered on
@@ -102,18 +108,30 @@ class ObservationWorkflow(Machine):
         #self.user_id 
         
         """ Extra attributes needed for sensible feedback from API to client
+        
+        Permission:
+        - owner
+        - reporter
+        - role - hi - in club!
+        - group - fsj, su
+        
+        How is this related to acl? Well acl will always be set according to the workflow
+        
+        To transition - NEED write permissions!
+        
+        
         """
-        self._trigger_attrs = {'set_ready': {'title': 'Set Ready', 'action': 'Set Ready', 'resource': 'approve', 'comment': False, 'permission': list(set(owner))},
-                              'send_to_hi': {'title': 'Send to HI', 'action': 'Send to HI', 'resource': 'approve','comment': True, 'permission': list(set(owner))},
-                              'withdraw': {'title': 'Withdraw Observation', 'action': 'Withdraw', 'resource': 'withdraw','comment': True, 'permission': list(set(owner))},
-                              'reopen': {'title': 'Reopen Observation', 'action': 'Reopen', 'resource': 'reopen','comment': True, 'permission': list(set(owner))},
-                              'reject_hi': {'title': 'Reject Observation', 'action': 'Reject', 'resource': 'reject','comment': True, 'permission': list(set(hi + fs))},
-                              'approve_hi': {'title': 'Approve Observation', 'action': 'Approve', 'resource': 'approve','comment': True, 'permission': list(set(hi))},
-                              'reject_fs': {'title': 'Reject Observation', 'action': 'Reject', 'resource': 'reject','comment': True, 'permission': list(set(fs))},
-                              'approve_fs': {'title': 'Approve Observation', 'action': 'Approve', 'resource': 'approve','comment': True, 'permission': list(set(fs))},
-                              'reject_su': {'title': 'Reject Observation', 'action': 'Reject', 'resource': 'reject','comment': True, 'permission': list(set(su))},
-                              'approve_su': {'title': 'Approve Observation', 'action': 'Approve', 'resource': 'approve','comment': True, 'permission': list(set(su))},
-                              'reopen_su': {'title': 'Reopen Observation', 'action': 'Reopen', 'resource': 'reopen','comment': True, 'permission': list(set(su + fs))},
+        self._trigger_attrs = {'set_ready': {'title': 'Set Ready', 'action': 'Set Ready', 'resource': 'approve', 'comment': True},
+                              'send_to_hi': {'title': 'Send to HI', 'action': 'Send to HI', 'resource': 'approve','comment': True},
+                              'withdraw': {'title': 'Withdraw Observation', 'action': 'Withdraw', 'resource': 'withdraw','comment': True},
+                              'reopen': {'title': 'Reopen Observation', 'action': 'Reopen', 'resource': 'reopen','comment': True},
+                              'reject_hi': {'title': 'Reject Observation', 'action': 'Reject', 'resource': 'reject','comment': True},
+                              'approve_hi': {'title': 'Approve Observation', 'action': 'Approve', 'resource': 'approve','comment': True},
+                              'reject_fs': {'title': 'Reject Observation', 'action': 'Reject', 'resource': 'reject','comment': True},
+                              'approve_fs': {'title': 'Approve Observation', 'action': 'Approve', 'resource': 'approve','comment': True},
+                              'reject_su': {'title': 'Reject Observation', 'action': 'Reject', 'resource': 'reject','comment': True},
+                              'approve_su': {'title': 'Approve Observation', 'action': 'Approve', 'resource': 'approve','comment': True},
+                              'reopen_su': {'title': 'Reopen Observation', 'action': 'Reopen', 'resource': 'reopen','comment': True},
                               }
         
         
@@ -123,7 +141,7 @@ class ObservationWorkflow(Machine):
         """
         col = app.data.driver.db['observations']
         
-        self.db_wf = col.find_one({'_id': ObjectId(object_id)}, {'workflow': 1, '_etag': 1, '_version': 1})
+        self.db_wf = col.find_one({'_id': ObjectId(object_id)}, {'workflow': 1, 'acl': 1, 'club': 1, '_etag': 1, '_version': 1, 'owner': 1, 'reporter': 1})
         
         initial_state = self.db_wf.get('workflow').get('state')
         
@@ -164,7 +182,10 @@ class ObservationWorkflow(Machine):
         
         for event in self.get_actions():
             
-            resources.append(self._trigger_attrs.get(event))
+            tmp = self._trigger_attrs.get(event)
+            tmp['permission'] = self.has_permission(None)
+            
+            resources.append(tmp)
             
         return resources
     
@@ -186,11 +207,20 @@ class ObservationWorkflow(Machine):
         """ No events sendt by conditions...
         if event.kwargs.get('user_id', 0) in self.trigger_permissions:
             return True
-        return False"""
+        return False
+        check if in execute!
+        """
+        if self.user_id in self.db_wf['acl']['execute']['users'] \
+            or bool(set(app.globals.get('acl').get('groups')) & set(self.db_wf['acl']['execute']['groups'])) \
+            or bool(set(app.globals.get('acl').get('roles')) & set(self.db_wf['acl']['execute']['roles'])):
+            
+            return True
         
+        """
         if self.user_id in self._trigger_attrs.get(event.event.name).get('permission'):
             print("%s has permission" % self.user_id)
             return True
+        """
         
         return False
     
@@ -219,6 +249,160 @@ class ObservationWorkflow(Machine):
         # Save *.workflow dictionary
         
         raise NotImplemented
+    
+    def set_acl(self):
+        
+        #tobe = self._trigger_attrs.get(event.event.name).get('permission')
+        """ Triggers
+        'set_ready'
+        'send_to_hi'
+        'withdraw'
+        'reopen'
+        'reject_hi'
+        'approve_hi'
+        'reject_fs'
+        'approve_fs'
+        'reject_su'
+        'approve_su'
+        'reopen_su'
+        """
+        
+        """
+        States
+        draft, ready, withdrawn, pending_review_hi, pending_review_fs, pending_review_su, closed
+        """
+        #obs = 
+        acl = self.db_wf.get('acl')
+        club = self.db_wf.get('club')
+        reporter = self.db_wf.get('reporter')
+        owner = self.db_wf.get('owner')
+        print("###")
+        pprint(self.db_wf)
+        print("###")
+        groups = col = app.data.driver.db['acl_groups']
+        roles = app.data.driver.db['acl_roles']
+        
+        if self.state == 'draft':
+            """Only owner can do stuff?"""
+            acl['write']['users'] = reporter
+            acl['read']['users'] = list(set(acl['read']['users'].extend([self.db_wf['reporter']])))
+            acl['execute']['users'] = self.db_wf.get('reporter')
+            
+            acl['write']['groups'] = []
+            acl['execute']['groups'] = []
+            
+            acl['write']['roles'] = []
+            acl['execute']['roles'] = []
+            
+        elif self.state == 'ready':
+            """ Owner can, but only reporter can do?"""
+            
+            acl['write']['users'] = [self.db_wf['owner']]
+            acl['read']['users'] += [ self.db_wf['owner'] ]
+            acl['read']['users'] = list(set(acl['read']['users']))
+            acl['execute']['users'] = [self.db_wf['owner']]
+            
+            acl['write']['groups'] = []
+            acl['execute']['groups'] = []
+            
+            acl['write']['roles'] = []
+            acl['execute']['roles'] = []
+            
+        elif self.state == 'withdrawn':
+            """ Only owner! """
+            acl['write']['users'] = []
+            acl['read']['users'] = [self.db_wf['owner']]
+            acl['execute']['users'] = [self.db_wf['owner']]
+            
+            acl['write']['groups'] = []
+            acl['read']['groups'] = []
+            acl['execute']['groups'] = []
+            
+            acl['write']['roles'] = []
+            acl['read']['roles'] = []
+            acl['execute']['roles'] = []
+            
+        elif self.state == 'pending_review_hi':
+            """ Owner, reporter read, fsj read, hi read, write, execute """
+            group = groups.find_one({'ref': club})
+            
+            hi = roles.find_one({'ref': 'hi', 'group': group['_id']})
+            
+            acl['write']['users'] = []
+            acl['execute']['users'] = []
+            
+            acl['write']['groups'] = []
+            acl['read']['groups'] = []
+            acl['execute']['groups'] = []
+            
+            acl['write']['roles'] = [hi['_id']]
+            acl['read']['roles'] = [hi['_id']]
+            acl['execute']['roles'] = [hi['_id']]
+            
+        elif self.state == 'pending_review_fs':
+            """ Owner, reporter, hi read, fsj read, write, execute """
+
+            fs = roles.find_one({'ref': 'fs'})
+            
+            acl['write']['users'] = []
+            acl['execute']['users'] = []
+            
+            acl['write']['groups'] = []
+            acl['read']['groups'] = []
+            acl['execute']['groups'] = []
+            
+            acl['write']['roles'] = [fs['_id']]
+            acl['read']['roles'] += [fs['_id']]
+            acl['read']['roles'] = list(set(acl['read']['roles']))
+            acl['execute']['roles'] = [fs['_id']]
+            
+        elif self.state == 'pending_review_su':
+            """ Owner, reporter, hi, fs read, su read, write, execute """
+
+            su = groups.find_one({'ref': 'su'})
+            
+            acl['write']['users'] = []
+            acl['execute']['users'] = []
+            
+            acl['write']['groups'] = [fs['_id']]
+            acl['read']['groups'] += [fs['_id']]
+            acl['read']['groups'] = list(set(acl['read']['groups']))
+            acl['execute']['groups'] = [fs['_id']]
+            
+            acl['write']['roles'] = []
+            acl['execute']['roles'] = []
+            
+        elif self.state == 'closed':
+            """ everybody read, su execute """
+            
+            clubs = groups.find()
+            groups = []
+            for v in su:
+                if re.match("[\d{3}\-\w{1}]+", v['ref']):
+                    groups.extend(v['_id'])
+                    
+            
+            acl['read']['users'] = []
+            acl['write']['users'] = []
+            acl['execute']['users'] = []
+            
+            acl['write']['groups'] = []
+            acl['read']['groups'] = list(set(groups))
+            acl['execute']['groups'] = [su['_id']]
+            
+            acl['read']['roles'] = []
+            acl['write']['roles'] = []
+            acl['execute']['roles'] = []
+            
+        return acl
+            
+    def _get_role_group(self, ref, type):
+        
+        if type == 'group':
+            col = app.data.driver.db['acl_groups']
+        elif type == 'role':
+            pass
+        
         
     def save_workflow(self, event):
         """ Will only trigger when it actually IS changed, so save every time this is called!
@@ -251,6 +435,8 @@ class ObservationWorkflow(Machine):
         
         if self._trigger_attrs.get(event.event.name).get('comment'):
             new.get('workflow').update({'comment': self.comment})
+        
+        new['acl'] = self.set_acl()
         
         # Should really supply the e-tag here, will work! , '_etag': _etag
         # Can also use test_client to do this but it's rubbish or?

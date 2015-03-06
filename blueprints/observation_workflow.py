@@ -57,9 +57,8 @@ def transition(observation_id, action):
     request.form.get 
     request.args.get ?q=tal
     @todo: include comment in post!
+    @todo: check permissions here??
     """
-    
-    
     
     comment = None
     try:
@@ -83,22 +82,6 @@ def transition(observation_id, action):
        
     return Response(json.dumps(wf.state),  mimetype='application/json')
 
-    """
-    @todo: For removal:
-    r = wf.get_current_state()
-    
-    resp = {'Something': 'Went wrong'}
-    
-    # Check if got resource <-> action mapping!
-    for v in r.get('actions'):
-        if v.get('resource', None) == action:
-            #Here we do stuff
-            resp = {'Something': 'Yes it was the current blabla '+ seff}
-    
-    
-    print("testing test")
-    return Response(json.dumps(resp),  mimetype='application/json')
-    """
 
 @ObsWorkflow.route("/<objectid:observation_id>/tasks", methods=['GET'])
 @require_token()
