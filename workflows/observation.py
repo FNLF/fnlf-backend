@@ -283,12 +283,17 @@ class ObservationWorkflow(Machine):
         print("###")
         groups = col = app.data.driver.db['acl_groups']
         roles = app.data.driver.db['acl_roles']
+        reporter = self.db_wf.get('reporter')
         
         if self.state == 'draft':
             """Only owner can do stuff?"""
             acl['write']['users'] = reporter
-            acl['read']['users'] = list(set(acl['read']['users'].extend([self.db_wf['reporter']])))
-            acl['execute']['users'] = self.db_wf.get('reporter')
+            if len(acl['read']['users']) > 0:
+               list(set(acl['read']['users'].extend([self.db_wf.get('reporter')])))
+            else:
+                acl['read']['users'] = [self.db_wf.get('reporter')]
+            
+            acl['execute']['users'] = [self.db_wf.get('reporter')]
             
             acl['write']['groups'] = []
             acl['execute']['groups'] = []
@@ -299,10 +304,9 @@ class ObservationWorkflow(Machine):
         elif self.state == 'ready':
             """ Owner can, but only reporter can do?"""
             
-            acl['write']['users'] = [self.db_wf['owner']]
-            acl['read']['users'] += [ self.db_wf['owner'] ]
-            acl['read']['users'] = list(set(acl['read']['users']))
-            acl['execute']['users'] = [self.db_wf['owner']]
+            acl['write']['users'] = [self.db_wf['reporter']]
+            acl['read']['users'] += [ self.db_wf['reporter'] ]
+            acl['execute']['users'] = [self.db_wf['reporter']]
             
             acl['write']['groups'] = []
             acl['execute']['groups'] = []
@@ -313,8 +317,8 @@ class ObservationWorkflow(Machine):
         elif self.state == 'withdrawn':
             """ Only owner! """
             acl['write']['users'] = []
-            acl['read']['users'] = [self.db_wf['owner']]
-            acl['execute']['users'] = [self.db_wf['owner']]
+            acl['read']['users'] = [self.db_wf['reporter']]
+            acl['execute']['users'] = [self.db_wf['reporter']]
             
             acl['write']['groups'] = []
             acl['read']['groups'] = []
@@ -329,10 +333,6 @@ class ObservationWorkflow(Machine):
             group = groups.find_one({'ref': club})
             
             hi = roles.find_one({'ref': 'hi', 'group': group['_id']})
-            
-            print("HIIIIIIIII")
-            pprint(group)
-            print(hi)
             
             acl['write']['users'] = []
             acl['execute']['users'] = []
