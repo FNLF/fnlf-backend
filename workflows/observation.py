@@ -10,6 +10,8 @@ from eve.methods.patch import patch_internal
 
 from datetime import datetime
 
+import re
+
 class ObservationWorkflow(Machine):
     """ For further work, should use https://github.com/einarhuseby/transitions instead of https://github.com/tyarkoni/transitions
     This fork will support the requirements in this project and also keep track of origin
