@@ -382,10 +382,10 @@ class ObservationWorkflow(Machine):
             """ everybody read, su execute """
             
             clubs = groups.find()
-            groups = []
+            group_list = []
             for v in clubs:
                 if re.match("[\d{3}\-\w{1}]+", v['ref']):
-                    groups.extend([v['_id']])
+                    group_list.extend([v['_id']])
                     
             su = groups.find_one({'ref': 'su'})
             
@@ -394,7 +394,7 @@ class ObservationWorkflow(Machine):
             acl['execute']['users'] = []
             
             acl['write']['groups'] = []
-            acl['read']['groups'] = list(set(groups))
+            acl['read']['groups'] = list(set(group_list))
             acl['execute']['groups'] = [su['_id']]
             
             acl['read']['roles'] = []
