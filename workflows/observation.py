@@ -328,6 +328,10 @@ class ObservationWorkflow(Machine):
             
             hi = roles.find_one({'ref': 'hi', 'group': group['_id']})
             
+            print("HIIIIIIIII")
+            pprint(group)
+            print(hi)
+            
             acl['write']['users'] = []
             acl['execute']['users'] = []
             
@@ -364,10 +368,10 @@ class ObservationWorkflow(Machine):
             acl['write']['users'] = []
             acl['execute']['users'] = []
             
-            acl['write']['groups'] = [fs['_id']]
-            acl['read']['groups'] += [fs['_id']]
+            acl['write']['groups'] = [su['_id']]
+            acl['read']['groups'] += [su['_id']]
             acl['read']['groups'] = list(set(acl['read']['groups']))
-            acl['execute']['groups'] = [fs['_id']]
+            acl['execute']['groups'] = [su['_id']]
             
             acl['write']['roles'] = []
             acl['execute']['roles'] = []
@@ -377,10 +381,11 @@ class ObservationWorkflow(Machine):
             
             clubs = groups.find()
             groups = []
-            for v in su:
+            for v in clubs:
                 if re.match("[\d{3}\-\w{1}]+", v['ref']):
                     groups.extend(v['_id'])
                     
+            su = groups.find_one({'ref': 'su'})
             
             acl['read']['users'] = []
             acl['write']['users'] = []
@@ -432,6 +437,9 @@ class ObservationWorkflow(Machine):
         new['workflow']['audit'].insert(0,audit)
         
         new['workflow']['last_transition'] = datetime.utcnow()
+        
+        # New owner it is!
+        new['owner'] = app.globals['user_id']
         
         if self._trigger_attrs.get(event.event.name).get('comment'):
             new.get('workflow').update({'comment': self.comment})

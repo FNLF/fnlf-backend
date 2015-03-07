@@ -79,6 +79,9 @@ def transition(observation_id, action):
         
         # This is actually safe!
         result = eval('wf.' + wf.get_resource_mapping().get(action) + '()')
+        
+        # Change owner signal
+        #signal_change_owner.send(app,response=response)
        
     return Response(json.dumps(wf.state),  mimetype='application/json')
 
