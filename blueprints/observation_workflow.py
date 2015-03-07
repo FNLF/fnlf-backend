@@ -46,7 +46,17 @@ def audit(observation_id):
    
     return Response(json.dumps(wf.get_audit(), default=json_util.default), mimetype='application/json')
 
-
+@ObsWorkflow.route("/todo", methods=['GET'])
+@require_token()
+def get_observations():
+    
+    col = app.data.driver.db['observations']
+    
+    r = list(col.find({'$and': [{'workflow.state': {'$nin': ['closed', 'withdrawn']}}, \
+                                {'$or': [{'acl.execute.users': {'$in': [app.globals['user_id']]}}, \
+                                {'acl.execute.groups': {'$in': app.globals['acl']['groups']}}, \
+                                {'acl.execute.roles': {'$in': app.globals['acl']['roles']}} ] } ] } ).sort('_updated', 1))
+    return Response(json.dumps({'_items': r}, default=json_util.default), mimetype='application/json')
   
 @ObsWorkflow.route('/<objectid:observation_id>/<regex("(approve|reject|withdraw|reopen)"):action>', methods=['POST'])
 @require_token()
