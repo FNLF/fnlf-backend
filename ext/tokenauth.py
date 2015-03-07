@@ -113,6 +113,9 @@ class TokenAuth(TokenAuth):
         groups_list = []
         for key, _id in enumerate(d['_id'] for d in groups):
             acl['groups'].append(_id)
+        
+        acl['groups'] = list(set(acl['groups']))
+        acl['roles'] = list(set(acl['roles']))
             
         app.globals.update({'acl': acl})
         
