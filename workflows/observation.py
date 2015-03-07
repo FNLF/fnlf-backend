@@ -385,7 +385,7 @@ class ObservationWorkflow(Machine):
             groups = []
             for v in clubs:
                 if re.match("[\d{3}\-\w{1}]+", v['ref']):
-                    groups.extend(v['_id'])
+                    groups.extend([v['_id']])
                     
             su = groups.find_one({'ref': 'su'})
             
