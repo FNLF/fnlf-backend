@@ -287,13 +287,10 @@ class ObservationWorkflow(Machine):
         
         if self.state == 'draft':
             """Only owner can do stuff?"""
-            acl['write']['users'] = reporter
-            if len(acl['read']['users']) > 0:
-               list(set(acl['read']['users'].extend([self.db_wf.get('reporter')])))
-            else:
-                acl['read']['users'] = [self.db_wf.get('reporter')]
+            acl['read']['users'] += [reporter]
+            acl['write']['users'] += [reporter]
             
-            acl['execute']['users'] = [self.db_wf.get('reporter')]
+            acl['execute']['users'] = [reporter]
             
             acl['write']['groups'] = []
             acl['execute']['groups'] = []
@@ -304,9 +301,9 @@ class ObservationWorkflow(Machine):
         elif self.state == 'ready':
             """ Owner can, but only reporter can do?"""
             
-            acl['write']['users'] = [self.db_wf['reporter']]
-            acl['read']['users'] += [ self.db_wf['reporter'] ]
-            acl['execute']['users'] = [self.db_wf['reporter']]
+            acl['write']['users'] = [reporter]
+            acl['read']['users'] += [reporter]
+            acl['execute']['users'] = [reporter]
             
             acl['write']['groups'] = []
             acl['execute']['groups'] = []
@@ -317,8 +314,8 @@ class ObservationWorkflow(Machine):
         elif self.state == 'withdrawn':
             """ Only owner! """
             acl['write']['users'] = []
-            acl['read']['users'] = [self.db_wf['reporter']]
-            acl['execute']['users'] = [self.db_wf['reporter']]
+            acl['read']['users'] = [reporter]
+            acl['execute']['users'] = [reporter]
             
             acl['write']['groups'] = []
             acl['read']['groups'] = []
@@ -342,7 +339,7 @@ class ObservationWorkflow(Machine):
             acl['execute']['groups'] = []
             
             acl['write']['roles'] = [hi['_id']]
-            acl['read']['roles'] = [hi['_id']]
+            acl['read']['roles'] += [hi['_id']]
             acl['execute']['roles'] = [hi['_id']]
             
         elif self.state == 'pending_review_fs':
@@ -359,7 +356,6 @@ class ObservationWorkflow(Machine):
             
             acl['write']['roles'] = [fs['_id']]
             acl['read']['roles'] += [fs['_id']]
-            acl['read']['roles'] = list(set(acl['read']['roles']))
             acl['execute']['roles'] = [fs['_id']]
             
         elif self.state == 'pending_review_su':
@@ -372,7 +368,6 @@ class ObservationWorkflow(Machine):
             
             acl['write']['groups'] = [su['_id']]
             acl['read']['groups'] += [su['_id']]
-            acl['read']['groups'] = list(set(acl['read']['groups']))
             acl['execute']['groups'] = [su['_id']]
             
             acl['write']['roles'] = []
@@ -396,12 +391,25 @@ class ObservationWorkflow(Machine):
             acl['execute']['users'] = []
             
             acl['write']['groups'] = []
-            acl['read']['groups'] = list(set(group_list))
+            acl['read']['groups'] += group_list
             acl['execute']['groups'] = [su['_id']]
             
             acl['read']['roles'] = []
             acl['write']['roles'] = []
             acl['execute']['roles'] = []
+        
+        # Sanity - should really do list comprehension...
+        acl['read']['users'] = list(set(acl['read']['users']))
+        acl['write']['users'] =  list(set(acl['write']['users']))
+        acl['execute']['users'] =  list(set(acl['execute']['users']))
+        
+        acl['write']['groups'] =  list(set(acl['write']['groups']))
+        acl['read']['groups'] =  list(set(acl['read']['groups']))
+        acl['execute']['groups'] =  list(set(acl['execute']['groups']))
+        
+        acl['read']['roles'] =  list(set(acl['read']['roles']))
+        acl['write']['roles'] =  list(set(acl['write']['roles']))
+        acl['execute']['roles'] =  list(set(acl['execute']['roles']))
             
         return acl
             
