@@ -105,7 +105,6 @@ class TokenAuth(TokenAuth):
         melwin = app.data.driver.db['melwin_users']
         melwin_user = melwin.find_one({'id': id}, {'membership': 1})
         clubs = melwin_user['membership']['clubs']
-        print(clubs)
         
         # Then those pescy groups from clubs!
         acl_groups = app.data.driver.db['acl_groups']
