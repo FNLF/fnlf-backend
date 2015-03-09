@@ -46,6 +46,7 @@ from eve import Eve
 # We need the json serializer from flask.jsonify (faster than "".json())
 # flask.request for custom flask routes (no need for schemas, database or anything else) 
 from flask import jsonify, request, abort, Response
+import json
 
 # Eve docs (blueprint)
 from flask.ext.bootstrap import Bootstrap
@@ -230,49 +231,94 @@ app.on_post_POST_observations += observations_after_post
 app.on_post_PATCH_observations += observations_after_patch
 #app.on_pre_PATCH_observations += observations_before_patch
 
-"""
-    Where can user id be added?
-    Oplog comes with a auto feature for this
-    @todo: Check the manual, verify with auth method choosen
-"""
-def before_insert_oplog(items):
+def __anonymize_obs(item):
+    """ Anonymizes based on a simple scheme
+    Only for after_get_observation
+    """
     
-    raise NotImplementedError
-
-app.on_insert_oplog += before_insert_oplog
-
-
-# A simple implementation!
-#{ $or: [{ "acl.read.groups": {$in: [6,7]}}, {"acl.read.roles": {$in: [55]}}] }
-#NB det er AND mellom disse!!!
-# Når lookup er empty, da er det list
-#if not - item lookup!
-# where etc will be in request to be parsed later!
-def gget(resource, request, lookup):
-
-    if resource == 'melwin/usersss':
-        #del lookup['id'] #= 57696 #{'$in': [45199,5766]}
-        lookup['id'] = 45199
-        lookup['$or'] = [{'firstname': 'Einar'}, {'lastname': 'Huseby'}]
+    # Reporter AND owner
+    item['reporter'] = -1
+    item['owner'] = -1
+    
+    # Involved
+    for key, val in enumerate(item['involved']):
         
-        #resp = Response(None, 403)
-        #abort(403, description='You cant edit someone elses account', response=resp)
+        item['involved'][key]['id'] = -1
+        if 'tmpname' in item['involved'][key]:
+            item['involved'][key]['tmpname'] = 'Anonymisert'
     
-    pass
+    # Involved in components
+    for key, val in enumerate(item['components']):
+        
+        for k, v in enumerate(item['components'][key]['involved']):
+            item['components'][key]['involved'][k]['id'] = -1
+    
+    # Workflow audit trail        
+    for key, val in enumerate(item['workflow']['audit']):
+        
+        if item['workflow']['audit'][key]['a'] in ['init', 'set_ready', 'send_to_hi', 'withdraw']:
+            item['workflow']['audit'][key]['u'] = -1
+    
+    return item
 
+def __has_permission_obs(id):
+    """ Checks if has execute permissions on an observation or not
+    Only for after_get_observation
+    """
+    
+    col = app.data.driver.db['observations']
+    acl = col.find_one({'id': id}, {'acl': 1})
+    
+    if app.globals['acl']['roles'] in acl['acl']['execute']['roles'] or app.globals['acl']['groups'] in acl['acl']['execute']['groups'] or app.globals['user_id'] in acl['acl']['execute']['users']:
+        return True
+    
+    return False
+    
+def after_get_observation(request, response):
+    """ Modify response after getting an observation
+    """
+    
+    d = json.loads(response.get_data().decode('UTF-8'))
+    
+    changed = False
+    try:
+        if '_items' in d:
+            
+            print(type(d['_items']))
+            print(dir(d['_items']))
+            
+            for key, val in enumerate(d['_items']):
+                if d['_items'][key]['workflow']['state'] == 'closed':
+                    if not __has_permission_obs(d['_items'][key]['id']):
+                        d['_items'][key] = __anonymize_obs(d['_items'][key])
+                        changed = True
+                
+        else:
+            if d['workflow']['state'] == 'closed':
+                if not __has_permission_obs(d['id']):
+                    d = __anonymize_obs(d)
+                    changed = True
+                    
+        if changed:
+            response.set_data(json.dumps(d))
+            
+    except:
+        print("Unexpected error:", sys.exc_info()[0])
+        raise
+    
+app.on_post_GET_observations += after_get_observation
 
-
-def get_pre_observation(request, lookup):
+def before_get_observation(request, lookup):
 
     lookup.update({ '$or': [{ "acl.read.groups": {'$in': app.globals['acl']['groups']}}, {"acl.read.roles": {'$in': app.globals['acl']['roles']}}, { "acl.read.users": {'$in': [app.globals.get('user_id')]}}] })
 
-app.on_pre_GET_observations += get_pre_observation
+app.on_pre_GET_observations += before_get_observation
 
-def patch_pre_observation(request, lookup):
+def before_patch_observation(request, lookup):
 
     lookup.update({ '$or': [{ "acl.write.groups": {'$in': app.globals['acl']['groups']}}, {"acl.write.roles": {'$in': app.globals['acl']['roles']}}, { "acl.write.users": {'$in': [app.globals.get('user_id')]}}] })
 
-app.on_pre_PATCH_observations += patch_pre_observation
+app.on_pre_PATCH_observations += before_patch_observation
 """
 
     START:

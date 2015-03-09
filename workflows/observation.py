@@ -386,7 +386,7 @@ class ObservationWorkflow(Machine):
                     
             su = groups.find_one({'ref': 'su'})
             
-            acl['read']['users'] = []
+            #acl['read']['users'] = [] #Should let users still see??
             acl['write']['users'] = []
             acl['execute']['users'] = []
             
