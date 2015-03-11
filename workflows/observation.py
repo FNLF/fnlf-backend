@@ -78,9 +78,9 @@ class ObservationWorkflow(Machine):
         """ The transition definition
         """
         self._transitions = [
-            { 'trigger': 'set_ready', 'source': 'draft', 'dest': 'ready', 'after': 'save_workflow', 'conditions':['has_permission']},
-            { 'trigger': 'send_to_hi', 'source': 'ready', 'dest': 'pending_review_hi', 'after': 'save_workflow', 'conditions':['has_permission']},
-            { 'trigger': 'withdraw', 'source': ['draft', 'ready'], 'dest': 'withdrawn', 'after': 'save_workflow', 'conditions':['has_permission']},
+            #{ 'trigger': 'set_ready', 'source': 'draft', 'dest': 'ready', 'after': 'save_workflow', 'conditions':['has_permission']},
+            { 'trigger': 'send_to_hi', 'source': 'draft', 'dest': 'pending_review_hi', 'after': 'save_workflow', 'conditions':['has_permission']},
+            { 'trigger': 'withdraw', 'source': ['draft'], 'dest': 'withdrawn', 'after': 'save_workflow', 'conditions':['has_permission']},
             { 'trigger': 'reopen', 'source': 'withdrawn', 'dest': 'draft', 'after': 'save_workflow', 'conditions':['has_permission']},
             
             { 'trigger': 'reject_hi', 'source': 'pending_review_hi', 'dest': 'draft', 'after': 'save_workflow', 'conditions':['has_permission']},
@@ -123,7 +123,7 @@ class ObservationWorkflow(Machine):
         
         
         """
-        self._trigger_attrs = {'set_ready': {'title': 'Set Ready', 'action': 'Set Ready', 'resource': 'approve', 'comment': True},
+        self._trigger_attrs = {#'set_ready': {'title': 'Set Ready', 'action': 'Set Ready', 'resource': 'approve', 'comment': True},
                               'send_to_hi': {'title': 'Send to HI', 'action': 'Send to HI', 'resource': 'approve','comment': True},
                               'withdraw': {'title': 'Withdraw Observation', 'action': 'Withdraw', 'resource': 'withdraw','comment': True},
                               'reopen': {'title': 'Reopen Observation', 'action': 'Reopen', 'resource': 'reopen','comment': True},
@@ -278,9 +278,6 @@ class ObservationWorkflow(Machine):
         club = self.db_wf.get('club')
         reporter = self.db_wf.get('reporter')
         owner = self.db_wf.get('owner')
-        print("###")
-        pprint(self.db_wf)
-        print("###")
         groups = col = app.data.driver.db['acl_groups']
         roles = app.data.driver.db['acl_roles']
         reporter = self.db_wf.get('reporter')
@@ -299,7 +296,11 @@ class ObservationWorkflow(Machine):
             acl['execute']['roles'] = []
             
         elif self.state == 'ready':
-            """ Owner can, but only reporter can do?"""
+            """ Owner can, but only reporter can do?
+            """
+            group = groups.find_one({'ref': club})
+            
+            hi = roles.find_one({'ref': 'hi', 'group': group['_id']})
             
             acl['write']['users'] = [reporter]
             acl['read']['users'] += [reporter]
@@ -308,6 +309,7 @@ class ObservationWorkflow(Machine):
             acl['write']['groups'] = []
             acl['execute']['groups'] = []
             
+            acl['read']['roles'] += [hi['_id']]
             acl['write']['roles'] = []
             acl['execute']['roles'] = []
             
@@ -406,7 +408,7 @@ class ObservationWorkflow(Machine):
         acl['write']['groups'] =  list(set(acl['write']['groups']))
         acl['read']['groups'] =  list(set(acl['read']['groups']))
         acl['execute']['groups'] =  list(set(acl['execute']['groups']))
-        
+
         acl['read']['roles'] =  list(set(acl['read']['roles']))
         acl['write']['roles'] =  list(set(acl['write']['roles']))
         acl['execute']['roles'] =  list(set(acl['execute']['roles']))
