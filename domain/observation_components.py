@@ -51,6 +51,8 @@ _schema = {'what': {'type': 'string',
                           },
            
            'help': {'type': 'dict'},
+           'sort': {'type': 'integer'},
+           'active': {'type': 'boolean'},
            }
 
 definition = {
