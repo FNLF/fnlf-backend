@@ -92,23 +92,37 @@ def init_acl(c_app, **extra):
     
         r = request.get_json()
         _id = r.get('_id')
+        club = r.get('club')
     
         obs = c_app.data.driver.db['observations']
         
-        acl = {'read': {'users': [app.globals.get('user_id')], 'groups': [], 'roles': []},
+        # Add hi to the mix!
+        groups = app.data.driver.db['acl_groups']
+        group = groups.find_one({'ref': club})
+        
+        if group:
+            roles = app.data.driver.db['acl_roles']
+            role = roles.find_one({'group': group['_id'], 'ref': 'hi'})
+            
+            if role:
+                users = app.data.driver.db['users']
+                hi = list(users.find({'acl.roles': {'$in': [role['_id']]}}))
+                
+                his = []
+                if isinstance(hi, list):
+                    for user in hi:
+                        his.append(user['id'])
+                else:
+                    his.append(hi['id'])
+        
+        # Adds user and hi!
+        acl = {'read': {'users': [app.globals.get('user_id')], 'groups': [], 'roles': [role['_id']]},
                'write': {'users': [app.globals.get('user_id')], 'groups': [], 'roles': []},
                'execute': {'users': [app.globals.get('user_id')], 'groups': [], 'roles': []}
                }
         
         obs.update({'_id': _id}, {'$set': {'acl': acl}})
-        
-        """
-        obs.update({'_id': _id}, { '$addToSet': {'acl.read.users': app.globals.get('user_id')}})
-        obs.update({'_id': _id}, { '$addToSet': {'acl.write.users': app.globals.get('user_id')}})
-        obs.update({'_id': _id}, { '$addToSet': {'acl.execute.users': app.globals.get('user_id')}})
-        """
-        
-        
+        obs.update({'_id': _id}, {'$set': {'organization.hi': his}})
     
 
 @signal_change_owner.connect

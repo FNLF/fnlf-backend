@@ -284,6 +284,12 @@ class ObservationWorkflow(Machine):
         
         if self.state == 'draft':
             """Only owner can do stuff?"""
+            
+            if club:
+                group = groups.find_one({'ref': club})
+            
+                hi = roles.find_one({'ref': 'hi', 'group': group['_id']})
+            
             acl['read']['users'] += [reporter]
             acl['write']['users'] += [reporter]
             
@@ -292,6 +298,7 @@ class ObservationWorkflow(Machine):
             acl['write']['groups'] = []
             acl['execute']['groups'] = []
             
+            acl['read']['roles'] += [hi['_id']]
             acl['write']['roles'] = []
             acl['execute']['roles'] = []
             

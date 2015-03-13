@@ -83,4 +83,32 @@ def delete_role_acl(username, roleid):
     
     r = col.update({'id': username}, { "$pull": {"acl.roles": ObjectId(roleid)} } )
     
-    return jsonify(**r)    
+    return jsonify(**r)
+
+@ACL.route("/hi/<club>", methods=['GET'])
+@require_token()
+def get_club_hi(club):
+    
+    groups = app.data.driver.db['acl_groups']
+    group = groups.find_one({'ref': club})
+    
+    if group:
+        roles = app.data.driver.db['acl_roles']
+        role = roles.find_one({'group': group['_id'], 'ref': 'hi'})
+        
+        if role:
+            users = app.data.driver.db['users']
+            hi = list(users.find({'acl.roles': {'$in': [role['_id']]}}))
+            
+            r = []
+            if isinstance(hi, list):
+                
+                for user in hi:
+                    r.append(user['id'])
+            else:
+                r.append(hi['id'])
+                
+            return jsonify(**{'hi': r, 'club': club})
+    
+    resp = Response(None, 501)
+    abort(501, description='Unknown error occurred', response=resp)
