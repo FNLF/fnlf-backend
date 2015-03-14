@@ -67,7 +67,7 @@ from blueprints.acl import ACL
 #import signals from hooks
 from ext.signals import signal_activity_log, signal_insert_workflow, \
                       signal_change_owner, signal_init_acl
-
+                      
 # Custom url mappings (for flask)
 from ext.url_maps import ObjectIDConverter, RegexConverter
 
@@ -124,7 +124,6 @@ app.register_blueprint(ObsWatchers, url_prefix="%s/observations/watchers" % app.
 app.register_blueprint(Locations, url_prefix="%s/locations" % app.globals.get('prefix'))
 app.register_blueprint(Tags, url_prefix="%s/tags" % app.globals.get('prefix'))
 app.register_blueprint(ACL, url_prefix="%s/users/acl" % app.globals.get('prefix'))
-
 
 """ A simple python logger setup
 Eve do not yet support logging, but will for 0.5
@@ -185,8 +184,7 @@ def eve_error_msg(message, http_code='404'):
 """
 
 def observations_before_post(request, payload=None):
-    
-    raise NotImplementedError
+    pass
 
 def observations_before_patch(request, lookup):
     
@@ -228,6 +226,7 @@ def users_before_patch(request, response):
 #app.on_pre_POST_observations += observations_before_post
 #app.on_pre_PATCH_observations += observations_before_patch
 app.on_post_POST_observations += observations_after_post
+#app.on_pre_POST_observations += observations_before_post
 app.on_post_PATCH_observations += observations_after_patch
 #app.on_pre_PATCH_observations += observations_before_patch
 
@@ -239,6 +238,15 @@ def __anonymize_obs(item):
     # Reporter AND owner
     item['reporter'] = -1
     item['owner'] = -1
+    
+    if 'audit' not in item['workflow']:
+        item['workflow']['audit'] = []
+        
+    if 'involved' not in item:
+        item['involved'] = []
+    
+    if 'components' not in item:
+        item['components'] = []
     
     # Involved
     for key, val in enumerate(item['involved']):
@@ -259,18 +267,45 @@ def __anonymize_obs(item):
         if item['workflow']['audit'][key]['a'] in ['init', 'set_ready', 'send_to_hi', 'withdraw']:
             item['workflow']['audit'][key]['u'] = -1
     
+    # Organization        
+    for key, val in enumerate(item['organization']):
+        
+        if 'hl' in item['organization']:    
+            for k, hl in enumerate(item['organization']['hl']):
+                item['organization']['hl'][k]['id'] = -1
+                if 'tmpname' in  item['organization']['hl'][k]:
+                    del item['organization']['hl'][k]['tmpname']
+        if 'hfl' in item['organization']:          
+            for k, hfl in enumerate(item['organization']['hfl']):
+                item['organization']['hfl'][k]['id'] = -1
+                if 'tmpname' in  item['organization']['hfl'][k]:
+                    del item['organization']['hfl'][k]['tmpname']
+        if 'hm' in item['organization']:          
+            for k, hm in enumerate(item['organization']['hm']):
+                item['organization']['hm'][k]['id'] = -1
+                if 'tmpname' in item['organization']['hm'][k]:
+                    del item['organization']['hm'][k]['tmpname']
+        if 'pilot' in item['organization']:          
+            for k, pilot in enumerate(item['organization']['pilot']):
+                item['organization']['pilot'][k]['id'] = -1
+                if 'tmpname' in item['organization']['pilot'][k]:
+                    del item['organization']['pilot'][k]['tmpname']
+    
     return item
 
-def __has_permission_obs(id):
-    """ Checks if has execute permissions on an observation or not
+def __has_permission_obs(id, type):
+    """ Checks if has type (execute, read, write) permissions on an observation or not
     Only for after_get_observation
     """
     
     col = app.data.driver.db['observations']
-    acl = col.find_one({'id': id}, {'acl': 1})
+    acl = col.find_one({'_id': id}, {'acl': 1})
     
-    if app.globals['acl']['roles'] in acl['acl']['execute']['roles'] or app.globals['acl']['groups'] in acl['acl']['execute']['groups'] or app.globals['user_id'] in acl['acl']['execute']['users']:
-        return True
+    try:
+        if app.globals['acl']['roles'] in acl['acl'][type]['roles'] or app.globals['acl']['groups'] in acl['acl'][type]['groups'] or app.globals['user_id'] in acl['acl'][type]['users']:
+            return True
+    except:
+        return False
     
     return False
     
@@ -281,21 +316,31 @@ def after_get_observation(request, response):
     d = json.loads(response.get_data().decode('UTF-8'))
     
     changed = False
+    
+    pprint(request.args)
+    
     try:
         if '_items' in d:
             
-            print(type(d['_items']))
-            print(dir(d['_items']))
+            if request.args.get('version') == 'diffs':
+                id = d['_items'][0]['_id']
+                if d['_items'][0]['workflow']['state'] == 'closed':
+                    for key, val in enumerate(d['_items']):
+                        if not __has_permission_obs(id, 'execute'):
+                            d['_items'][key] = __anonymize_obs(d['_items'][key])
+                            changed = True
             
-            for key, val in enumerate(d['_items']):
-                if d['_items'][key]['workflow']['state'] == 'closed':
-                    if not __has_permission_obs(d['_items'][key]['id']):
-                        d['_items'][key] = __anonymize_obs(d['_items'][key])
-                        changed = True
+            else:
+                for key, val in enumerate(d['_items']):
+                    if d['_items'][key]['workflow']['state'] == 'closed':
+                        
+                        if not __has_permission_obs(d['_items'][key]['_id'], 'execute'):
+                            d['_items'][key] = __anonymize_obs(d['_items'][key])
+                            changed = True
                 
         else:
             if d['workflow']['state'] == 'closed':
-                if not __has_permission_obs(d['id']):
+                if not __has_permission_obs(d['_id'], 'execute'):
                     d = __anonymize_obs(d)
                     changed = True
                     
@@ -333,6 +378,8 @@ app.on_pre_PATCH_observations += before_patch_observation
     @todo: Config file for gunicorn deployment and -C see http://gunicorn-docs.readthedocs.org/en/latest/settings.html
 
 """
+
+
 if __name__ == '__main__':
     port = 8080
     host = '127.0.0.1'
