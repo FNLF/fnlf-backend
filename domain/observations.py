@@ -24,7 +24,8 @@ _schema = {'id': {'type': 'integer',
            'tags': {'type': 'list',
                     'default': []},
            
-           'club': {'type': 'string'},
+           'club': {'type': 'string',
+                    'required': True},
            
            'location': {'type': 'dict'},
            
