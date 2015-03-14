@@ -1,7 +1,7 @@
 
 from transitions import Machine
 
-from flask import current_app as app
+from flask import current_app as app, request
 from bson.objectid import ObjectId
 
 from pprint import pprint
@@ -11,6 +11,9 @@ from eve.methods.patch import patch_internal
 from datetime import datetime
 
 import re
+
+from ext.helpers import helpers
+from ext.notification import notification
 
 class ObservationWorkflow(Machine):
     """ For further work, should use https://github.com/einarhuseby/transitions instead of https://github.com/tyarkoni/transitions
@@ -96,19 +99,7 @@ class ObservationWorkflow(Machine):
             #{'trigger': '*', 'source': '*', 'dest': '*', 'after': 'save_workflow'},
             ]
         
-        # Users - Groups 
-        """
-        Pseudo - get groups! Or just make them manually here?
-        
-        
-        """
-        
-        su = [5766, 4455, 3322, 32233, 45199]
-        fs = [5766,45199]
-        hi = [45199] # current club observation is registered on
-        owner = [app.globals.get('user_id')]
-        #self.user_id 
-        
+        self.action = None       
         """ Extra attributes needed for sensible feedback from API to client
         
         Permission:
@@ -124,16 +115,16 @@ class ObservationWorkflow(Machine):
         
         """
         self._trigger_attrs = {#'set_ready': {'title': 'Set Ready', 'action': 'Set Ready', 'resource': 'approve', 'comment': True},
-                              'send_to_hi': {'title': 'Send to HI', 'action': 'Send to HI', 'resource': 'approve','comment': True},
-                              'withdraw': {'title': 'Withdraw Observation', 'action': 'Withdraw', 'resource': 'withdraw','comment': True},
-                              'reopen': {'title': 'Reopen Observation', 'action': 'Reopen', 'resource': 'reopen','comment': True},
-                              'reject_hi': {'title': 'Reject Observation', 'action': 'Reject', 'resource': 'reject','comment': True},
-                              'approve_hi': {'title': 'Approve Observation', 'action': 'Approve', 'resource': 'approve','comment': True},
-                              'reject_fs': {'title': 'Reject Observation', 'action': 'Reject', 'resource': 'reject','comment': True},
-                              'approve_fs': {'title': 'Approve Observation', 'action': 'Approve', 'resource': 'approve','comment': True},
-                              'reject_su': {'title': 'Reject Observation', 'action': 'Reject', 'resource': 'reject','comment': True},
-                              'approve_su': {'title': 'Approve Observation', 'action': 'Approve', 'resource': 'approve','comment': True},
-                              'reopen_su': {'title': 'Reopen Observation', 'action': 'Reopen', 'resource': 'reopen','comment': True},
+                              'send_to_hi': {'title': 'Send to HI', 'action': 'Send to HI', 'resource': 'approve','comment': True, 'descr': 'Sendt til HI'},
+                              'withdraw': {'title': 'Withdraw Observation', 'action': 'Withdraw', 'resource': 'withdraw','comment': True, 'descr': 'Trekt tilbake'},
+                              'reopen': {'title': 'Reopen Observation', 'action': 'Reopen', 'resource': 'reopen','comment': True, 'descr': 'Gjenåpnet'},
+                              'reject_hi': {'title': 'Reject Observation', 'action': 'Reject', 'resource': 'reject','comment': True, 'descr': 'Avslått av HI'},
+                              'approve_hi': {'title': 'Approve Observation', 'action': 'Approve', 'resource': 'approve','comment': True, 'descr': 'Godkjent av HI'},
+                              'reject_fs': {'title': 'Reject Observation', 'action': 'Reject', 'resource': 'reject','comment': True, 'descr': 'Avslått av Fagsjef'},
+                              'approve_fs': {'title': 'Approve Observation', 'action': 'Approve', 'resource': 'approve','comment': True, 'descr': 'Godkjent av Fagsjef'},
+                              'reject_su': {'title': 'Reject Observation', 'action': 'Reject', 'resource': 'reject','comment': True, 'descr': 'Avslått av SU'},
+                              'approve_su': {'title': 'Approve Observation', 'action': 'Approve', 'resource': 'approve','comment': True, 'descr': 'Godkjent av SU'},
+                              'reopen_su': {'title': 'Reopen Observation', 'action': 'Reopen', 'resource': 'reopen','comment': True, 'descr': 'Gjenåpnet av SU'},
                               }
         
         
@@ -143,7 +134,7 @@ class ObservationWorkflow(Machine):
         """
         col = app.data.driver.db['observations']
         
-        self.db_wf = col.find_one({'_id': ObjectId(object_id)}, {'workflow': 1, 'acl': 1, 'club': 1, '_etag': 1, '_version': 1, 'owner': 1, 'reporter': 1})
+        self.db_wf = col.find_one({'_id': ObjectId(object_id)}, {'id': 1,'workflow': 1, 'acl': 1, 'club': 1, '_etag': 1, '_version': 1, 'owner': 1, 'reporter': 1, 'tags': 1, 'watchers': 1})
         
         initial_state = self.db_wf.get('workflow').get('state')
         
@@ -153,6 +144,8 @@ class ObservationWorkflow(Machine):
              self.initial_state = initial_state
         
         self.comment = comment
+        
+        self.helper = helpers()
              
         Machine.__init__(self, states=self._states, send_event=True, transitions=self._transitions, initial=self.initial_state)
 
@@ -253,42 +246,15 @@ class ObservationWorkflow(Machine):
         raise NotImplemented
     
     def set_acl(self):
-        
-        #tobe = self._trigger_attrs.get(event.event.name).get('permission')
-        """ Triggers
-        'set_ready'
-        'send_to_hi'
-        'withdraw'
-        'reopen'
-        'reject_hi'
-        'approve_hi'
-        'reject_fs'
-        'approve_fs'
-        'reject_su'
-        'approve_su'
-        'reopen_su'
-        """
-        
-        """
-        States
-        draft, ready, withdrawn, pending_review_hi, pending_review_fs, pending_review_su, closed
-        """
-        #obs = 
+
         acl = self.db_wf.get('acl')
         club = self.db_wf.get('club')
         reporter = self.db_wf.get('reporter')
         owner = self.db_wf.get('owner')
-        groups = col = app.data.driver.db['acl_groups']
-        roles = app.data.driver.db['acl_roles']
         reporter = self.db_wf.get('reporter')
         
         if self.state == 'draft':
             """Only owner can do stuff?"""
-            
-            if club:
-                group = groups.find_one({'ref': club})
-            
-                hi = roles.find_one({'ref': 'hi', 'group': group['_id']})
             
             acl['read']['users'] += [reporter]
             acl['write']['users'] += [reporter]
@@ -298,27 +264,10 @@ class ObservationWorkflow(Machine):
             acl['write']['groups'] = []
             acl['execute']['groups'] = []
             
-            acl['read']['roles'] += [hi['_id']]
+            acl['read']['roles'] += [self.helper.get_role_hi(club)]
             acl['write']['roles'] = []
             acl['execute']['roles'] = []
             
-        elif self.state == 'ready':
-            """ Owner can, but only reporter can do?
-            """
-            group = groups.find_one({'ref': club})
-            
-            hi = roles.find_one({'ref': 'hi', 'group': group['_id']})
-            
-            acl['write']['users'] = [reporter]
-            acl['read']['users'] += [reporter]
-            acl['execute']['users'] = [reporter]
-            
-            acl['write']['groups'] = []
-            acl['execute']['groups'] = []
-            
-            acl['read']['roles'] += [hi['_id']]
-            acl['write']['roles'] = []
-            acl['execute']['roles'] = []
             
         elif self.state == 'withdrawn':
             """ Only owner! """
@@ -334,27 +283,27 @@ class ObservationWorkflow(Machine):
             acl['read']['roles'] = []
             acl['execute']['roles'] = []
             
+            
         elif self.state == 'pending_review_hi':
             """ Owner, reporter read, fsj read, hi read, write, execute """
-            group = groups.find_one({'ref': club})
-            
-            hi = roles.find_one({'ref': 'hi', 'group': group['_id']})
-            
+
+            hi = self.helper.get_role_hi(club)
+
             acl['write']['users'] = []
             acl['execute']['users'] = []
             
             acl['write']['groups'] = []
-            acl['read']['groups'] = []
+            acl['read']['groups'] = [self.helper.get_role_fs()]
             acl['execute']['groups'] = []
             
-            acl['write']['roles'] = [hi['_id']]
-            acl['read']['roles'] += [hi['_id']]
-            acl['execute']['roles'] = [hi['_id']]
+            acl['write']['roles'] =  [hi]
+            acl['read']['roles'] +=  [hi]
+            acl['execute']['roles'] =  [hi]
             
         elif self.state == 'pending_review_fs':
             """ Owner, reporter, hi read, fsj read, write, execute """
 
-            fs = roles.find_one({'ref': 'fs'})
+            fs = self.helper.get_role_fs()
             
             acl['write']['users'] = []
             acl['execute']['users'] = []
@@ -363,21 +312,21 @@ class ObservationWorkflow(Machine):
             acl['read']['groups'] = []
             acl['execute']['groups'] = []
             
-            acl['write']['roles'] = [fs['_id']]
-            acl['read']['roles'] += [fs['_id']]
-            acl['execute']['roles'] = [fs['_id']]
+            acl['write']['roles'] = [fs]
+            acl['read']['roles'] += [fs]
+            acl['execute']['roles'] = [fs]
             
         elif self.state == 'pending_review_su':
             """ Owner, reporter, hi, fs read, su read, write, execute """
 
-            su = groups.find_one({'ref': 'su'})
+            su = self.helper.get_group_su()
             
             acl['write']['users'] = []
             acl['execute']['users'] = []
             
-            acl['write']['groups'] = [su['_id']]
-            acl['read']['groups'] += [su['_id']]
-            acl['execute']['groups'] = [su['_id']]
+            acl['write']['groups'] = [su]
+            acl['read']['groups'] += [su]
+            acl['execute']['groups'] = [su]
             
             acl['write']['roles'] = []
             acl['execute']['roles'] = []
@@ -385,15 +334,13 @@ class ObservationWorkflow(Machine):
         elif self.state == 'closed':
             """ everybody read, su execute """
             
-            clubs = groups.find()
             group_list = []
             
-            for v in clubs:
+            for v in self.helper.get_all_groups():
                 if 'ref' in v:
                     if re.match("[\d{3}\-\w{1}]+", v['ref']):
                         group_list.extend([v['_id']])
                     
-            su = groups.find_one({'ref': 'su'})
             
             #acl['read']['users'] = [] #Should let users still see??
             acl['write']['users'] = []
@@ -401,11 +348,16 @@ class ObservationWorkflow(Machine):
             
             acl['write']['groups'] = []
             acl['read']['groups'] += group_list
-            acl['execute']['groups'] = [su['_id']]
+            acl['execute']['groups'] = [self.helper.get_group_su()]
             
             acl['read']['roles'] = []
             acl['write']['roles'] = []
             acl['execute']['roles'] = []
+            
+            # Fjernet hele f fallskjermnorge her! Kanskje egen klubb bare?
+            self.notification(acl['read']['users']+acl['execute']['users']+acl['write']['users'],
+                              acl['write']['groups']+acl['execute']['groups'],
+                              acl['read']['roles']+acl['write']['roles']+acl['execute']['roles'])
         
         # Sanity - should really do list comprehension...
         acl['read']['users'] = list(set(acl['read']['users']))
@@ -419,7 +371,13 @@ class ObservationWorkflow(Machine):
         acl['read']['roles'] =  list(set(acl['read']['roles']))
         acl['write']['roles'] =  list(set(acl['write']['roles']))
         acl['execute']['roles'] =  list(set(acl['execute']['roles']))
-            
+        
+        if self.state != 'closed':
+            self.notification(acl['read']['users']+acl['execute']['users']+acl['write']['users'],
+                              acl['read']['groups']+acl['write']['groups']+acl['execute']['groups'],
+                              acl['read']['roles']+acl['write']['roles']+acl['execute']['roles'])
+        
+           
         return acl
             
     def _get_role_group(self, ref, type):
@@ -440,6 +398,7 @@ class ObservationWorkflow(Machine):
         _id = self.db_wf.get('_id')
         _etag = self.db_wf.get('_etag')
         _version = self.db_wf.get('_version')
+        self.action = event.event.name
         
         self.db_wf.get('workflow').update({'state': self.state})
         
@@ -480,5 +439,32 @@ class ObservationWorkflow(Machine):
             return True
         
         return False
+    
+    def notification(self, users=[], groups=[], roles=[]):
+        """ A wrapper around notifications
+        """
+        
+        notify = notification()
+        
+        recepients = self.helper.get_melwin_users_email(self.helper.collect_users(users, groups, roles))
+        subject = 'Observasjon #%s %s' % (int(self.db_wf.get('id')), self._trigger_attrs[self.action]['descr'])
+        
+        action_by = self.helper.get_user_name(app.globals['user_id'])
+        
+        message = '%s\n' % subject
+        message += '\n'
+        #message += '%s\n' % self._trigger_attrs[self.action]['descr']
+        message += 'Tittel: %s\n' % ' '.join(self.db_wf.get('tags'))
+        message += 'Fra: %s\n' % self._state_attrs[self.initial_state]['description']
+        message += 'Til: %s\n' % self._state_attrs[self.state]['description']
+        message += '\n'
+        message += 'Av: %s\n' % action_by
+        message += 'Dato: %s\n' % datetime.today().strftime('%Y-%m-%d %H:%M')
+        message += 'Url: %sapp/reporting/#!/observation/%i\n' % (request.url_root, int(self.db_wf.get('id')))
+        message += '\nMelding:\n'
+        message += '%s\n' % self.comment
+        
+        
+        notify.send_email(recepients, subject, message)
     
 
