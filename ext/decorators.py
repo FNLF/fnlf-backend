@@ -10,10 +10,22 @@ from datetime import datetime
 
 from ext.tokenauth import TokenAuth
 
-"""
-Time something
-"""
+from threading import Thread
+
+
+def async(f):
+    """ An async decorator
+    Will spawn a seperate thread executing whatever call you have
+    """
+    def wrapper(*args, **kwargs):
+        thr = Thread(target=f, args=args, kwargs=kwargs)
+        thr.start()
+    return wrapper
+
+
 def track_time_spent(name):
+    """Time something
+    """
     def decorator(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
@@ -24,12 +36,11 @@ def track_time_spent(name):
         return wrapped
     return decorator   
 
-"""
-Custom decorator for token auth
-Wraps the custom TokenAuth class used by Eve and sends it the required param
 
-"""
 def require_token():
+    """ Custom decorator for token auth
+    Wraps the custom TokenAuth class used by Eve and sends it the required param
+    """
     def decorator(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
