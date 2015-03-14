@@ -460,7 +460,7 @@ class ObservationWorkflow(Machine):
         message += '\n'
         message += 'Av: %s\n' % action_by
         message += 'Dato: %s\n' % datetime.today().strftime('%Y-%m-%d %H:%M')
-        message += 'Url: %sapp/reporting/#!/observation/%i\n' % (request.url_root, int(self.db_wf.get('id')))
+        message += 'Url: %sapp/obs/#!/observation/%i\n' % (request.url_root, int(self.db_wf.get('id')))
         message += '\nMelding:\n'
         message += '%s\n' % self.comment
         
