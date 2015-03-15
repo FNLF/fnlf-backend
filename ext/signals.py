@@ -15,8 +15,13 @@ from flask.signals import Namespace
 from eve.methods.post import post_internal
 from eve.methods.common import oplog_push
 
+from datetime import datetime
+
 import json
 from bson.objectid import ObjectId
+
+from ext.helpers import helpers
+from ext.notification import notification
     
 # TIME & DATE - better with arrow only?
 import arrow
@@ -80,6 +85,24 @@ def insert_workflow(c_app, **extra):
                                       "reporter": c_app.globals.get('user_id')
                                       } 
                             })
+         # Notify!
+        notify = notification()
+        helper = helpers()
+        
+        recepients = helper.get_melwin_users_email(helper.collect_users(users=[app.globals['user_id']], roles=[helper.get_role_hi(r.get('club'))]))
+        subject = 'Observasjon #%s ble opprettet' % number
+        
+        action_by = helper.get_user_name(app.globals['user_id'])
+        
+        message = '%s\n' % subject
+        message += '\n'
+        message += 'Klubb:\t %s\n' % helper.get_melwin_club_name(r.get('club'))
+        message += '\n'
+        message += 'Av:\t %s\n' % action_by
+        message += 'Dato:\t %s\n' % datetime.today().strftime('%Y-%m-%d %H:%M')
+        message += 'Url:\t %sapp/obs/#!/observation/%i\n' % (request.url_root, number)
+        
+        notify.send_email(recepients, subject, message)
         
 @signal_init_acl.connect
 def init_acl(c_app, **extra):
@@ -123,6 +146,7 @@ def init_acl(c_app, **extra):
         
         obs.update({'_id': _id}, {'$set': {'acl': acl}})
         obs.update({'_id': _id}, {'$set': {'organization.hi': his}})
+        
     
 
 @signal_change_owner.connect

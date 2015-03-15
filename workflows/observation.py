@@ -454,13 +454,14 @@ class ObservationWorkflow(Machine):
         message = '%s\n' % subject
         message += '\n'
         #message += '%s\n' % self._trigger_attrs[self.action]['descr']
-        message += 'Tittel: %s\n' % ' '.join(self.db_wf.get('tags'))
-        message += 'Fra: %s\n' % self._state_attrs[self.initial_state]['description']
-        message += 'Til: %s\n' % self._state_attrs[self.state]['description']
+        message += 'Tittel:\t %s\n' % ' '.join(self.db_wf.get('tags'))
+        message += 'Fra:\t %s\n' % self._state_attrs[self.initial_state]['description']
+        message += 'Til:\t %s\n' % self._state_attrs[self.state]['description']
+        message += 'Klubb:\t %s\n' % self.helper.get_melwin_club_name(self.db_wf.get('club'))
         message += '\n'
-        message += 'Av: %s\n' % action_by
-        message += 'Dato: %s\n' % datetime.today().strftime('%Y-%m-%d %H:%M')
-        message += 'Url: %sapp/obs/#!/observation/%i\n' % (request.url_root, int(self.db_wf.get('id')))
+        message += 'Av:\t %s\n' % action_by
+        message += 'Dato:\t %s\n' % datetime.today().strftime('%Y-%m-%d %H:%M')
+        message += 'Url:\t %sapp/obs/#!/observation/%i\n' % (request.url_root, int(self.db_wf.get('id')))
         message += '\nMelding:\n'
         message += '%s\n' % self.comment
         
