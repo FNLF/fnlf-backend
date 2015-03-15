@@ -8,6 +8,7 @@ include/
 lib64
 log/
 database*
+dump*
 fnlf-database*
 # Byte-compiled / optimized / DLL files
 __pycache__/
