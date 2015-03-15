@@ -29,7 +29,7 @@ import jump_categories
 # Incident Reporting
 import observations
 import observation_components
-
+import observation_comments
 # Files - just a test collection
 import files
 
@@ -61,6 +61,6 @@ DOMAIN = {
     "acl/groups" : acl_groups.definition,
     "acl/roles" : acl_roles.definition,
     "users/acl" : users_acl.definition,
-   
+    "observation/comments" : observation_comments.definition,
 }
 

@@ -63,6 +63,7 @@ from blueprints.locations import Locations
 from blueprints.files import Files
 from blueprints.tags import Tags
 from blueprints.acl import ACL
+from blueprints.observation_share import ObsShare
 
 #import signals from hooks
 from ext.signals import signal_activity_log, signal_insert_workflow, \
@@ -124,6 +125,7 @@ app.register_blueprint(ObsWatchers, url_prefix="%s/observations/watchers" % app.
 app.register_blueprint(Locations, url_prefix="%s/locations" % app.globals.get('prefix'))
 app.register_blueprint(Tags, url_prefix="%s/tags" % app.globals.get('prefix'))
 app.register_blueprint(ACL, url_prefix="%s/users/acl" % app.globals.get('prefix'))
+app.register_blueprint(ObsShare, url_prefix="%s/observations/share" % app.globals.get('prefix'))
 
 """ A simple python logger setup
 Eve do not yet support logging, but will for 0.5
@@ -365,6 +367,12 @@ def before_patch_observation(request, lookup):
     lookup.update({ '$or': [{ "acl.write.groups": {'$in': app.globals['acl']['groups']}}, {"acl.write.roles": {'$in': app.globals['acl']['roles']}}, { "acl.write.users": {'$in': [app.globals.get('user_id')]}}] })
 
 app.on_pre_PATCH_observations += before_patch_observation
+
+def before_post_observation_comments(resource, items):
+    items[0].update({'user': int(app.globals.get('user_id'))})
+    pprint(items)
+
+app.on_insert += before_post_observation_comments
 """
 
     START:
