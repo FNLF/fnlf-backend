@@ -233,6 +233,7 @@ app.on_post_PATCH_observations += observations_after_patch
 def __anonymize_obs(item):
     """ Anonymizes based on a simple scheme
     Only for after_get_observation
+    Should see if solution to have association of user id to a fixed (negative) number for that id to be sorted as "jumper 1", "jumper 2" etc in frontend
     """
     
     # Reporter AND owner
