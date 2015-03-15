@@ -162,13 +162,30 @@ class helpers():
          
         return mu
     
+    def get_melwin_club_name(self, club):
+        melwin = app.data.driver.db['melwin_clubs']
+        c = melwin.find_one({'id': club}, {'name': 1})
+        
+        return c['name']
+        
+    
     
     def collect_users(self, users=[], roles=[], groups=[]):
         
-        r = self.get_users_from_roles(roles)
-        g = self.get_users_from_groups(groups)
+        if not users:
+            users = []
         
-        users.extend(r)
-        users.extend(g)
+        try:
+            r = self.get_users_from_roles(roles)
+            g = self.get_users_from_groups(groups)
+            
+            if len(r) > 0:
+                users.extend(r)
+            if len(g) > 0:
+                users.extend(g)
+            
+            return list(set(users))
+        except:
+            return []
         
-        return list(set(users))
+    
