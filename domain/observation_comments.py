@@ -18,7 +18,7 @@ _schema = {'user': {'type': 'integer',
            }
 
 definition = {
-        'item_title': 'observationcomments',
+        'item_title': 'observation_comments',
         'url' : 'observation/comments',
         'name': 'observation_comments',
         'datasource': {'source': 'observation_comments'},

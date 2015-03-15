@@ -373,10 +373,12 @@ def before_patch_observation(request, lookup):
 app.on_pre_PATCH_observations += before_patch_observation
 
 def before_post_observation_comments(resource, items):
-    items[0].update({'user': int(app.globals.get('user_id'))})
-    pprint(items)
+    print(resource)
+    if resource == 'observation/comments':
+        items[0].update({'user': int(app.globals.get('user_id'))})
 
 app.on_insert += before_post_observation_comments
+#app.on_insert_observation_comments += before_post_observation_comments
 """
 
     START:
