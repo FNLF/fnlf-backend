@@ -336,6 +336,8 @@ class ObservationWorkflow(Machine):
             
             group_list = []
             
+            initial_group_list = acl['read']['groups']
+            
             for v in self.helper.get_all_groups():
                 if 'ref' in v:
                     if re.match("[\d{3}\-\w{1}]+", v['ref']):
@@ -444,9 +446,8 @@ class ObservationWorkflow(Machine):
         """ A wrapper around notifications
         """
         
-        notify = notification()
-        
         recepients = self.helper.get_melwin_users_email(self.helper.collect_users(users, groups, roles))
+        
         subject = 'Observasjon #%s %s' % (int(self.db_wf.get('id')), self._trigger_attrs[self.action]['descr'])
         
         action_by = self.helper.get_user_name(app.globals['user_id'])
@@ -465,6 +466,12 @@ class ObservationWorkflow(Machine):
         message += '\nMelding:\n'
         message += '%s\n' % self.comment
         
+        # Safety! Should be to admin!
+        if len(recepients) > 50:
+            recepients = self.helper.get_melwin_users_email([45199])
+            subject = "Too many recepients!"
+            message = "Safety measure when too many recepient"
+            message += "Recepients: %i" % len(recepient)
         
         notify.send_email(recepients, subject, message)
     
