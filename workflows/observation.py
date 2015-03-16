@@ -33,12 +33,12 @@ class ObservationWorkflow(Machine):
         self._states=['draft', 'ready', 'pending_review_hi', 'pending_review_fs', 'pending_review_su', 'closed', 'withdrawn']
         
         self._state_attrs = {'draft': {'title': 'Draft', 'description': 'Draft'},
-                     'ready': {'title': 'Ready', 'description': 'Ready to send for review'},
-                     'pending_review_hi': {'title': 'Pending review', 'description': 'Pending review by HI'},
-                     'pending_review_fs': {'title': 'Pending review', 'description': 'Pending review by Fagsjef'},
-                     'pending_review_su': {'title': 'Pending review', 'description': 'Pending review by SU'},
-                     'closed': {'title': 'Closed', 'description': 'Observation is closed'},
-                     'withdrawn': {'title': 'Withdrawn', 'description': 'Observation is withdrawn'},
+                     'ready': {'title': 'Klar', 'description': 'Klar for å sendes HI'},
+                     'pending_review_hi': {'title': 'Avventer HI', 'description': 'Avventer vurdering HI'},
+                     'pending_review_fs': {'title': 'Avventer Fagsjef', 'description': 'Avventer vurdering Fagsjef'},
+                     'pending_review_su': {'title': 'Avventer SU', 'description': 'Avventer vurdering SU'},
+                     'closed': {'title': 'Lukket', 'description': 'Observasjonen er lukket'},
+                     'withdrawn': {'title': 'Trukket', 'description': 'Observasjonen er trekt tilbake'},
                      }
                      
         """ And some transitions between states. We're lazy, so we'll leave out 
@@ -115,16 +115,16 @@ class ObservationWorkflow(Machine):
         
         """
         self._trigger_attrs = {#'set_ready': {'title': 'Set Ready', 'action': 'Set Ready', 'resource': 'approve', 'comment': True},
-                              'send_to_hi': {'title': 'Send to HI', 'action': 'Send to HI', 'resource': 'approve','comment': True, 'descr': 'Sendt til HI'},
-                              'withdraw': {'title': 'Withdraw Observation', 'action': 'Withdraw', 'resource': 'withdraw','comment': True, 'descr': 'Trekt tilbake'},
-                              'reopen': {'title': 'Reopen Observation', 'action': 'Reopen', 'resource': 'reopen','comment': True, 'descr': 'Gjenåpnet'},
-                              'reject_hi': {'title': 'Reject Observation', 'action': 'Reject', 'resource': 'reject','comment': True, 'descr': 'Avslått av HI'},
-                              'approve_hi': {'title': 'Approve Observation', 'action': 'Approve', 'resource': 'approve','comment': True, 'descr': 'Godkjent av HI'},
-                              'reject_fs': {'title': 'Reject Observation', 'action': 'Reject', 'resource': 'reject','comment': True, 'descr': 'Avslått av Fagsjef'},
-                              'approve_fs': {'title': 'Approve Observation', 'action': 'Approve', 'resource': 'approve','comment': True, 'descr': 'Godkjent av Fagsjef'},
-                              'reject_su': {'title': 'Reject Observation', 'action': 'Reject', 'resource': 'reject','comment': True, 'descr': 'Avslått av SU'},
-                              'approve_su': {'title': 'Approve Observation', 'action': 'Approve', 'resource': 'approve','comment': True, 'descr': 'Godkjent av SU'},
-                              'reopen_su': {'title': 'Reopen Observation', 'action': 'Reopen', 'resource': 'reopen','comment': True, 'descr': 'Gjenåpnet av SU'},
+                              'send_to_hi': {'title': 'Send til HI', 'action': 'Send to HI', 'resource': 'approve','comment': True, 'descr': 'Sendt til HI'},
+                              'withdraw': {'title': 'Trekk tilbake observasjon', 'action': 'Trekk tilbake', 'resource': 'withdraw','comment': True, 'descr': 'Trekt tilbake'},
+                              'reopen': {'title': 'Gjenåpne observasjon', 'action': 'Gjenåpne', 'resource': 'reopen','comment': True, 'descr': 'Gjenåpnet'},
+                              'reject_hi': {'title': 'Avslå observasjon', 'action': 'Avslå', 'resource': 'reject','comment': True, 'descr': 'Avslått av HI'},
+                              'approve_hi': {'title': 'Godkjenn observasjon', 'action': 'Godkjenn', 'resource': 'approve','comment': True, 'descr': 'Godkjent av HI'},
+                              'reject_fs': {'title': 'Avslå observasjon', 'action': 'Avslå', 'resource': 'reject','comment': True, 'descr': 'Avslått av Fagsjef'},
+                              'approve_fs': {'title': 'Godkjenn observasjon', 'action': 'Godkjenn', 'resource': 'approve','comment': True, 'descr': 'Godkjent av Fagsjef'},
+                              'reject_su': {'title': 'Avslå observasjon', 'action': 'Avslå', 'resource': 'reject','comment': True, 'descr': 'Avslått av SU'},
+                              'approve_su': {'title': 'Godkjenn observasjon', 'action': 'Godkjenn', 'resource': 'approve','comment': True, 'descr': 'Godkjent av SU'},
+                              'reopen_su': {'title': 'Gjenåpne observasjon', 'action': 'Gjenåpne', 'resource': 'reopen','comment': True, 'descr': 'Gjenåpnet av SU'},
                               }
         
         
