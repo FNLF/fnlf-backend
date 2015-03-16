@@ -46,7 +46,17 @@ def audit(observation_id):
    
     return Response(json.dumps(wf.get_audit(), default=json_util.default), mimetype='application/json')
 
-
+@ObsWorkflow.route("/todo", methods=['GET'])
+@require_token()
+def get_observations():
+    
+    col = app.data.driver.db['observations']
+    
+    r = list(col.find({'$and': [{'workflow.state': {'$nin': ['closed', 'withdrawn']}}, \
+                                {'$or': [{'acl.execute.users': {'$in': [app.globals['user_id']]}}, \
+                                {'acl.execute.groups': {'$in': app.globals['acl']['groups']}}, \
+                                {'acl.execute.roles': {'$in': app.globals['acl']['roles']}} ] } ] } ).sort('_updated', 1))
+    return Response(json.dumps({'_items': r}, default=json_util.default), mimetype='application/json')
   
 @ObsWorkflow.route('/<objectid:observation_id>/<regex("(approve|reject|withdraw|reopen)"):action>', methods=['POST'])
 @require_token()
@@ -57,9 +67,8 @@ def transition(observation_id, action):
     request.form.get 
     request.args.get ?q=tal
     @todo: include comment in post!
+    @todo: check permissions here??
     """
-    
-    
     
     comment = None
     try:
@@ -80,25 +89,12 @@ def transition(observation_id, action):
         
         # This is actually safe!
         result = eval('wf.' + wf.get_resource_mapping().get(action) + '()')
+        
+        # Change owner signal
+        #signal_change_owner.send(app,response=response)
        
     return Response(json.dumps(wf.state),  mimetype='application/json')
 
-    """
-    @todo: For removal:
-    r = wf.get_current_state()
-    
-    resp = {'Something': 'Went wrong'}
-    
-    # Check if got resource <-> action mapping!
-    for v in r.get('actions'):
-        if v.get('resource', None) == action:
-            #Here we do stuff
-            resp = {'Something': 'Yes it was the current blabla '+ seff}
-    
-    
-    print("testing test")
-    return Response(json.dumps(resp),  mimetype='application/json')
-    """
 
 @ObsWorkflow.route("/<objectid:observation_id>/tasks", methods=['GET'])
 @require_token()

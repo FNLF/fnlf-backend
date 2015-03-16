@@ -45,7 +45,8 @@ from eve import Eve
 
 # We need the json serializer from flask.jsonify (faster than "".json())
 # flask.request for custom flask routes (no need for schemas, database or anything else) 
-from flask import jsonify, request
+from flask import jsonify, request, abort, Response
+import json
 
 # Eve docs (blueprint)
 from flask.ext.bootstrap import Bootstrap
@@ -61,11 +62,13 @@ from blueprints.info import Info
 from blueprints.locations import Locations
 from blueprints.files import Files
 from blueprints.tags import Tags
+from blueprints.acl import ACL
+from blueprints.observation_share import ObsShare
 
 #import signals from hooks
 from ext.signals import signal_activity_log, signal_insert_workflow, \
-                      signal_change_owner
-
+                      signal_change_owner, signal_init_acl
+                      
 # Custom url mappings (for flask)
 from ext.url_maps import ObjectIDConverter, RegexConverter
 
@@ -121,7 +124,8 @@ app.register_blueprint(ObsWorkflow, url_prefix="%s/observations/workflow" % app.
 app.register_blueprint(ObsWatchers, url_prefix="%s/observations/watchers" % app.globals.get('prefix'))
 app.register_blueprint(Locations, url_prefix="%s/locations" % app.globals.get('prefix'))
 app.register_blueprint(Tags, url_prefix="%s/tags" % app.globals.get('prefix'))
-
+app.register_blueprint(ACL, url_prefix="%s/users/acl" % app.globals.get('prefix'))
+app.register_blueprint(ObsShare, url_prefix="%s/observations/share" % app.globals.get('prefix'))
 
 """ A simple python logger setup
 Eve do not yet support logging, but will for 0.5
@@ -182,8 +186,7 @@ def eve_error_msg(message, http_code='404'):
 """
 
 def observations_before_post(request, payload=None):
-    
-    raise NotImplementedError
+    pass
 
 def observations_before_patch(request, lookup):
     
@@ -203,6 +206,8 @@ def observations_after_post(request, payload):
 
     signal_insert_workflow.send(app)
     
+    signal_init_acl.send(app)
+    
     #action, ref, user, resource=None ref, act = None, resource=None, **extra
 
     pass
@@ -212,25 +217,168 @@ def observations_before_get(request, lookup):
     raise NotImplementedError
     pass
 
+def users_before_patch(request, response):
+    
+    #id == id!!
+    if app.globals._id != request._id:
+        resp = Response(None, 401)
+        abort(401, description='You cant edit someone elses account', response=resp)
+
 #app.on_pre_GET_observations += observations_before_get
 #app.on_pre_POST_observations += observations_before_post
 #app.on_pre_PATCH_observations += observations_before_patch
 app.on_post_POST_observations += observations_after_post
+#app.on_pre_POST_observations += observations_before_post
 app.on_post_PATCH_observations += observations_after_patch
 #app.on_pre_PATCH_observations += observations_before_patch
 
-"""
-    Where can user id be added?
-    Oplog comes with a auto feature for this
-    @todo: Check the manual, verify with auth method choosen
-"""
-def before_insert_oplog(items):
+def __anonymize_obs(item):
+    """ Anonymizes based on a simple scheme
+    Only for after_get_observation
+    Should see if solution to have association of user id to a fixed (negative) number for that id to be sorted as "jumper 1", "jumper 2" etc in frontend
+    """
     
-    raise NotImplementedError
+    # Reporter AND owner
+    item['reporter'] = -1
+    item['owner'] = -1
+    
+    if 'audit' not in item['workflow']:
+        item['workflow']['audit'] = []
+        
+    if 'involved' not in item:
+        item['involved'] = []
+    
+    if 'components' not in item:
+        item['components'] = []
+    
+    # Involved
+    for key, val in enumerate(item['involved']):
+        
+        item['involved'][key]['id'] = -1
+        if 'tmpname' in item['involved'][key]:
+            item['involved'][key]['tmpname'] = 'Anonymisert'
+    
+    # Involved in components
+    for key, val in enumerate(item['components']):
+        
+        for k, v in enumerate(item['components'][key]['involved']):
+            item['components'][key]['involved'][k]['id'] = -1
+    
+    # Workflow audit trail        
+    for key, val in enumerate(item['workflow']['audit']):
+        
+        if item['workflow']['audit'][key]['a'] in ['init', 'set_ready', 'send_to_hi', 'withdraw']:
+            item['workflow']['audit'][key]['u'] = -1
+    
+    # Organization        
+    for key, val in enumerate(item['organization']):
+        
+        if 'hl' in item['organization']:    
+            for k, hl in enumerate(item['organization']['hl']):
+                if 'id' in item['organization']['hl'][k]:
+                    item['organization']['hl'][k]['id'] = -1
+                if 'tmpname' in  item['organization']['hl'][k]:
+                    del item['organization']['hl'][k]['tmpname']
+        if 'hfl' in item['organization']:          
+            for k, hfl in enumerate(item['organization']['hfl']):
+                if 'id' in item['organization']['hfl'][k]:
+                    item['organization']['hfl'][k]['id'] = -1
+                if 'tmpname' in  item['organization']['hfl'][k]:
+                    del item['organization']['hfl'][k]['tmpname']
+        if 'hm' in item['organization']:          
+            for k, hm in enumerate(item['organization']['hm']):
+                if 'id' in item['organization']['hm'][k]:
+                    item['organization']['hm'][k]['id'] = -1
+                if 'tmpname' in item['organization']['hm'][k]:
+                    del item['organization']['hm'][k]['tmpname']
+        if 'pilot' in item['organization']:          
+            for k, pilot in enumerate(item['organization']['pilot']):
+                if 'id' in item['organization']['pilot'][k]:
+                    item['organization']['pilot'][k]['id'] = -1
+                if 'tmpname' in item['organization']['pilot'][k]:
+                    del item['organization']['pilot'][k]['tmpname']
+    
+    return item
 
-app.on_insert_oplog += before_insert_oplog
+def __has_permission_obs(id, type):
+    """ Checks if has type (execute, read, write) permissions on an observation or not
+    Only for after_get_observation
+    """
+    
+    col = app.data.driver.db['observations']
+    acl = col.find_one({'_id': id}, {'acl': 1})
+    
+    try:
+        if app.globals['acl']['roles'] in acl['acl'][type]['roles'] or app.globals['acl']['groups'] in acl['acl'][type]['groups'] or app.globals['user_id'] in acl['acl'][type]['users']:
+            return True
+    except:
+        return False
+    
+    return False
+    
+def after_get_observation(request, response):
+    """ Modify response after getting an observation
+    """
+    
+    d = json.loads(response.get_data().decode('UTF-8'))
+    
+    changed = False
+    
+    pprint(request.args)
+    
+    try:
+        if '_items' in d:
+            
+            if request.args.get('version') == 'diffs':
+                id = d['_items'][0]['_id']
+                if d['_items'][0]['workflow']['state'] == 'closed':
+                    for key, val in enumerate(d['_items']):
+                        if not __has_permission_obs(id, 'execute'):
+                            d['_items'][key] = __anonymize_obs(d['_items'][key])
+                            changed = True
+            
+            else:
+                for key, val in enumerate(d['_items']):
+                    if d['_items'][key]['workflow']['state'] == 'closed':
+                        
+                        if not __has_permission_obs(d['_items'][key]['_id'], 'execute'):
+                            d['_items'][key] = __anonymize_obs(d['_items'][key])
+                            changed = True
+                
+        else:
+            if d['workflow']['state'] == 'closed':
+                if not __has_permission_obs(d['_id'], 'execute'):
+                    d = __anonymize_obs(d)
+                    changed = True
+                    
+        if changed:
+            response.set_data(json.dumps(d))
+            
+    except:
+        print("Unexpected error:", sys.exc_info()[0])
+        raise
+    
+app.on_post_GET_observations += after_get_observation
 
+def before_get_observation(request, lookup):
 
+    lookup.update({ '$or': [{ "acl.read.groups": {'$in': app.globals['acl']['groups']}}, {"acl.read.roles": {'$in': app.globals['acl']['roles']}}, { "acl.read.users": {'$in': [app.globals.get('user_id')]}}] })
+
+app.on_pre_GET_observations += before_get_observation
+
+def before_patch_observation(request, lookup):
+
+    lookup.update({ '$or': [{ "acl.write.groups": {'$in': app.globals['acl']['groups']}}, {"acl.write.roles": {'$in': app.globals['acl']['roles']}}, { "acl.write.users": {'$in': [app.globals.get('user_id')]}}] })
+
+app.on_pre_PATCH_observations += before_patch_observation
+
+def before_post_observation_comments(resource, items):
+    print(resource)
+    if resource == 'observation/comments':
+        items[0].update({'user': int(app.globals.get('user_id'))})
+
+app.on_insert += before_post_observation_comments
+#app.on_insert_observation_comments += before_post_observation_comments
 """
 
     START:
@@ -245,6 +393,8 @@ app.on_insert_oplog += before_insert_oplog
     @todo: Config file for gunicorn deployment and -C see http://gunicorn-docs.readthedocs.org/en/latest/settings.html
 
 """
+
+
 if __name__ == '__main__':
     port = 8080
     host = '127.0.0.1'

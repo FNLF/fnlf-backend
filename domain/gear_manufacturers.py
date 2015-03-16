@@ -5,7 +5,7 @@
     
 """
 
-from _base import workflow_schema, comments_schema, watchers_schema, audit_schema, acl_schema
+from _base import workflow_schema, comments_schema, watchers_schema, audit_schema, acl_item_schema
 
 _schema = {
            'name': {'type': 'string',
@@ -55,7 +55,7 @@ _schema = {
            'workflow': workflow_schema,
            'watchers': watchers_schema,
            'audit': audit_schema,
-           'acl': acl_schema,
+           'acl': acl_item_schema,
             }
 
 definition = {

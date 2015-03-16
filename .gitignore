@@ -1,12 +1,14 @@
 #Custom files
 .*.md.html
 *melwin.py
+*notification.py
 #Python virtualenv
 bin/
 include/
 lib64
 log/
 database*
+dump*
 fnlf-database*
 # Byte-compiled / optimized / DLL files
 __pycache__/

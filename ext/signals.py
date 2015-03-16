@@ -15,6 +15,14 @@ from flask.signals import Namespace
 from eve.methods.post import post_internal
 from eve.methods.common import oplog_push
 
+from datetime import datetime
+
+import json
+from bson.objectid import ObjectId
+
+from ext.helpers import helpers
+from ext.notification import notification
+    
 # TIME & DATE - better with arrow only?
 import arrow
 
@@ -25,6 +33,8 @@ _signals = Namespace()
 signal_activity_log     = _signals.signal('user-activity-logger')
 signal_insert_workflow  = _signals.signal('insert-workflow')
 signal_change_owner     = _signals.signal('change-owner')
+signal_change_acl       = _signals.signal('change-acl')
+signal_init_acl         = _signals.signal('init-acl')
 
 @signal_insert_workflow.connect
 def insert_workflow(c_app, **extra):
@@ -75,15 +85,77 @@ def insert_workflow(c_app, **extra):
                                       "reporter": c_app.globals.get('user_id')
                                       } 
                             })
+         # Notify!
+        notify = notification()
+        helper = helpers()
         
+        recepients = helper.get_melwin_users_email(helper.collect_users(users=[app.globals['user_id']], roles=[helper.get_role_hi(r.get('club'))]))
+        subject = 'Observasjon #%s ble opprettet' % number
+        
+        action_by = helper.get_user_name(app.globals['user_id'])
+        
+        message = '%s\n' % subject
+        message += '\n'
+        message += 'Klubb:\t %s\n' % helper.get_melwin_club_name(r.get('club'))
+        message += '\n'
+        message += 'Av:\t %s\n' % action_by
+        message += 'Dato:\t %s\n' % datetime.today().strftime('%Y-%m-%d %H:%M')
+        message += 'Url:\t %sapp/obs/#!/observation/%i\n' % (request.url_root, number)
+        
+        notify.send_email(recepients, subject, message)
+        
+@signal_init_acl.connect
+def init_acl(c_app, **extra):
+    """ Set user as read, write and execute!
+    Only the current user since this is the POST to DRAFT
+    @todo: Investigate wether to keep in workflow or not.
+    """
+    
+    if request.method == 'POST':
+    
+        r = request.get_json()
+        _id = r.get('_id')
+        club = r.get('club')
+    
+        obs = c_app.data.driver.db['observations']
+        
+        # Add hi to the mix!
+        groups = app.data.driver.db['acl_groups']
+        group = groups.find_one({'ref': club})
+        
+        if group:
+            roles = app.data.driver.db['acl_roles']
+            role = roles.find_one({'group': group['_id'], 'ref': 'hi'})
+            
+            if role:
+                users = app.data.driver.db['users']
+                hi = list(users.find({'acl.roles': {'$in': [role['_id']]}}))
+                
+                his = []
+                if isinstance(hi, list):
+                    for user in hi:
+                        his.append(user['id'])
+                else:
+                    his.append(hi['id'])
+        
+        # Adds user and hi!
+        acl = {'read': {'users': [app.globals.get('user_id')], 'groups': [], 'roles': [role['_id']]},
+               'write': {'users': [app.globals.get('user_id')], 'groups': [], 'roles': []},
+               'execute': {'users': [app.globals.get('user_id')], 'groups': [], 'roles': []}
+               }
+        
+        obs.update({'_id': _id}, {'$set': {'acl': acl}})
+        obs.update({'_id': _id}, {'$set': {'organization.hi': his}})
+        
+    
+
 @signal_change_owner.connect
 def change_owner(c_app, response, **extra):
     """ This solution hooks into after a PATCH request and thus needs the response obj
     The trick is to take the body returned via .get_data() and load it as json
     This ONLY works for Eve specific calls if you do not return the _id included in a json string
     """
-    import json
-    from bson.objectid import ObjectId
+
     r = json.loads(response.get_data().decode())
     _id = r.get('_id') #ObjectId(r['_id'])
     
@@ -94,6 +166,13 @@ def change_owner(c_app, response, **extra):
                                 })
     except:
         pass
+
+@signal_change_acl.connect
+def change_obs_acl(c_app, acl, **extra):
+    
+    #observation = c_app.data.driver.db['observations']
+    #u = observation.update({})
+    pass
 
 @signal_activity_log.connect
 def oplog_wrapper( c_app, ref=None, updates=None, action=None, resource=None, **extra):

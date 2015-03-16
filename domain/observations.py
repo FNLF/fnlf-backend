@@ -11,7 +11,7 @@
     @todo: Add workflow by default in pre hook
     @todo: add schema for organisation or club + location
 """
-from _base import workflow_schema, comments_schema, watchers_schema, audit_schema, acl_schema
+from _base import workflow_schema, comments_schema, watchers_schema, audit_schema, acl_item_schema
 import observation_components
 
 _schema = {'id': {'type': 'integer',
@@ -21,9 +21,11 @@ _schema = {'id': {'type': 'integer',
            'type': {'type': 'string',
                     'allowed': ['sharing', 'unsafe_act', 'near_miss', 'incident', 'accident']},
            
-           'tags': {'type': 'list'},
+           'tags': {'type': 'list',
+                    'default': []},
            
-           'club': {'type': 'string'},
+           'club': {'type': 'string',
+                    'required': True},
            
            'location': {'type': 'dict'},
            
@@ -32,9 +34,12 @@ _schema = {'id': {'type': 'integer',
            
            'when': {'type': 'datetime'},
            
-           'involved': {'type': 'list'},
+           'involved': {'type': 'list',
+                        'default': []},
            
-           'organization': {'type': 'dict'},
+           'organization': {'type': 'dict',
+                            'default': {}
+                            },
            
            'rating': {'type': 'dict',
                       'schema': {'actual': {'type': 'integer'},
@@ -59,14 +64,15 @@ _schema = {'id': {'type': 'integer',
                      'default': [],
                      },
            
-           'related': {'type': 'list'},
+           'related': {'type': 'list', 
+                       'default': []},
            'actions': {'type': 'dict'},
            
            'comments': comments_schema,
            'workflow': workflow_schema,
            'watchers': watchers_schema,
            'audit': audit_schema,
-           'acl': acl_schema,
+           'acl': acl_item_schema,
            
            
            }

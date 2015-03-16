@@ -29,11 +29,13 @@ import jump_categories
 # Incident Reporting
 import observations
 import observation_components
-
+import observation_comments
 # Files - just a test collection
 import files
 
 import tags
+
+import acl_groups, acl_roles, users_acl
 
 # A custom endpoint for developement flexibility!
 import dev
@@ -56,6 +58,9 @@ DOMAIN = {
     "dev" : dev.definition,
     "files" : files.definition,
     "tags" : tags.definition,
-   
+    "acl/groups" : acl_groups.definition,
+    "acl/roles" : acl_roles.definition,
+    "users/acl" : users_acl.definition,
+    "observation/comments" : observation_comments.definition,
 }
 
