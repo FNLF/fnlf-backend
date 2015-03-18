@@ -32,7 +32,7 @@ class ObservationWorkflow(Machine):
         # states 'name', 'on_enter', 'on_exit'
         self._states=['draft', 'ready', 'pending_review_hi', 'pending_review_fs', 'pending_review_su', 'closed', 'withdrawn']
         
-        self._state_attrs = {'draft': {'title': 'Draft', 'description': 'Draft'},
+        self._state_attrs = {'draft': {'title': 'Utkast', 'description': 'Utkast'},
                      'ready': {'title': 'Klar', 'description': 'Klar for å sendes HI'},
                      'pending_review_hi': {'title': 'Avventer HI', 'description': 'Avventer vurdering HI'},
                      'pending_review_fs': {'title': 'Avventer Fagsjef', 'description': 'Avventer vurdering Fagsjef'},
