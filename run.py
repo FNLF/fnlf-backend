@@ -346,10 +346,11 @@ def after_get_observation(request, response):
                             changed = True
                 
         else:
-            if d['workflow']['state'] == 'closed':
-                if not __has_permission_obs(d['_id'], 'execute'):
-                    d = __anonymize_obs(d)
-                    changed = True
+            if d['workflow'] and 'state' in d['workflow']:
+                if d['workflow']['state'] == 'closed':
+                    if not __has_permission_obs(d['_id'], 'execute'):
+                        d = __anonymize_obs(d)
+                        changed = True
                     
         if changed:
             response.set_data(json.dumps(d))
