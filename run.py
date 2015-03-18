@@ -273,31 +273,34 @@ def __anonymize_obs(item):
     # Organization        
     for key, val in enumerate(item['organization']):
         
-        if 'hl' in item['organization']:    
-            for k, hl in enumerate(item['organization']['hl']):
-                if 'id' in item['organization']['hl'][k]:
-                    item['organization']['hl'][k]['id'] = -1
-                if 'tmpname' in  item['organization']['hl'][k]:
-                    del item['organization']['hl'][k]['tmpname']
-        if 'hfl' in item['organization']:          
-            for k, hfl in enumerate(item['organization']['hfl']):
-                if 'id' in item['organization']['hfl'][k]:
-                    item['organization']['hfl'][k]['id'] = -1
-                if 'tmpname' in  item['organization']['hfl'][k]:
-                    del item['organization']['hfl'][k]['tmpname']
-        if 'hm' in item['organization']:          
-            for k, hm in enumerate(item['organization']['hm']):
-                if 'id' in item['organization']['hm'][k]:
-                    item['organization']['hm'][k]['id'] = -1
-                if 'tmpname' in item['organization']['hm'][k]:
-                    del item['organization']['hm'][k]['tmpname']
-        if 'pilot' in item['organization']:          
-            for k, pilot in enumerate(item['organization']['pilot']):
-                if 'id' in item['organization']['pilot'][k]:
-                    item['organization']['pilot'][k]['id'] = -1
-                if 'tmpname' in item['organization']['pilot'][k]:
-                    del item['organization']['pilot'][k]['tmpname']
-    
+        try:
+            if 'hl' in item['organization']:    
+                for k, hl in enumerate(item['organization']['hl']):
+                    if 'id' in item['organization']['hl'][k]:
+                        item['organization']['hl'][k]['id'] = -1
+                    if 'tmpname' in  item['organization']['hl'][k]:
+                        del item['organization']['hl'][k]['tmpname']
+            if 'hfl' in item['organization']:          
+                for k, hfl in enumerate(item['organization']['hfl']):
+                    if 'id' in item['organization']['hfl'][k]:
+                        item['organization']['hfl'][k]['id'] = -1
+                    if 'tmpname' in  item['organization']['hfl'][k]:
+                        del item['organization']['hfl'][k]['tmpname']
+            if 'hm' in item['organization']:          
+                for k, hm in enumerate(item['organization']['hm']):
+                    if 'id' in item['organization']['hm'][k]:
+                        item['organization']['hm'][k]['id'] = -1
+                    if 'tmpname' in item['organization']['hm'][k]:
+                        del item['organization']['hm'][k]['tmpname']
+            if 'pilot' in item['organization']:          
+                for k, pilot in enumerate(item['organization']['pilot']):
+                    if 'id' in item['organization']['pilot'][k]:
+                        item['organization']['pilot'][k]['id'] = -1
+                    if 'tmpname' in item['organization']['pilot'][k]:
+                        del item['organization']['pilot'][k]['tmpname']
+        except:
+            pass
+        
     return item
 
 def __has_permission_obs(id, type):
