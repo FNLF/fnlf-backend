@@ -95,7 +95,10 @@ class helpers():
         roles = app.data.driver.db['acl_roles']
         
         r = roles.find_one({ "ref": 'hi', 'group': self.get_group_club(club)})
-        return r['_id']
+        if '_id' in r:
+            return r['_id']
+        else:
+            return None
     
     def get_group_su(self):
         """ Returns the group id of the su group
@@ -103,7 +106,11 @@ class helpers():
         groups = app.data.driver.db['acl_groups']
         
         group = groups.find_one({'ref': 'su'})
-        return group['_id']
+        
+        if '_id' in group:
+            return group['_id']
+        else:
+            return None
     
     def get_role_fs(self):
         """ Return the role id of the role fs
@@ -111,14 +118,21 @@ class helpers():
         roles = app.data.driver.db['acl_roles']
         role = roles.find_one({'ref': 'fs'})
         
-        return role['_id']
+        if '_id' in role:
+            return role['_id']
+        else:
+            return None
     
     def get_group_club(self,club):
         
         groups = app.data.driver.db['acl_groups']
         
         group = groups.find_one({'ref': club})
-        return group['_id']
+        
+        if '_id' in group:
+            return group['_id']
+        else:
+            return None
     
     def get_all_groups(self):
         
@@ -166,7 +180,10 @@ class helpers():
         melwin = app.data.driver.db['melwin_clubs']
         c = melwin.find_one({'id': club}, {'name': 1})
         
-        return c['name']
+        if 'name' in c:
+            return c['name']
+        else:
+            return None
         
     
     
