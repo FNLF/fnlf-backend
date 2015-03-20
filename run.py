@@ -421,7 +421,7 @@ app.on_insert += before_post_observation_comments
 
 
 if __name__ == '__main__':
-    port = 8080
+    port = 8081
     host = '127.0.0.1'
 
     app.run(host=host, port=port)
