@@ -33,7 +33,7 @@
     @license: MIT, see LICENSE for more details. Note that Eve is BSD licensed
 """
 
-__version_info__ = ('0', '2', '0')
+__version_info__ = ('0', '3', '4')
 __version__ = '.'.join(__version_info__)
 __author__ = 'Einar Huseby'
 __license__ = 'MIT'
@@ -254,21 +254,39 @@ def __anonymize_obs(item):
     # Involved
     for key, val in enumerate(item['involved']):
         
-        item['involved'][key]['id'] = -1
-        if 'tmpname' in item['involved'][key]:
-            item['involved'][key]['tmpname'] = 'Anonymisert'
+        try:
+            item['involved'][key]['id'] = -1
+            if 'tmpname' in item['involved'][key]:
+                item['involved'][key]['tmpname'] = 'Anonymisert'
+        except KeyError:
+            pass
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+            pass
     
     # Involved in components
     for key, val in enumerate(item['components']):
-        
-        for k, v in enumerate(item['components'][key]['involved']):
-            item['components'][key]['involved'][k]['id'] = -1
+        try:
+            for k, v in enumerate(item['components'][key]['involved']):
+                item['components'][key]['involved'][k]['id'] = -1
+                
+        except KeyError:
+            pass
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+            pass
     
     # Workflow audit trail        
     for key, val in enumerate(item['workflow']['audit']):
         
-        if item['workflow']['audit'][key]['a'] in ['init', 'set_ready', 'send_to_hi', 'withdraw']:
-            item['workflow']['audit'][key]['u'] = -1
+        try:
+            if item['workflow']['audit'][key]['a'] in ['init', 'set_ready', 'send_to_hi', 'withdraw']:
+                item['workflow']['audit'][key]['u'] = -1
+        except KeyError:
+            pass
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+            pass
     
     # Organization        
     for key, val in enumerate(item['organization']):
@@ -298,7 +316,10 @@ def __anonymize_obs(item):
                         item['organization']['pilot'][k]['id'] = -1
                     if 'tmpname' in item['organization']['pilot'][k]:
                         del item['organization']['pilot'][k]['tmpname']
+        except KeyError:
+            pass
         except:
+            print("Unexpected error:", sys.exc_info()[0])
             pass
         
     return item
@@ -357,10 +378,10 @@ def after_get_observation(request, response):
                     
         if changed:
             response.set_data(json.dumps(d))
-            
+    except KeyError:
+        pass        
     except:
         print("Unexpected error:", sys.exc_info()[0])
-        raise
     
 app.on_post_GET_observations += after_get_observation
 
