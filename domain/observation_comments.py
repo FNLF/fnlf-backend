@@ -10,7 +10,8 @@
 _schema = {'user': {'type': 'integer',
                      'required': False}, #Because we hook it in!
            'comment': {'type': 'string',
-                       'required': True},
+                       'required': True,
+                       'default': ''},
            'observation': {'type': 'objectid',
                            'required': True}
            
