@@ -463,7 +463,10 @@ class ObservationWorkflow(Machine):
         message += '\n'
         message += 'Av:\t %s\n' % action_by
         message += 'Dato:\t %s\n' % datetime.today().strftime('%Y-%m-%d %H:%M')
-        message += 'Url:\t %sapp/obs/#!/observation/%i\n' % (request.url_root, int(self.db_wf.get('id')))
+        if self.state == 'closed':
+            message += 'Url:\t %sapp/obs/#!/observation/report/%i\n' % (request.url_root, int(self.db_wf.get('id')))
+        else:
+            message += 'Url:\t %sapp/obs/#!/observation/%i\n' % (request.url_root, int(self.db_wf.get('id')))
         message += '\nMelding:\n'
         message += '%s\n' % self.comment
         
