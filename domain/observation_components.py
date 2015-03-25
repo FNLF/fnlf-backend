@@ -22,6 +22,8 @@ _schema = {'what': {'type': 'string',
            # Flags a component according to the timeline
            'flags': {'type': 'dict',
                     'schema': {'root_cause': {'type': 'boolean'},
+                               'cause': {'type': 'boolean'},
+                               'consequence': {'type': 'boolean'},
                                'final_consequence': {'type': 'boolean'},
                                'barrier': {'type': 'boolean'},
                                'incident': {'type': 'boolean'},
