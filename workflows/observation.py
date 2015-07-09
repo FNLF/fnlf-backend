@@ -447,7 +447,7 @@ class ObservationWorkflow(Machine):
         """
         notify = notification()
         helper = helpers()
-        recepients = self.helper.get_melwin_users_email(self.helper.collect_users(users, groups, roles))
+        recepients = self.helper.get_melwin_users_email(self.helper.collect_users(users=users, roles=roles, groups=groups))
         
         subject = 'Observasjon #%s %s' % (int(self.db_wf.get('id')), self._trigger_attrs[self.action]['descr'])
         
