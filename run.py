@@ -33,7 +33,7 @@
     @license: MIT, see LICENSE for more details. Note that Eve is BSD licensed
 """
 
-__version_info__ = ('0', '3', '4')
+__version_info__ = ('0', '3', '6')
 __version__ = '.'.join(__version_info__)
 __author__ = 'Einar Huseby'
 __license__ = 'MIT'
