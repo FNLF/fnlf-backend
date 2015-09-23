@@ -20,7 +20,7 @@ MONGO_PORT = 27017
 MONGO_USERNAME = ''
 MONGO_PASSWORD = ''
 # Production
-# MONGO_DBNAME = 'fnlf'
+#MONGO_DBNAME = 'fnlf'
 # Development
 MONGO_DBNAME = 'fnlf-dev'
 
@@ -31,6 +31,9 @@ DEBUG = True
 URL_PREFIX = 'api'
 API_VERSION = 'v1'
 
+# Pagination settings
+PAGINATION_LIMIT = 1000
+PAGINATION_DEFAULT = 50
 
 # Enable reads (GET), inserts (POST) and DELETE for resources/collections
 # (if you omit this line, the API will default to ['GET'] and provide
