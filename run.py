@@ -48,6 +48,8 @@ from eve import Eve
 from flask import jsonify, request, abort, Response
 import json
 
+from bson.objectid import ObjectId
+
 # Eve docs (blueprint)
 from flask.ext.bootstrap import Bootstrap
 from eve_docs import eve_docs
@@ -236,6 +238,11 @@ def __anonymize_obs(item):
     """ Anonymizes based on a simple scheme
     Only for after_get_observation
     Should see if solution to have association of user id to a fixed (negative) number for that id to be sorted as "jumper 1", "jumper 2" etc in frontend
+    @todo: remove anon files from list 
+    @todo: add check for nanon's (non-anon) which should return item directly
+    @todo: see if you are involved then do not anon that?
+    @todo: for workflow see if all involved should be added to nanon or seperate logic to handle that?
+    @todo: add "hopper 1" "hopper 2" etc involved[45199] = -3
     """
     
     # Reporter AND owner
@@ -275,6 +282,9 @@ def __anonymize_obs(item):
         except:
             print("Unexpected error:", sys.exc_info()[0])
             pass
+    
+    # Files
+    item['files'][:] = [d for d in item['files'] if d.get('r') != True]
     
     # Workflow audit trail        
     for key, val in enumerate(item['workflow']['audit']):
@@ -327,13 +337,17 @@ def __anonymize_obs(item):
 def __has_permission_obs(id, type):
     """ Checks if has type (execute, read, write) permissions on an observation or not
     Only for after_get_observation
+    @note: checks on list comprehension and returns number of intersects in list => len(list) > 0 == True
+    @bug: Possible bug if user comparison is int vs float!
+    @todo: Should not be execute rights? Or could it be another type 'noanon' or if in users with read right? 
     """
-    
     col = app.data.driver.db['observations']
-    acl = col.find_one({'_id': id}, {'acl': 1})
-    
+    acl = col.find_one({'_id': ObjectId(id)}, {'acl': 1})
+
     try:
-        if app.globals['acl']['roles'] in acl['acl'][type]['roles'] or app.globals['acl']['groups'] in acl['acl'][type]['groups'] or app.globals['user_id'] in acl['acl'][type]['users']:
+        if len([i for i in app.globals['acl']['roles'] if i in acl['acl'][type]['roles']]) > 0 \
+        or len([i for i in app.globals['acl']['groups'] if i in acl['acl'][type]['groups']]) > 0 \
+        or app.globals['user_id'] in acl['acl'][type]['users']:
             return True
     except:
         return False
