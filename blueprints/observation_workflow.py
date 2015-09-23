@@ -22,26 +22,24 @@ from ext.decorators import *
 
 ObsWorkflow = Blueprint('Observation Workflow', __name__,)
 
-"""
-Get current state, actions, transitions and permissions
-"""
+
 @ObsWorkflow.route("/<objectid:observation_id>", methods=['GET'])
 @ObsWorkflow.route("/<objectid:observation_id>/state", methods=['GET'])
 @require_token()
 def state(observation_id):
-    
+    """ Get current state, actions, transitions and permissions
+    """
     # No need for user_id, ObservatoinWorkflow already has that!
     wf = ObservationWorkflow(object_id=observation_id, user_id=app.globals.get('user_id'))
     
     return Response(json.dumps(wf.get_current_state()),  mimetype='application/json')
 
-"""
-Get audit trail for observation
-"""
+
 @ObsWorkflow.route("/<objectid:observation_id>/audit", methods=['GET'])
 @require_token()
 def audit(observation_id):
-    
+    """ Get audit trail for observation
+    """    
     wf = ObservationWorkflow(object_id=observation_id, user_id=app.globals.get('user_id'))
    
     return Response(json.dumps(wf.get_audit(), default=json_util.default), mimetype='application/json')
@@ -49,14 +47,46 @@ def audit(observation_id):
 @ObsWorkflow.route("/todo", methods=['GET'])
 @require_token()
 def get_observations():
+    """ Get a number of observations which you can execure
+        @todo add max_results from GET
+    """
+    
+    max_results = request.args.get('max_results', 10, type=int)
+    page = request.args.get('page', 1, type=int)
+    sort_tmp = request.args.get('sort', '_updated', type=str)
+    
+    sort = {}
+    
+    if sort_tmp[0] == '-':
+        sort['field'] = sort_tmp[1:]
+        sort['direction'] = -1
+    else:
+        sort['field'] = sort_tmp
+        sort['direction'] = 1
+        
     
     col = app.data.driver.db['observations']
-    
-    r = list(col.find({'$and': [{'workflow.state': {'$nin': ['closed', 'withdrawn']}}, \
+    #db.companies.find().skip(NUMBER_OF_ITEMS * (PAGE_NUMBER - 1)).limit(NUMBER_OF_ITEMS )
+    cursor = col.find({'$and': [{'workflow.state': {'$nin': ['closed', 'withdrawn']}}, \
                                 {'$or': [{'acl.execute.users': {'$in': [app.globals['user_id']]}}, \
                                 {'acl.execute.groups': {'$in': app.globals['acl']['groups']}}, \
-                                {'acl.execute.roles': {'$in': app.globals['acl']['roles']}} ] } ] } ).sort('_updated', 1))
-    return Response(json.dumps({'_items': r}, default=json_util.default), mimetype='application/json')
+                                {'acl.execute.roles': {'$in': app.globals['acl']['roles']}} ] } ] } ).sort(sort['field'], sort['direction'])
+    total_items = cursor.count()
+    
+    _items = list(cursor.skip(max_results * (page - 1)).limit(max_results))
+    
+    """
+    #hateos
+    _links = {"self": {"title": "observations/todo", "href": "observations/todo?max_results=%i&page=%i" % (max_results, page), 
+                       "next": {},
+                       "previous": {},
+                       "last": {},
+                       "first": {},
+                       "parent": {}}}
+    """ 
+    _meta = { 'page': page,  'max_results' : max_results,  'total' : total_items}   
+    result = {'_items' : _items, '_meta':  _meta} 
+    return Response(json.dumps(result, default=json_util.default), mimetype='application/json')
   
 @ObsWorkflow.route('/<objectid:observation_id>/<regex("(approve|reject|withdraw|reopen)"):action>', methods=['POST'])
 @require_token()
