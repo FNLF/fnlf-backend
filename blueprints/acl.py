@@ -21,6 +21,58 @@ from pprint import pprint
 
 ACL = Blueprint('Acl', __name__,)
 
+@ACL.route("/<string:collection>/<int:observation_id>", methods=['GET'])
+@require_token()
+def get_observation_user_acl(collection, observation_id):
+    ''' This is NOT a good one since jsonifying those objectid's are bad
+    Should rather use Eve for getting stuff!
+    '''
+    
+    try:
+        if collection not in ['observations', 'users']:
+            collection = 'observations'
+        
+        x = False
+        w = False
+        r = False
+        
+        col = app.data.driver.db[collection]
+        acl = col.find_one({'id': observation_id}, {'acl': 1, 'id': 1, '_id': 0})
+        
+        try:
+            if len([i for i in app.globals['acl']['roles'] if i in acl['acl']['execute']['roles']]) > 0 \
+            or len([i for i in app.globals['acl']['groups'] if i in acl['acl']['execute']['groups']]) > 0 \
+            or app.globals['user_id'] in acl['acl']['execute']['users']:
+                x = True
+        except:
+            pass
+        
+        try:
+            if len([i for i in app.globals['acl']['roles'] if i in acl['acl']['read']['roles']]) > 0 \
+            or len([i for i in app.globals['acl']['groups'] if i in acl['acl']['read']['groups']]) > 0 \
+            or app.globals['user_id'] in acl['acl']['read']['users']:
+                r = True
+        except:
+            pass
+        
+        try:
+            if len([i for i in app.globals['acl']['roles'] if i in acl['acl']['write']['roles']]) > 0 \
+            or len([i for i in app.globals['acl']['groups'] if i in acl['acl']['write']['groups']]) > 0 \
+            or app.globals['user_id'] in acl['acl']['write']['users']:
+                x = True
+        except:
+            pass
+        
+        result = {'id': acl['id'], 'resource': collection, 'u': app.globals['user_id'], 'r': r, 'w': w, 'x': x}
+        
+    except:
+        result = {'_error': {'code': 404, 'message': 'The requested URL was not found on the server.  If you entered the URL manually please check your spelling and try again.' },\
+                  '_status': 'ERR'}
+        
+        
+    return Response(json.dumps(result, default=json_util.default),  mimetype='application/json')
+
+
 @ACL.route("/group/<objectid:group_id>", methods=['GET'])
 @require_token()
 def get_by_group(group_id):
