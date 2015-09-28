@@ -11,7 +11,7 @@
     @todo: Add workflow by default in pre hook
     @todo: add schema for organisation or club + location
 """
-from _base import workflow_schema, comments_schema, watchers_schema, audit_schema, acl_item_schema
+from _base import workflow_schema, comments_schema, watchers_schema, audit_schema, acl_item_schema, ask_schema
 import observation_components
 
 _schema = {'id': {'type': 'integer',
@@ -20,11 +20,13 @@ _schema = {'id': {'type': 'integer',
            
            'type': {'type': 'string',
                     'allowed': ['sharing', 'unsafe_act', 'near_miss', 'incident', 'accident']},
+           
            'flags': {'type': 'dict',
                      'schema': {'aviation': {'type': 'boolean', 'default': False},
                                 'insurance': {'type': 'boolean', 'default': False},
                                 }
                     },
+           'ask': ask_schema,
            
            'tags': {'type': 'list',
                     'default': []},

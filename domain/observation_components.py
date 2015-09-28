@@ -6,7 +6,7 @@
    
     
 """
-
+from _base import ask_schema
 _schema = {'what': {'type': 'string',
                     'required': True,
                     'unique': True,},
@@ -30,7 +30,7 @@ _schema = {'what': {'type': 'string',
                                  }
                           }, 
            'tags': {'type': 'list'},
-           
+           'ask': ask_schema,
            'related': {'type': 'list',
                        'schema': {'type': 'objectid',
                                   'data_relation': {
