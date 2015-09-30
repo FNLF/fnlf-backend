@@ -45,6 +45,7 @@ ask_schema = {'type': 'dict',
                    'schema': {'attitude': {'type': 'integer', 'default': 0},
                               'skills': {'type': 'integer', 'default': 0},
                               'knowledge': {'type': 'integer', 'default': 0},
+                              'text': {'type': 'dict', 'default': {}},
                               }
               }
 
