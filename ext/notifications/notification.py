@@ -22,14 +22,20 @@ class Notification():
     
     def __init__(self):
         
-        self.c = Scf().get_email()
+        config = Scf()
+        self.c = config.get_email()
+        self.prod = config.is_production()
         
 
     @async
     def send_email_async(self, message, recepient, prefix, subject):
         
+        if not self.prod:
+            message = '--- ORS TEST ---\r\n\r\n%s\r\n\r\n--- ORS TEST ---' % message
+            prefix = '%s TEST' % prefix
+            
         msg = MIMEText(message, 'plain')
-        msg['From'] = 'FNLF Observasjonsregistrering <%s>' % self.c['from']
+        msg['From'] = 'FNLF ORS <%s>' % self.c['from']
         msg['Subject'] = '[%s] %s' % (prefix, subject)
         msg['To'] = '%s <%s>' % (recepient['name'], recepient['email'])
         msg.preamble = 'Notification'
@@ -79,7 +85,7 @@ class Notification():
         return
     
     
-    def send_email(self, recepients, subject, message, prefix='OBS'): #, recepients, subject, message, message_html=None, prefix=None
+    def send_email(self, recepients, subject, message, prefix='ORS'): #, recepients, subject, message, message_html=None, prefix=None
         """ Sends email via async after setting some values
         """
         
