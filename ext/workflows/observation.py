@@ -26,7 +26,7 @@ class ObservationWorkflow(Machine):
     
     
     
-    def __init__(self,object_id=None,initial_state=None, user_id=None, comment=None):
+    def __init__(self, object_id=None, initial_state=None, user_id=None, comment=None):
         
         self.user_id = user_id
         # The states

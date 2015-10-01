@@ -39,7 +39,7 @@ def login():
     username = None
     password = None
     
-    m = Melwin(app.globals['secret']['melwin'].get('member'), app.globals['secret']['melwin'].get('pin'))
+    m = Melwin()
     
     # Request via json
     rq = request.get_json()

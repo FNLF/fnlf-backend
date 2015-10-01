@@ -17,27 +17,34 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+from scf import __sms, __email
 
 class Notification():
     
-    def __init__(self, app ):
+    def __init__(self, secret):
         
-        self.app = app
+        self.username = __email.get('username')
+        self.password = __email.get('password')
+        self.from_address = __email.get('from')
+        self.smtp = __email.get('smtp')
+        self.smtp_port = __email.get('smtp_port')
+        self.sms_username = __sms.get('username')
+        self.sms_password = __sms.get('password')
 
     @async
     def send_email_async(self, message, recepient, prefix, subject):
         
         msg = MIMEText(message, 'plain')
-        msg['From'] = 'FNLF Observasjonsregistrering <%s>' % self.app.globals['secret']['email'].get('from')
+        msg['From'] = 'FNLF Observasjonsregistrering <%s>' % self.from_address
         msg['Subject'] = '[%s] %s' % (prefix, subject)
         msg['To'] = '%s <%s>' % (recepient['name'], recepient['email'])
         msg.preamble = 'Notification'
         
-        s = smtplib.SMTP(self.app.globals['secret']['email'].get('smtp'), self.app.globals['secret']['email'].get('port'))
+        s = smtplib.SMTP(self.smtp, self.smtp_port)
         s.ehlo()
         s.starttls()
         s.ehlo()
-        s.login(self.app.globals['secret']['email'].get('username'), self.app.globals['secret']['email'].get('password'))
+        s.login(self.username, self.password)
         s.send_message(msg)
         s.quit()
     #http://sendega.com/support/ofte-stilte-spoersmaal-%28faq%29/
@@ -52,8 +59,8 @@ class Notification():
     def send_sms_async(self,mobile, message, client):
     
         #print client
-        result = client.service.Send(username = self.app.globals['secret']['sms'].get('username'),
-                                        password = self.app.globals['secret']['sms'].get('password'),
+        result = client.service.Send(username = self.sms_username,
+                                        password = self.sms_password,
                                         sender = "FNLF ORS",
                                         destination = mobile,
                                         pricegroup = 0,

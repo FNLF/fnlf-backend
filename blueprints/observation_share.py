@@ -20,12 +20,12 @@ def share_observation(observation_id):
     args = request.get_json() #use force=True to do anyway!
     users = args.get('recepients')
     # Notify!
-    notify = Notification(app)
+    notify = Notification()
     helper = Helpers()
     
     recepients = helper.get_melwin_users_email(users)
     
-    action_by = helper.get_user_name(app.globals['user_id'])
+    action_by = helper.get_user_name(app.globals.get('user_id'))
     
     subject = '%s har delt observasjon #%i' % (action_by, observation_id)
     

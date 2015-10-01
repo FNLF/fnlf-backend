@@ -53,6 +53,8 @@ from datetime import time
 # Use the free one!! Or should we use 
 from geopy.geocoders import Nominatim, OpenMapQuest
 
+from scf import __melwin
+
 import itertools,sys
 
 """
@@ -128,11 +130,14 @@ class Melwin():
 	member = 0
 	pin = 0
 	
-	def __init__(self, member, pin):
+	def __init__(self, member=False, pin=False):
 		
-		
-		self.member = member
-		self.pin = pin
+		if member and pin:
+			self.member = member
+			self.pin = pin
+		else:
+			self.member = __melwin.get('username')
+			self.pin = __melwin.get('pin')
 		# Make a import filter fixing the broken schemas
 		imp = Import('http://schemas.xmlsoap.org/soap/encoding/')
 		imp.filter.add('http://www.4d.com/namespace/default')
