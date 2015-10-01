@@ -19,21 +19,25 @@ from email.mime.text import MIMEText
 
 
 class Notification():
+    
+    def __init__(self, app ):
+        
+        self.app = app
 
     @async
     def send_email_async(self, message, recepient, prefix, subject):
         
         msg = MIMEText(message, 'plain')
-        msg['From'] = 'FNLF Observasjonsregistrering <%s>' % app.globals['secret']['email'].get('from')
+        msg['From'] = 'FNLF Observasjonsregistrering <%s>' % self.app.globals['secret']['email'].get('from')
         msg['Subject'] = '[%s] %s' % (prefix, subject)
         msg['To'] = '%s <%s>' % (recepient['name'], recepient['email'])
         msg.preamble = 'Notification'
         
-        s = smtplib.SMTP(app.globals['secret']['email'].get('smtp'), app.globals['secret']['email'].get('port'))
+        s = smtplib.SMTP(self.app.globals['secret']['email'].get('smtp'), self.app.globals['secret']['email'].get('port'))
         s.ehlo()
         s.starttls()
         s.ehlo()
-        s.login(app.globals['secret']['email'].get('username'), app.globals['secret']['email'].get('password'))
+        s.login(self.app.globals['secret']['email'].get('username'), self.app.globals['secret']['email'].get('password'))
         s.send_message(msg)
         s.quit()
     #http://sendega.com/support/ofte-stilte-spoersmaal-%28faq%29/
@@ -48,8 +52,8 @@ class Notification():
     def send_sms_async(self,mobile, message, client):
     
         #print client
-        result = client.service.Send(username = app.globals['secret']['sms'].get('username'),
-                                        password = app.globals['secret']['sms'].get('password'),
+        result = client.service.Send(username = self.app.globals['secret']['sms'].get('username'),
+                                        password = self.app.globals['secret']['sms'].get('password'),
                                         sender = "FNLF ORS",
                                         destination = mobile,
                                         pricegroup = 0,

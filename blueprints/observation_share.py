@@ -20,7 +20,7 @@ def share_observation(observation_id):
     args = request.get_json() #use force=True to do anyway!
     users = args.get('recepients')
     # Notify!
-    notify = Notification()
+    notify = Notification(app)
     helper = Helpers()
     
     recepients = helper.get_melwin_users_email(users)
