@@ -41,7 +41,7 @@ __copyright__       = '(c) 2014 F/NLF'
 __all__             = ['fnlf-backend']
 
 import os
-from ext.app.custom_eve import Custom_eve
+from ext.app.custom_eve import CustomEve
 
 #custom_eve.methods.common.oplog_push = custom_eve.oplog_push
 
@@ -84,7 +84,7 @@ SETTINGS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'settin
 
 # Start Eve (and flask)
 # Instantiate with custom auth
-app = Custom_eve(auth=TokenAuth, settings=SETTINGS_PATH)
+app = CustomEve(auth=TokenAuth, settings=SETTINGS_PATH)
 
 #app = Eve()
 
