@@ -13,7 +13,7 @@ from flask import current_app as app
 from bson.objectid import ObjectId
 
 def has_permission(id, type, collection):
-    """ Checks if user has type (execute, read, write) permissions on an collection or not
+    """ Checks if current user has type (execute, read, write) permissions on an collection or not
     @note: checks on list comprehension and returns number of intersects in list => len(list) > 0 == True
     @bug: Possible bug if user comparison is int vs float!
     """

@@ -13,6 +13,7 @@ from datetime import datetime
 import re
 
 from ext.auth.helpers import Helpers
+from ext.auth.acl import has_permission as acl_has_permission
 from ext.notifications import Notification
 
 class ObservationWorkflow(Machine):
@@ -145,7 +146,7 @@ class ObservationWorkflow(Machine):
         
         self.comment = comment
         
-        self.helper = helpers()
+        self.helper = Helpers()
              
         Machine.__init__(self, states=self._states, send_event=True, transitions=self._transitions, initial=self.initial_state)
 
@@ -205,12 +206,16 @@ class ObservationWorkflow(Machine):
         return False
         check if in execute!
         """
+        
+        return acl_has_permission(self.db_wf['_id'], 'execute', 'observations')
+        
+        """
         if self.user_id in self.db_wf['acl']['execute']['users'] \
             or bool(set(app.globals.get('acl').get('groups')) & set(self.db_wf['acl']['execute']['groups'])) \
             or bool(set(app.globals.get('acl').get('roles')) & set(self.db_wf['acl']['execute']['roles'])):
             
             return True
-        
+        """
         """
         if self.user_id in self._trigger_attrs.get(event.event.name).get('permission'):
             print("%s has permission" % self.user_id)
