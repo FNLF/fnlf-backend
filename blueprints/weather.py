@@ -3,11 +3,11 @@ from bson import json_util
 import json
 
 # Need custom decorators
-from ext.decorators import *
+from ext.app.decorators import *
 
 from yr.libyr import Yr #This should not be here
 
-from ext.aeromet import Aeromet
+from ext.weather.aeromet import Aeromet
 
 Weather = Blueprint('Weather', __name__,)
 

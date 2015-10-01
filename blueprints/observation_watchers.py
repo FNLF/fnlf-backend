@@ -27,7 +27,7 @@ import json
 from eve.methods.patch import patch_internal
 
 # Need custom decorators
-from ext.decorators import *
+from ext.app.decorators import *
 
 ObsWatchers = Blueprint('Observation Watchers', __name__,)
 

@@ -28,29 +28,32 @@
     
     @note: Run as `nohup python run.py >> nlf.log 2>&1&` NB in virtualenv!
     
-    @author:  Einar Huseby
-    @copyright: (c) 2014 Fallskjermseksjonen Norges Luftsportsforbund
-    @license: MIT, see LICENSE for more details. Note that Eve is BSD licensed
+    @author:        Einar Huseby
+    @copyright:     (c) 2014-2015 Fallskjermseksjonen Norges Luftsportsforbund
+    @license:       MIT, see LICENSE for more details. Note that Eve is BSD licensed
 """
 
-__version_info__ = ('0', '3', '6')
-__version__ = '.'.join(__version_info__)
-__author__ = 'Einar Huseby'
-__license__ = 'MIT'
-__copyright__ = '(c) 2014 F/NLF'
-__all__ = ['fnlf-backend']
+__version_info__    = ('0', '3', '6')
+__version__         = '.'.join(__version_info__)
+__author__          = 'Einar Huseby'
+__license__         = 'MIT'
+__copyright__       = '(c) 2014 F/NLF'
+__all__             = ['fnlf-backend']
 
 import os
-from eve import Eve
+from ext.app.custom_eve import Custom_eve
+
+#custom_eve.methods.common.oplog_push = custom_eve.oplog_push
 
 # We need the json serializer from flask.jsonify (faster than "".json())
 # flask.request for custom flask routes (no need for schemas, database or anything else) 
 from flask import jsonify, request, abort, Response
 import json
 
-from bson.objectid import ObjectId
+# Import hooks
+import ext.hooks as hook
 
-# Eve docs (blueprint)
+# Eve docs (blueprint) dep on bootstrap
 from flask.ext.bootstrap import Bootstrap
 from eve_docs import eve_docs
 
@@ -67,19 +70,11 @@ from blueprints.tags import Tags
 from blueprints.acl import ACL
 from blueprints.observation_share import ObsShare
 
-#import signals from hooks
-from ext.signals import signal_activity_log, signal_insert_workflow, \
-                      signal_change_owner, signal_init_acl
-                      
 # Custom url mappings (for flask)
-from ext.url_maps import ObjectIDConverter, RegexConverter
+from ext.app.url_maps import ObjectIDConverter, RegexConverter
 
-# Custom extensions
-from ext.tokenauth import TokenAuth
-
-import sys
-
-import arrow
+# Custom auth extensions
+from ext.auth.tokenauth import TokenAuth
 
 # Debug output use pprint
 from pprint import pprint
@@ -89,16 +84,15 @@ SETTINGS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'settin
 
 # Start Eve (and flask)
 # Instantiate with custom auth
-app = Eve(auth=TokenAuth, settings=SETTINGS_PATH)
+app = Custom_eve(auth=TokenAuth, settings=SETTINGS_PATH)
+
 #app = Eve()
 
-
 """ Define global settings
-These settings are mirrored from Eve and should not be
+These settings are mirrored from Eve, but should not be!
 @todo: use app.config instead
 """
 app.globals = {"prefix": "/api/v1"}
-
 app.globals.update({"auth": {}})
 app.globals['auth'].update({"auth_collection": "users_auth",
                             "users_collection": "users",
@@ -108,26 +102,26 @@ app.globals['auth'].update({"auth_collection": "users_auth",
 Bootstrap(app)
 
 #Custom url mapping (needed by native flask routes)
-app.url_map.converters['objectid'] = ObjectIDConverter
-app.url_map.converters['regex'] = RegexConverter
+app.url_map.converters['objectid']  = ObjectIDConverter
+app.url_map.converters['regex']     = RegexConverter
 
 # Register eve-docs blueprint 
-app.register_blueprint(eve_docs, url_prefix="%s/docs" % app.globals.get('prefix'))
+app.register_blueprint(eve_docs,        url_prefix="%s/docs" % app.globals.get('prefix'))
 
 # Register custom blueprints
-app.register_blueprint(Authenticate, url_prefix="%s/user" % app.globals.get('prefix'))
-app.register_blueprint(MelwinSearch, url_prefix="%s/melwin/users/search" % app.globals.get('prefix'))
-app.register_blueprint(Weather, url_prefix="%s/weather" % app.globals.get('prefix'))
-app.register_blueprint(Info, url_prefix="%s/info" % app.globals.get('prefix'))
-app.register_blueprint(Files, url_prefix="%s/download" % app.globals.get('prefix'))
+app.register_blueprint(Authenticate,    url_prefix="%s/user" % app.globals.get('prefix'))
+app.register_blueprint(MelwinSearch,    url_prefix="%s/melwin/users/search" % app.globals.get('prefix'))
+app.register_blueprint(Weather,         url_prefix="%s/weather" % app.globals.get('prefix'))
+app.register_blueprint(Info,            url_prefix="%s/info" % app.globals.get('prefix'))
+app.register_blueprint(Files,           url_prefix="%s/download" % app.globals.get('prefix'))
 
 # Register observation endpoints
-app.register_blueprint(ObsWorkflow, url_prefix="%s/observations/workflow" % app.globals.get('prefix'))
-app.register_blueprint(ObsWatchers, url_prefix="%s/observations/watchers" % app.globals.get('prefix'))
-app.register_blueprint(Locations, url_prefix="%s/locations" % app.globals.get('prefix'))
-app.register_blueprint(Tags, url_prefix="%s/tags" % app.globals.get('prefix'))
-app.register_blueprint(ACL, url_prefix="%s/users/acl" % app.globals.get('prefix'))
-app.register_blueprint(ObsShare, url_prefix="%s/observations/share" % app.globals.get('prefix'))
+app.register_blueprint(ObsWorkflow,     url_prefix="%s/observations/workflow" % app.globals.get('prefix'))
+app.register_blueprint(ObsWatchers,     url_prefix="%s/observations/watchers" % app.globals.get('prefix'))
+app.register_blueprint(Locations,       url_prefix="%s/locations" % app.globals.get('prefix'))
+app.register_blueprint(Tags,            url_prefix="%s/tags" % app.globals.get('prefix'))
+app.register_blueprint(ACL,             url_prefix="%s/users/acl" % app.globals.get('prefix'))
+app.register_blueprint(ObsShare,        url_prefix="%s/observations/share" % app.globals.get('prefix'))
 
 """ A simple python logger setup
 Eve do not yet support logging, but will for 0.5
@@ -158,266 +152,34 @@ if not app.debug:
 def eve_error_msg(message, http_code='404'):
     
     return jsonify(**{"_status": "ERR",
-                      "_error": {
-                                 "message": message,
-                                 "code": http_code
-                                 }
+                      "_error": {"message": message,
+                                 "code": http_code}
                       })
 
-"""
-
-    Event hooks:
-    ============
-    
-    Using Eve defined events 
-    
-    Mixed with signals to ext.hooks for flask and direct database access compatibility
-    
-    Eve specific hooks are defined according to
-    
-    def <resource>_<when>_<method>():
-    
-    When attaching to app, remember to use post and pre for request hooks
-           
-    @note: all requests are supported: GET, POST, PATCH, PUT, DELETE
-    @note: POST (resource, request, payload)
-    @note: POST_resource (request, payload)
-    @note: GET (resource, request, lookup)
-    @note: GET_resource (request, lookup)
 
 """
-
-def observations_before_post(request, payload=None):
-    pass
-
-def observations_before_patch(request, lookup):
+    Eve hooks
+    ~~~~~~~~~
     
-    raise NotImplementedError
-
-def observations_after_patch(request, response):
-    """ Change owner, owner is readonly
-    """
-    signal_change_owner.send(app,response=response)
-    
-def observations_after_post(request, payload):
-    """ When payload as json, request.get_json()
-    Else; payload
-    @todo: Integrate with ObservationWorkflow!
-    @todo: Set expiry as attribute for states!
-    """
-
-    signal_insert_workflow.send(app)
-    
-    signal_init_acl.send(app)
-    
-    #action, ref, user, resource=None ref, act = None, resource=None, **extra
-
-    pass
-
-def observations_before_get(request, lookup):
-    
-    raise NotImplementedError
-    pass
-
-def users_before_patch(request, response):
-    
-    #id == id!!
-    if app.globals._id != request._id:
-        resp = Response(None, 401)
-        abort(401, description='You cant edit someone elses account', response=resp)
-
+    This are located in ext.hooks package
+"""
 #app.on_pre_GET_observations += observations_before_get
 #app.on_pre_POST_observations += observations_before_post
 #app.on_pre_PATCH_observations += observations_before_patch
-app.on_post_POST_observations += observations_after_post
+app.on_post_POST_observations += hook.observations.after_post
 #app.on_pre_POST_observations += observations_before_post
-app.on_post_PATCH_observations += observations_after_patch
+app.on_post_PATCH_observations += hook.observations.after_patch
 #app.on_pre_PATCH_observations += observations_before_patch
 
-def __anonymize_obs(item):
-    """ Anonymizes based on a simple scheme
-    Only for after_get_observation
-    Should see if solution to have association of user id to a fixed (negative) number for that id to be sorted as "jumper 1", "jumper 2" etc in frontend
-    @todo: remove anon files from list 
-    @todo: add check for nanon's (non-anon) which should return item directly
-    @todo: see if you are involved then do not anon that?
-    @todo: for workflow see if all involved should be added to nanon or seperate logic to handle that?
-    @todo: add "hopper 1" "hopper 2" etc involved[45199] = -3
-    """
-    
-    # Reporter AND owner
-    item['reporter'] = -1
-    item['owner'] = -1
-    
-    if 'audit' not in item['workflow']:
-        item['workflow']['audit'] = []
-        
-    if 'involved' not in item:
-        item['involved'] = []
-    
-    if 'components' not in item:
-        item['components'] = []
-    
-    # Involved
-    for key, val in enumerate(item['involved']):
-        
-        try:
-            item['involved'][key]['id'] = -1
-            if 'tmpname' in item['involved'][key]:
-                item['involved'][key]['tmpname'] = 'Anonymisert'
-        except KeyError:
-            pass
-        except:
-            print("Unexpected error:", sys.exc_info()[0])
-            pass
-    
-    # Involved in components
-    for key, val in enumerate(item['components']):
-        try:
-            for k, v in enumerate(item['components'][key]['involved']):
-                item['components'][key]['involved'][k]['id'] = -1
-                
-        except KeyError:
-            pass
-        except:
-            print("Unexpected error:", sys.exc_info()[0])
-            pass
-    
-    # Files
-    item['files'][:] = [d for d in item['files'] if d.get('r') != True]
-    
-    # Workflow audit trail        
-    for key, val in enumerate(item['workflow']['audit']):
-        
-        try:
-            if item['workflow']['audit'][key]['a'] in ['init', 'set_ready', 'send_to_hi', 'withdraw']:
-                item['workflow']['audit'][key]['u'] = -1
-        except KeyError:
-            pass
-        except:
-            print("Unexpected error:", sys.exc_info()[0])
-            pass
-    
-    # Organization        
-    for key, val in enumerate(item['organization']):
-        
-        try:
-            if 'hl' in item['organization']:    
-                for k, hl in enumerate(item['organization']['hl']):
-                    if 'id' in item['organization']['hl'][k]:
-                        item['organization']['hl'][k]['id'] = -1
-                    if 'tmpname' in  item['organization']['hl'][k]:
-                        del item['organization']['hl'][k]['tmpname']
-            if 'hfl' in item['organization']:          
-                for k, hfl in enumerate(item['organization']['hfl']):
-                    if 'id' in item['organization']['hfl'][k]:
-                        item['organization']['hfl'][k]['id'] = -1
-                    if 'tmpname' in  item['organization']['hfl'][k]:
-                        del item['organization']['hfl'][k]['tmpname']
-            if 'hm' in item['organization']:          
-                for k, hm in enumerate(item['organization']['hm']):
-                    if 'id' in item['organization']['hm'][k]:
-                        item['organization']['hm'][k]['id'] = -1
-                    if 'tmpname' in item['organization']['hm'][k]:
-                        del item['organization']['hm'][k]['tmpname']
-            if 'pilot' in item['organization']:          
-                for k, pilot in enumerate(item['organization']['pilot']):
-                    if 'id' in item['organization']['pilot'][k]:
-                        item['organization']['pilot'][k]['id'] = -1
-                    if 'tmpname' in item['organization']['pilot'][k]:
-                        del item['organization']['pilot'][k]['tmpname']
-        except KeyError:
-            pass
-        except:
-            print("Unexpected error:", sys.exc_info()[0])
-            pass
-        
-    return item
-
-def __has_permission_obs(id, type):
-    """ Checks if has type (execute, read, write) permissions on an observation or not
-    Only for after_get_observation
-    @note: checks on list comprehension and returns number of intersects in list => len(list) > 0 == True
-    @bug: Possible bug if user comparison is int vs float!
-    @todo: Should not be execute rights? Or could it be another type 'noanon' or if in users with read right? 
-    """
-    col = app.data.driver.db['observations']
-    acl = col.find_one({'_id': ObjectId(id)}, {'acl': 1})
-
-    try:
-        if len([i for i in app.globals['acl']['roles'] if i in acl['acl'][type]['roles']]) > 0 \
-        or len([i for i in app.globals['acl']['groups'] if i in acl['acl'][type]['groups']]) > 0 \
-        or app.globals['user_id'] in acl['acl'][type]['users']:
-            return True
-    except:
-        return False
-    
-    return False
-    
-def after_get_observation(request, response):
-    """ Modify response after getting an observation
-    """
-    
-    d = json.loads(response.get_data().decode('UTF-8'))
-    
-    changed = False
-    
-    pprint(request.args)
-    
-    try:
-        if '_items' in d:
-            
-            if request.args.get('version') == 'diffs':
-                id = d['_items'][0]['_id']
-                if d['_items'][0]['workflow']['state'] == 'closed':
-                    for key, val in enumerate(d['_items']):
-                        if not __has_permission_obs(id, 'execute'):
-                            d['_items'][key] = __anonymize_obs(d['_items'][key])
-                            changed = True
-            
-            else:
-                for key, val in enumerate(d['_items']):
-                    if d['_items'][key]['workflow']['state'] == 'closed':
-                        
-                        if not __has_permission_obs(d['_items'][key]['_id'], 'execute'):
-                            d['_items'][key] = __anonymize_obs(d['_items'][key])
-                            changed = True
-                
-        else:
-            if d['workflow'] and 'state' in d['workflow']:
-                if d['workflow']['state'] == 'closed':
-                    if not __has_permission_obs(d['_id'], 'execute'):
-                        d = __anonymize_obs(d)
-                        changed = True
-                    
-        if changed:
-            response.set_data(json.dumps(d))
-    except KeyError:
-        pass        
-    except:
-        print("Unexpected error:", sys.exc_info()[0])
-    
-app.on_post_GET_observations += after_get_observation
-
-def before_get_observation(request, lookup):
-
-    lookup.update({ '$or': [{ "acl.read.groups": {'$in': app.globals['acl']['groups']}}, {"acl.read.roles": {'$in': app.globals['acl']['roles']}}, { "acl.read.users": {'$in': [app.globals.get('user_id')]}}] })
-
-app.on_pre_GET_observations += before_get_observation
-
-def before_patch_observation(request, lookup):
-
-    lookup.update({ '$or': [{ "acl.write.groups": {'$in': app.globals['acl']['groups']}}, {"acl.write.roles": {'$in': app.globals['acl']['roles']}}, { "acl.write.users": {'$in': [app.globals.get('user_id')]}}] })
-
-app.on_pre_PATCH_observations += before_patch_observation
-
-def before_post_observation_comments(resource, items):
-    print(resource)
-    if resource == 'observation/comments':
-        items[0].update({'user': int(app.globals.get('user_id'))})
-
-app.on_insert += before_post_observation_comments
+app.on_insert += hook.observations.before_post_comments
 #app.on_insert_observation_comments += before_post_observation_comments
+
+app.on_post_GET_observations += hook.observations.after_get
+
+app.on_pre_GET_observations += hook.observations.before_get
+
+app.on_pre_PATCH_observations += hook.observations.before_patch
+
 """
 
     START:

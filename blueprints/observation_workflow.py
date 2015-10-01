@@ -2,7 +2,7 @@
     Observation Workflow Controller
     ===============================
     
-    Model: workflows.observation.ObservationWorkflow
+    Model: ext.workflows.observation.ObservationWorkflow
     
     @todo: Signals on change signal to communications to dispatch an update to the watchers
            http://stackoverflow.com/questions/16163139/catch-signals-in-flask-blueprint
@@ -14,10 +14,10 @@ from bson import json_util
 import json
 import re
 
-from workflows.observation import ObservationWorkflow
+from ext.workflows.observation import ObservationWorkflow
 
 # Need custom decorators
-from ext.decorators import *
+from ext.app.decorators import *
 
 
 ObsWorkflow = Blueprint('Observation Workflow', __name__,)

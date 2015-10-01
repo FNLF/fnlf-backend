@@ -15,7 +15,7 @@ import arrow
 from time import sleep
 
 #Need those badly!
-from ext.decorators import *
+from ext.app.decorators import *
 import json
 import re
 

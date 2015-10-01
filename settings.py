@@ -16,13 +16,13 @@ import domain
 
 # Running on local machine. Let's just use the local mongod instance.
 MONGO_HOST = 'localhost'
-MONGO_PORT = 27017
+MONGO_PORT = 27018
 MONGO_USERNAME = ''
 MONGO_PASSWORD = ''
 # Production
-#MONGO_DBNAME = 'fnlf'
+MONGO_DBNAME = 'fnlf'
 # Development
-MONGO_DBNAME = 'fnlf-dev'
+#MONGO_DBNAME = 'fnlf-dev'
 
 # Will also make server watch inode and reload on changes
 DEBUG = True

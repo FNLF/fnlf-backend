@@ -1,6 +1,7 @@
 #Custom files
 .*.md.html
 *melwin.py
+*melwin_client.py
 *notification.py
 #Python virtualenv
 bin/

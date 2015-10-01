@@ -6,10 +6,10 @@ import json
 from eve.methods.patch import patch_internal
 
 # Need custom decorators
-from ext.decorators import *
+from ext.app.decorators import *
 
-from ext.helpers import helpers
-from ext.notification import notification
+from ext.auth.helpers import helpers
+from ext.notifications import notification
 
 ObsShare = Blueprint('Observation Share', __name__,)
 

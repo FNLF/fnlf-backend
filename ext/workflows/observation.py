@@ -12,8 +12,8 @@ from datetime import datetime
 
 import re
 
-from ext.helpers import helpers
-from ext.notification import notification
+from ext.auth.helpers import helpers
+from ext.notifications import notification
 
 class ObservationWorkflow(Machine):
     """ For further work, should use https://github.com/einarhuseby/transitions instead of https://github.com/tyarkoni/transitions

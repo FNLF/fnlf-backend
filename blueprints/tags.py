@@ -11,7 +11,7 @@
 
 from flask import Blueprint, current_app as app, request, Response, abort, jsonify, send_file
 
-from ext.decorators import *
+from ext.app.decorators import *
 
 Tags = Blueprint('Custom tags resource', __name__,)
 
