@@ -12,8 +12,8 @@ from datetime import datetime
 
 import re
 
-from ext.auth.helpers import helpers
-from ext.notifications import notification
+from ext.auth.helpers import Helpers
+from ext.notifications import Notification
 
 class ObservationWorkflow(Machine):
     """ For further work, should use https://github.com/einarhuseby/transitions instead of https://github.com/tyarkoni/transitions
@@ -445,8 +445,8 @@ class ObservationWorkflow(Machine):
     def notification(self, users=[], groups=[], roles=[]):
         """ A wrapper around notifications
         """
-        notify = notification()
-        helper = helpers()
+        notify = Notification()
+        helper = Helpers()
         recepients = self.helper.get_melwin_users_email(self.helper.collect_users(users=users, roles=roles, groups=groups))
         
         subject = 'Observasjon #%s %s' % (int(self.db_wf.get('id')), self._trigger_attrs[self.action]['descr'])

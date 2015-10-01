@@ -9,7 +9,7 @@ from eve import Eve
 
 #Eve.methods.common.oplog_push = oplog_push
 
-class Custom_eve(Eve):
+class CustomEve(Eve):
     
     
     def _init_oplog(self):

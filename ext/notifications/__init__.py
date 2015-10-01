@@ -1,4 +1,4 @@
 
 __all__ = ['notification']
 
-from . import notification
+from .notification import Notification

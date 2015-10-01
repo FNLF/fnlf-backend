@@ -8,8 +8,8 @@ from eve.methods.patch import patch_internal
 # Need custom decorators
 from ext.app.decorators import *
 
-from ext.auth.helpers import helpers
-from ext.notifications import notification
+from ext.auth.helpers import Helpers
+from ext.notifications import Notification
 
 ObsShare = Blueprint('Observation Share', __name__,)
 
@@ -20,8 +20,8 @@ def share_observation(observation_id):
     args = request.get_json() #use force=True to do anyway!
     users = args.get('recepients')
     # Notify!
-    notify = notification()
-    helper = helpers()
+    notify = Notification()
+    helper = Helpers()
     
     recepients = helper.get_melwin_users_email(users)
     
