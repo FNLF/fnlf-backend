@@ -87,7 +87,7 @@ def get_user_permissions(id, collection):
             if len([i for i in app.globals['acl']['roles'] if i in acl['acl']['write']['roles']]) > 0 \
             or len([i for i in app.globals['acl']['groups'] if i in acl['acl']['write']['groups']]) > 0 \
             or app.globals['user_id'] in acl['acl']['write']['users']:
-                x = True
+                w = True
         except:
             pass
         
