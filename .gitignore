@@ -1,8 +1,5 @@
 #Custom files
 .*.md.html
-*melwin.py
-*melwin_client.py
-*melwin_eve_client.py
 scf.py
 *nlf-admin@fnlf
 #Python virtualenv
