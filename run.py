@@ -100,9 +100,6 @@ app.globals['auth'].update({"auth_collection": "users_auth",
                             "users_collection": "users",
                             })
 
-from scf import __secret
-app.globals.update({'secret': __secret})
-
 pprint(app.globals)
 
 # Start Bootstrap (needed by eve-docs)

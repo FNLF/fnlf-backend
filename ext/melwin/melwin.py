@@ -53,10 +53,10 @@ from datetime import time
 # Use the free one!! Or should we use 
 from geopy.geocoders import Nominatim, OpenMapQuest
 
-from scf import __melwin
-
 import itertools,sys
 
+from ..scf import Scf
+	
 """
 # Monkeypatch will not work since it's not called from here...
 def monkeypatch_suds_sax_date(value):
@@ -130,14 +130,11 @@ class Melwin():
 	member = 0
 	pin = 0
 	
-	def __init__(self, member=False, pin=False):
-		
-		if member and pin:
-			self.member = member
-			self.pin = pin
-		else:
-			self.member = __melwin.get('username')
-			self.pin = __melwin.get('pin')
+	
+	
+	
+	def __init__(self):
+			
 		# Make a import filter fixing the broken schemas
 		imp = Import('http://schemas.xmlsoap.org/soap/encoding/')
 		imp.filter.add('http://www.4d.com/namespace/default')
@@ -145,6 +142,10 @@ class Melwin():
 		
 		# To intercept the raw response from the server, ie storing it as cache...
 		self.payload_interceptor = PayloadInterceptor()
+		
+		c = Scf().get_melwin()
+		self.member = c['member']
+		self.pin = c['pin']
 		
 		# Instantiate the suds soap client NB use doc for it to work!!!!
 		self.client = Client('http://melwin.nak.no/4dwsdl/doc', plugins=[Filter(),self.payload_interceptor])

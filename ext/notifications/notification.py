@@ -16,35 +16,29 @@ import logging
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-
-from scf import __sms, __email
+from ..scf import Scf
 
 class Notification():
     
-    def __init__(self, secret):
+    def __init__(self):
         
-        self.username = __email.get('username')
-        self.password = __email.get('password')
-        self.from_address = __email.get('from')
-        self.smtp = __email.get('smtp')
-        self.smtp_port = __email.get('smtp_port')
-        self.sms_username = __sms.get('username')
-        self.sms_password = __sms.get('password')
+        self.c = Scf().get_email()
+        
 
     @async
     def send_email_async(self, message, recepient, prefix, subject):
         
         msg = MIMEText(message, 'plain')
-        msg['From'] = 'FNLF Observasjonsregistrering <%s>' % self.from_address
+        msg['From'] = 'FNLF Observasjonsregistrering <%s>' % self.c['from']
         msg['Subject'] = '[%s] %s' % (prefix, subject)
         msg['To'] = '%s <%s>' % (recepient['name'], recepient['email'])
         msg.preamble = 'Notification'
         
-        s = smtplib.SMTP(self.smtp, self.smtp_port)
+        s = smtplib.SMTP(self.c['smtp'], self.c['smtp_port'])
         s.ehlo()
         s.starttls()
         s.ehlo()
-        s.login(self.username, self.password)
+        s.login(self.c['username'], self.c['password'])
         s.send_message(msg)
         s.quit()
     #http://sendega.com/support/ofte-stilte-spoersmaal-%28faq%29/
