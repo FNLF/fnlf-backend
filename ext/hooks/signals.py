@@ -7,7 +7,6 @@
     
 """
 
-
 from flask import current_app as app, request, Response, abort
 
 from flask.signals import Namespace
@@ -21,7 +20,7 @@ import json
 from bson.objectid import ObjectId
 
 from ext.auth.helpers import Helpers
-from ext.notifications import notification
+from ext.notifications import Notification
     
 # TIME & DATE - better with arrow only?
 import arrow
@@ -86,7 +85,7 @@ def insert_workflow(c_app, **extra):
                                       } 
                             })
          # Notify!
-        notify = notification()
+        notify = Notification()
         helper = Helpers()
         
         recepients = helper.get_melwin_users_email(helper.collect_users(users=[app.globals['user_id']], roles=[helper.get_role_hi(r.get('club'))]))
