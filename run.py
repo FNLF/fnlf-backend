@@ -86,6 +86,8 @@ SETTINGS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'settin
 # Instantiate with custom auth
 app = CustomEve(auth=TokenAuth, settings=SETTINGS_PATH)
 
+
+
 #app = Eve()
 
 """ Define global settings
@@ -97,6 +99,11 @@ app.globals.update({"auth": {}})
 app.globals['auth'].update({"auth_collection": "users_auth",
                             "users_collection": "users",
                             })
+
+from scf import __secret
+app.globals.update({'secret': __secret})
+
+pprint(app.globals)
 
 # Start Bootstrap (needed by eve-docs)
 Bootstrap(app)
