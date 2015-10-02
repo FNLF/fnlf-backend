@@ -46,9 +46,9 @@ python setup.py
 `pip uninstall eve`
 `pip uninstall eve-docs`
 `pip uninstall transitions`
-`pip install git+https://github.com/einarhuseby/eve.git@feature/fnlf`
-`pip install git+https://github.com/einarhuseby/eve-docs.git@develop`
-`pip install git+https://github.com/einarhuseby/transitions.git@develop`
+`pip -e install git+https://github.com/einarhuseby/eve.git@feature/fnlf`
+`pip -e install git+https://github.com/einarhuseby/eve-docs.git@develop`
+`pip -e install git+https://github.com/einarhuseby/transitions.git@develop`
 
 then rerun `pip install requirements.txt`
 
