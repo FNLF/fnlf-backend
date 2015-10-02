@@ -11,7 +11,7 @@
     
 """
 from flask import Blueprint, current_app as app, request, Response, abort, jsonify
-from ext.melwin import Melwin
+from ext.melwin.melwin import Melwin
 # Debug
 from pprint import pprint
 # TIME & DATE - better with arrow only?
@@ -24,7 +24,7 @@ from uuid import uuid4
 # Convenience - provide a base 64 encoded token
 from base64 import b64encode
 
-from ext.decorators import *
+from ext.app.decorators import *
 
 import datetime
 

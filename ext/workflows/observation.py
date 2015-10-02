@@ -12,8 +12,9 @@ from datetime import datetime
 
 import re
 
-from ext.helpers import helpers
-from ext.notification import notification
+from ext.auth.helpers import Helpers
+from ext.auth.acl import has_permission as acl_has_permission
+from ext.notifications import Notification
 
 class ObservationWorkflow(Machine):
     """ For further work, should use https://github.com/einarhuseby/transitions instead of https://github.com/tyarkoni/transitions
@@ -25,7 +26,7 @@ class ObservationWorkflow(Machine):
     
     
     
-    def __init__(self,object_id=None,initial_state=None, user_id=None, comment=None):
+    def __init__(self, object_id=None, initial_state=None, user_id=None, comment=None):
         
         self.user_id = user_id
         # The states
@@ -145,7 +146,7 @@ class ObservationWorkflow(Machine):
         
         self.comment = comment
         
-        self.helper = helpers()
+        self.helper = Helpers()
              
         Machine.__init__(self, states=self._states, send_event=True, transitions=self._transitions, initial=self.initial_state)
 
@@ -205,12 +206,16 @@ class ObservationWorkflow(Machine):
         return False
         check if in execute!
         """
+        
+        return acl_has_permission(self.db_wf['_id'], 'execute', 'observations')
+        
+        """
         if self.user_id in self.db_wf['acl']['execute']['users'] \
             or bool(set(app.globals.get('acl').get('groups')) & set(self.db_wf['acl']['execute']['groups'])) \
             or bool(set(app.globals.get('acl').get('roles')) & set(self.db_wf['acl']['execute']['roles'])):
             
             return True
-        
+        """
         """
         if self.user_id in self._trigger_attrs.get(event.event.name).get('permission'):
             print("%s has permission" % self.user_id)
@@ -445,8 +450,8 @@ class ObservationWorkflow(Machine):
     def notification(self, users=[], groups=[], roles=[]):
         """ A wrapper around notifications
         """
-        notify = notification()
-        helper = helpers()
+        notify = Notification()
+        helper = Helpers()
         recepients = self.helper.get_melwin_users_email(self.helper.collect_users(users=users, roles=roles, groups=groups))
         
         subject = 'Observasjon #%s %s' % (int(self.db_wf.get('id')), self._trigger_attrs[self.action]['descr'])

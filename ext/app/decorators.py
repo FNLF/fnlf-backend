@@ -8,7 +8,7 @@ from functools import wraps
 import arrow
 from datetime import datetime
 
-from ext.tokenauth import TokenAuth
+from ext.auth.tokenauth import TokenAuth
 
 from threading import Thread
 

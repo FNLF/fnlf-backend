@@ -13,7 +13,7 @@ import urllib.parse
 
 import xmltodict
 
-from ext.decorators import require_token
+from ext.app.decorators import require_token
 
 Locations = Blueprint('Location service via kartverket', __name__,)
 
