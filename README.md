@@ -40,9 +40,17 @@ pip install -r requirements.txt
 python setup.py
 ```
 
-**Note:** No database or Melwin integration is supplied here since this contains private information. To download visit [F/NLF Wiki](https://nlf-az-db02.cloudapp.net/confluence) You will need access to the developer pages for this project.
+**Note:** No database or Melwin integration is supplied here since this contains private information. To download visit [F/NLF Wiki](https://doc.nlf.no/confluence/display/NLFAVVIK/Development+files) You will need access to the developer pages for this project.
 
-**Note:** If `pip install -r requirements.txt` fails, try to do a `pip install git+https://github.com/nicolaiarocci/eve.git@develop` then rerun `pip install requirements.txt`
+**Note:** If `pip install -r requirements.txt` fails, try this:
+`pip uninstall eve`
+`pip uninstall eve-docs`
+`pip uninstall transitions`
+`pip install git+https://github.com/einarhuseby/eve.git@feature/fnlf`
+`pip install git+https://github.com/einarhuseby/eve-docs.git@develop`
+`pip install git+https://github.com/einarhuseby/transitions.git@develop`
+
+then rerun `pip install requirements.txt`
 
 
 Restore latest database dump
