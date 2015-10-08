@@ -100,8 +100,6 @@ app.globals['auth'].update({"auth_collection": "users_auth",
                             "users_collection": "users",
                             })
 
-pprint(app.globals)
-
 # Start Bootstrap (needed by eve-docs)
 Bootstrap(app)
 

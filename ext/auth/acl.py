@@ -95,7 +95,7 @@ def get_user_permissions(id, collection):
         
     except:
         return {'_error': {'code': 404, 'message': 'The requested URL was not found on the server.  If you entered the URL manually please check your spelling and try again.' },\
-                  '_status': 'ERR'}
+                '_status': 'ERR'}
         
         
     return result
