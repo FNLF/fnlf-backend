@@ -1,0 +1,219 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>
+<head style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>
+<title>ORS #{{observation_id}}</title>
+<!-- Takk til Zurb og python premailer for dette! -->
+<meta name="viewport" content="width=device-width" style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>
+<style type="text/css" style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>
+@media only screen and (max-width: 600px) {
+    a[class="btn"] {
+        display: block !important;
+        margin-bottom: 10px !important;
+        background-image: none !important;
+        margin-right: 0 !important
+        }
+    div[class="column"] {
+        width: auto !important;
+        float: none !important
+        }
+    table.social div[class="column"] {
+        width: auto !important
+        }
+    }</style><!-- HEADER -->
+
+{% import 'macros.html' as m %}
+    
+</head>
+
+<body style='-webkit-font-smoothing:antialiased; -webkit-text-size-adjust:none; font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; height:100%; margin:0; padding:0; width:100%' height="100%" width="100%"><p style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; font-size:14px; font-weight:normal; line-height:1.6; margin:0; margin-bottom:10px; padding:0'>
+
+	<table class="head-wrap" bgcolor="#eee" style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; width:100%' width="100%">
+		<tr style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>
+			<td style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; vertical-align:top' valign="top"></td>
+			<td class="header container" style='clear:both; display:block; font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0 auto; max-width:600px; padding:0; vertical-align:top' valign="top">
+
+				<div class="content" style='display:block; font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0 auto; max-width:600px; padding:15px'>
+					<table bgcolor="#eee" style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; width:100%' width="100%">
+						<tr style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>
+							<td style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; vertical-align:top' valign="top"><h3 style='color:#000; font-family:"HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; font-size:27px; font-weight:500; line-height:1.1; margin:0; margin-bottom:15px; padding:0'>#{{observation_id}} ble {{action}}</h3></td>
+							<td align="right" style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; vertical-align:top' valign="top"><h6 class="collapse" style='color:#444; font-family:"HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; font-size:14px; font-weight:900; line-height:1.1; margin:0; margin-bottom:15px; padding:0; text-transform:uppercase'>F/NLF ORS</h6></td>
+						</tr>
+					</table>
+				</div>
+
+			</td>
+			<td style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; vertical-align:top' valign="top"></td>
+		</tr>
+	</table>
+	<!-- /HEADER -->
+
+
+	<!-- BODY -->
+	<table class="body-wrap" style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; width:100%' width="100%">
+		<tr style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>
+			<td style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; vertical-align:top' valign="top"></td>
+			<td class="container" bgcolor="#FFFFFF" style='clear:both; display:block; font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0 auto; max-width:600px; padding:0; vertical-align:top' valign="top">
+
+				<div class="content" style='display:block; font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0 auto; max-width:600px; padding:15px'>
+
+					{% if instance=='develop' %} 
+					<a class="btn danger" style='background-color:#d9534f; color:#FFF; display:block; font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; font-weight:bold; margin:0; padding:10px 16px; text-align:center; text-decoration:none' bgcolor="#d9534f" align="center">ORS TEST</a> 
+					<br />
+					<br />
+					{% endif %}
+					
+					<table style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; width:100%' width="100%">
+						<tr style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>
+							<td style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; vertical-align:top' valign="top">
+								{% if context=='shared' %}
+								<p class="callout warning" style='background-color:#f0ad4e; font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; font-size:14px; font-weight:normal; line-height:1.6; margin:0; margin-bottom:15px; margin-top:15px; padding:15px; text-align:center' bgcolor="#f0ad4e" align="center">
+									<strong style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>ORS #{{observation_id}} ble {{action}}</strong><br style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'> av {{action_by}}
+								</p> 
+								{% endif %}
+
+								<table style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; width:100%' width="100%">
+									{% if context!='created' %}
+									<tr style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>
+										<td style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; vertical-align:top' valign="top">Tittel:</td>
+										<td style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; vertical-align:top' valign="top">{{title}}</td>
+									</tr>
+									{% if context!='shared' %}
+									<tr style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>
+										<td style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; vertical-align:top' valign="top">Klubb:</td>
+										<td style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; vertical-align:top' valign="top">{{club}}</td>
+									</tr>
+									{% endif %}
+									{% endif %}
+									<tr style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>
+										<td style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; vertical-align:top' valign="top">Av:</td>
+										<td style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; vertical-align:top' valign="top">{{action_by}}</td>
+									</tr>
+									<tr style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>
+										<td style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; vertical-align:top' valign="top">Handling:</td>
+										<td style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; vertical-align:top' valign="top">{{action}}</td>
+									</tr>
+									{% if context=='transition' %}
+									<tr style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>
+										<td colspan="2" style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; vertical-align:top' valign="top">
+											<!-- Callout Panel -->
+											<p class="callout info" style='background-color:#5bc0de; font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; font-size:14px; font-weight:normal; line-height:1.6; margin:0; margin-bottom:15px; margin-top:15px; padding:15px; text-align:center' bgcolor="#5bc0de" align="center">
+												<strong style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>#{{observation_id}} ble {{action}}</strong><br style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'> {{ wf_from }} &rarr; {{ wf_to }}<br style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>
+											</p> <!-- /Callout Panel -->
+										</td>
+									</tr>
+									{% endif %}
+
+									<tr style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>
+										<td style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; vertical-align:top' valign="top">Tid:</td>
+										<td style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; vertical-align:top' valign="top">{{date}}</td>
+									</tr>
+									<tr style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>
+										<td style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; vertical-align:top' valign="top">Url:</td>
+										<td style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; vertical-align:top' valign="top"><a href="{{url_root}}{{url}}" style='color:#2BA6CB; display:inline-block; font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>{{url_root}}{{url}}</a></td>
+									</tr>
+									{% if context!='created' %}
+									<tr style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>
+										<td style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; vertical-align:top' valign="top">Melding:</td>
+										<td style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; vertical-align:top' valign="top">{{comment | nl2br}}</td>
+									</tr>
+									{% endif %}
+								</table> 
+								
+								<br style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'> 
+								{% if context=='transition' %}
+								<p style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; font-size:14px; font-weight:normal; line-height:1.6; margin:0; margin-bottom:10px; padding:0'>
+									<a href="{{url_root}}{{url}}" target="_blank" class="btn success" style='background-color:#5cb85c; color:#FFF; cursor:pointer; display:block; font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; font-weight:bold; margin:0; padding:10px 16px; text-align:center; text-decoration:none' bgcolor="#5cb85c" align="center">Behandle ORS #{{observation_id}}</a>
+								</p> 
+								{% endif %} 
+								{% if context=='shared' %}
+								<p style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; font-size:14px; font-weight:normal; line-height:1.6; margin:0; margin-bottom:10px; padding:0'>
+								<a href="{{url_root}}{{url}}" target="_blank" class="btn success" style='background-color:#5cb85c; color:#FFF; cursor:pointer; display:block; font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; font-weight:bold; margin:0; padding:10px 16px; text-align:center; text-decoration:none' bgcolor="#5cb85c" align="center">Åpne ORS #{{observation_id}}</a>
+								</p> 
+								{% endif %}
+								
+								{% if context=='created' %}
+								<p style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; font-size:14px; font-weight:normal; line-height:1.6; margin:0; margin-bottom:10px; padding:0'>
+									<a href="{{url_root}}{{url}}" target="_blank" class="btn success" style='background-color:#5cb85c; color:#FFF; cursor:pointer; display:block; font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; font-weight:bold; margin:0; padding:10px 16px; text-align:center; text-decoration:none' bgcolor="#5cb85c" align="center">Se #{{observation_id}}</a>
+								</p> 
+								{% endif %} 
+								
+								<br style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'> <br style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'> <!-- social & contact -->
+								<table class="social" width="100%" style='background-color:#ebebeb; font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; width:100%' bgcolor="#ebebeb">
+									<tr style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>
+										<td style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; vertical-align:top' valign="top">
+											<!-- column 1 -->
+											<table align="left" class="column" style='float:left; font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; min-width:279px; padding:0; width:280px' width="280">
+												<tr style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>
+													<td style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:15px; vertical-align:top' valign="top">
+
+														<h5 class="" style='color:#000; font-family:"HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; font-size:17px; font-weight:900; line-height:1.1; margin:0; margin-bottom:15px; padding:0'>Lenker:</h5>
+														<p class="" style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; font-size:14px; font-weight:normal; line-height:1.6; margin:0; margin-bottom:10px; padding:0'>
+															<a href="https://doc.nlf.no/confluence/display/FETDOC/Observasjons+registrering" class="soc-btn info" style='background-color:#5bc0de; color:#FFF; display:block; font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; font-size:12px; font-weight:bold; margin:0; margin-bottom:10px; padding:3px 7px; text-align:center; text-decoration:none' bgcolor="#5bc0de" align="center">Brukermanual</a> <a href="https://www.facebook.com/groups/859203907492826/" class="soc-btn primary" style='background-color:#337ab7; color:#FFF; display:block; font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; font-size:12px; font-weight:bold; margin:0; margin-bottom:10px; padding:3px 7px; text-align:center; text-decoration:none' bgcolor="#337ab7" align="center">ORS på facebook</a> <a href="http://www.nlf.no/fallskjerm" class="soc-btn gray" style='background-color:#555; color:#FFF; display:block; font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; font-size:12px; font-weight:bold; margin:0; margin-bottom:10px; padding:3px 7px; text-align:center; text-decoration:none' bgcolor="#555" align="center">F/NLF</a>
+														</p>
+
+
+													</td>
+												</tr>
+											</table>
+											<!-- /column 1 --> <!-- column 2 -->
+											<table align="left" class="column" style='float:left; font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; min-width:279px; padding:0; width:280px' width="280">
+												<tr style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>
+													<td style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:15px; vertical-align:top' valign="top">
+
+														<h5 class="" style='color:#000; font-family:"HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; font-size:17px; font-weight:900; line-height:1.1; margin:0; margin-bottom:15px; padding:0'>Kontakt Info:</h5>
+														<p style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; font-size:14px; font-weight:normal; line-height:1.6; margin:0; margin-bottom:10px; padding:0'>
+															Fallskjermseksjonen,<br style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'> Norges Luftsportforbund<br style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'> Møllergata 39<br style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'> 0179 Oslo
+														</p>
+														<p style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; font-size:14px; font-weight:normal; line-height:1.6; margin:0; margin-bottom:10px; padding:0'>
+															Tlf: <strong style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>907 04 646 </strong><br style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'> Email: <strong style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'><a href="emailto:jan.wang@nlf.no" style='color:#2BA6CB; display:inline-block; font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>jan.wang@nlf.no</a></strong>
+														</p>
+													</td>
+												</tr>
+											</table>
+											<!-- /column 2 --> <span class="clear" style='clear:both; display:block; font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'></span>
+
+										</td>
+									</tr>
+								</table>
+								<!-- /social & contact -->
+
+							</td>
+						</tr>
+					</table>
+				</div>
+				<!-- /content -->
+
+			</td>
+			<td style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; vertical-align:top' valign="top"></td>
+		</tr>
+	</table>
+	<!-- /BODY -->
+
+	<!-- FOOTER -->
+	<table class="footer-wrap" style='clear:both; font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; width:100%' width="100%">
+		<tr style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>
+			<td style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; vertical-align:top' valign="top"></td>
+			<td class="container" style='clear:both; display:block; font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0 auto; max-width:600px; padding:0; vertical-align:top' valign="top">
+				<!-- content -->
+				<div class="content" style='display:block; font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0 auto; max-width:600px; padding:15px'>
+					<table style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; width:100%' width="100%">
+						<tr style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>
+							<td align="center" style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; vertical-align:top' valign="top">
+								<p style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; font-size:14px; font-weight:normal; line-height:1.6; margin:0; margin-bottom:10px; padding:0'>
+									<a href="{{url_root}}" style='color:#2BA6CB; display:inline-block; font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>F/NLF ORS</a> | <a href="https://www.facebook.com/groups/859203907492826/" style='color:#2BA6CB; display:inline-block; font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>ORS på Facebook</a> | <a href="http://www.nlf.no/fallskjerm" style='color:#2BA6CB; display:inline-block; font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0'>F/NLF</a>
+								</p>
+							</td>
+						</tr>
+					</table>
+				</div>
+				<!-- /content -->
+
+			</td>
+			<td style='font-family:"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; margin:0; padding:0; vertical-align:top' valign="top"></td>
+		</tr>
+	</table>
+	<!-- /FOOTER -->
+
+
+</body></html>

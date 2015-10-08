@@ -1,0 +1,26 @@
+{% import 'macros.txt' as m %}
+{% if instance=='develop' %}
+--- ORS TEST ---
+
+{% endif %}
+#{{observation_id}} ble {{action}}
+
+Tittel:		{{title}}
+Handling:	{{action}}
+{% if context=='transition' %}
+Fra:		{{ wf_from }}
+Til:		{{ wf_to }}
+{% endif %}
+Av:		{{action_by}}
+Dato:		{{date}}
+{% if context!='shared' %}
+Klubb		{{club}}
+{% endif %}
+
+Url:
+{{url_root}}{{url}}
+
+Melding:
+{{comment}}
+
+{{ m.footer(url_root) }}

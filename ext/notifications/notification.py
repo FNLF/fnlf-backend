@@ -29,10 +29,6 @@ class Notification():
 
     @async
     def send_email_async(self, message, recepient, prefix, subject):
-        
-        if not self.prod:
-            message = '--- ORS TEST ---\r\n\r\n%s\r\n\r\n--- ORS TEST ---' % message
-            prefix = '%s TEST' % prefix
             
         msg = MIMEText(message, 'plain')
         msg['From'] = 'FNLF ORS <%s>' % self.c['from']
@@ -114,5 +110,3 @@ class Notification():
             pass
         
         
-
-
