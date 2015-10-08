@@ -64,3 +64,6 @@ docs/_build/
 
 # PyBuilder
 target/
+
+ext/scf.py
+scripts.txt

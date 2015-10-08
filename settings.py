@@ -1,7 +1,7 @@
 """
     Global Settings
     ===============
-    
+
     Global Eve configuration settings
 """
 
@@ -55,9 +55,12 @@ CACHE_EXPIRES = 20
 XML = False
 JSON = True
 
+#Maximum value allowed for max_results query parameter
+PAGINATION_LIMIT = 1000
+
 ALLOW_UNKNOWN = False
 
-# ISO 
+# ISO
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
 # File storage
@@ -73,11 +76,11 @@ RETURN_MEDIA_AS_BASE64_STRING = True # When true loads the file references as ba
 """
     OP Log
     ======
-    
+
     The OP Log logs all verbs on nouns
-    
+
     NB: the collection should for any practical purposes be a capped collection so we don't fill it!!!
-    
+
 """
 
 OPLOG = True #Set it to True to enable the Operations Log. Defaults to False.
