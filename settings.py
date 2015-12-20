@@ -13,7 +13,7 @@ sys.path.insert(0,"domain")
 # Import the apps - DOMAIN definition (app.DOMAIN)
 import domain
 
-APP_INSTANCE = 'develop' #develop || production
+APP_INSTANCE = 'production' #develop || production
 
 
 if APP_INSTANCE == 'develop':
