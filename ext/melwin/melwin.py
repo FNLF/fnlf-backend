@@ -146,9 +146,10 @@ class Melwin():
 		c = Scf().get_melwin()
 		self.member = c['member']
 		self.pin = c['pin']
+		self.melwin_url = c['url']
 		
 		# Instantiate the suds soap client NB use doc for it to work!!!!
-		self.client = Client('http://melwin.nak.no/4dwsdl/doc', plugins=[Filter(),self.payload_interceptor])
+		self.client = Client(self.melwin_url, plugins=[Filter(),self.payload_interceptor])
 		
 		if self.do_geo:
 			self.geocoder = Nominatim()
