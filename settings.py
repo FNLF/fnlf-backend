@@ -1,7 +1,7 @@
 """
     Global Settings
     ===============
-    
+
     Global Eve configuration settings
 """
 
@@ -13,16 +13,22 @@ sys.path.insert(0,"domain")
 # Import the apps - DOMAIN definition (app.DOMAIN)
 import domain
 
+APP_INSTANCE = 'production' #develop || production
 
-# Running on local machine. Let's just use the local mongod instance.
-MONGO_HOST = 'localhost'
-MONGO_PORT = 27017
-MONGO_USERNAME = ''
-MONGO_PASSWORD = ''
-# Production
-# MONGO_DBNAME = 'fnlf'
-# Development
-MONGO_DBNAME = 'fnlf-dev'
+
+if APP_INSTANCE == 'develop':
+    MONGO_HOST = 'localhost'
+    MONGO_PORT = 27017
+    MONGO_USERNAME = ''
+    MONGO_PASSWORD = ''
+    MONGO_DBNAME = 'fnlf-dev'
+    
+elif APP_INSTANCE == 'production':
+    MONGO_HOST = 'localhost'
+    MONGO_PORT = 27017
+    MONGO_USERNAME = ''
+    MONGO_PASSWORD = ''
+    MONGO_DBNAME = 'fnlf'
 
 # Will also make server watch inode and reload on changes
 DEBUG = True
@@ -31,6 +37,9 @@ DEBUG = True
 URL_PREFIX = 'api'
 API_VERSION = 'v1'
 
+# Pagination settings
+PAGINATION_LIMIT = 1000
+PAGINATION_DEFAULT = 50
 
 # Enable reads (GET), inserts (POST) and DELETE for resources/collections
 # (if you omit this line, the API will default to ['GET'] and provide
@@ -50,9 +59,12 @@ CACHE_EXPIRES = 20
 XML = False
 JSON = True
 
+#Maximum value allowed for max_results query parameter
+PAGINATION_LIMIT = 1000
+
 ALLOW_UNKNOWN = False
 
-# ISO 
+# ISO
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
 # File storage
@@ -68,11 +80,11 @@ RETURN_MEDIA_AS_BASE64_STRING = True # When true loads the file references as ba
 """
     OP Log
     ======
-    
+
     The OP Log logs all verbs on nouns
-    
+
     NB: the collection should for any practical purposes be a capped collection so we don't fill it!!!
-    
+
 """
 
 OPLOG = True #Set it to True to enable the Operations Log. Defaults to False.

@@ -13,7 +13,7 @@ reporter = self.db_wf.get('reporter')
 from flask import current_app as app
 from bson.objectid import ObjectId
 
-class helpers():
+class Helpers():
     
     def get_user_name(self, id):
         

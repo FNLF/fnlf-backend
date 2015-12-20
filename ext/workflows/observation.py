@@ -12,8 +12,9 @@ from datetime import datetime
 
 import re
 
-from ext.helpers import helpers
-from ext.notification import notification
+from ext.auth.helpers import Helpers
+from ext.auth.acl import has_permission as acl_has_permission
+from ext.notifications import Email #, Sms
 
 class ObservationWorkflow(Machine):
     """ For further work, should use https://github.com/einarhuseby/transitions instead of https://github.com/tyarkoni/transitions
@@ -25,7 +26,7 @@ class ObservationWorkflow(Machine):
     
     
     
-    def __init__(self,object_id=None,initial_state=None, user_id=None, comment=None):
+    def __init__(self, object_id=None, initial_state=None, user_id=None, comment=None):
         
         self.user_id = user_id
         # The states
@@ -115,7 +116,7 @@ class ObservationWorkflow(Machine):
         
         """
         self._trigger_attrs = {#'set_ready': {'title': 'Set Ready', 'action': 'Set Ready', 'resource': 'approve', 'comment': True},
-                              'send_to_hi': {'title': 'Send til HI', 'action': 'Send to HI', 'resource': 'approve','comment': True, 'descr': 'Sendt til HI'},
+                              'send_to_hi': {'title': 'Send til HI', 'action': 'Send til HI', 'resource': 'approve','comment': True, 'descr': 'Sendt til HI'},
                               'withdraw': {'title': 'Trekk tilbake observasjon', 'action': 'Trekk tilbake', 'resource': 'withdraw','comment': True, 'descr': 'Trekt tilbake'},
                               'reopen': {'title': 'Gjenåpne observasjon', 'action': 'Gjenåpne', 'resource': 'reopen','comment': True, 'descr': 'Gjenåpnet'},
                               'reject_hi': {'title': 'Avslå observasjon', 'action': 'Avslå', 'resource': 'reject','comment': True, 'descr': 'Avslått av HI'},
@@ -145,7 +146,7 @@ class ObservationWorkflow(Machine):
         
         self.comment = comment
         
-        self.helper = helpers()
+        self.helper = Helpers()
              
         Machine.__init__(self, states=self._states, send_event=True, transitions=self._transitions, initial=self.initial_state)
 
@@ -205,12 +206,16 @@ class ObservationWorkflow(Machine):
         return False
         check if in execute!
         """
+        
+        return acl_has_permission(self.db_wf['_id'], 'execute', 'observations')
+        
+        """
         if self.user_id in self.db_wf['acl']['execute']['users'] \
             or bool(set(app.globals.get('acl').get('groups')) & set(self.db_wf['acl']['execute']['groups'])) \
             or bool(set(app.globals.get('acl').get('roles')) & set(self.db_wf['acl']['execute']['roles'])):
             
             return True
-        
+        """
         """
         if self.user_id in self._trigger_attrs.get(event.event.name).get('permission'):
             print("%s has permission" % self.user_id)
@@ -293,7 +298,7 @@ class ObservationWorkflow(Machine):
             acl['execute']['users'] = []
             
             acl['write']['groups'] = []
-            acl['read']['groups'] = [self.helper.get_role_fs()]
+            acl['read']['groups'] += [self.helper.get_role_fs()]
             acl['execute']['groups'] = []
             
             acl['write']['roles'] =  [hi]
@@ -304,12 +309,13 @@ class ObservationWorkflow(Machine):
             """ Owner, reporter, hi read, fsj read, write, execute """
 
             fs = self.helper.get_role_fs()
+            su = self.helper.get_group_su()
             
             acl['write']['users'] = []
             acl['execute']['users'] = []
             
             acl['write']['groups'] = []
-            acl['read']['groups'] = []
+            acl['read']['groups'] += [su]
             acl['execute']['groups'] = []
             
             acl['write']['roles'] = [fs]
@@ -445,38 +451,29 @@ class ObservationWorkflow(Machine):
     def notification(self, users=[], groups=[], roles=[]):
         """ A wrapper around notifications
         """
-        notify = notification()
-        helper = helpers()
+        mail = Email()
+        helper = Helpers()
         recepients = self.helper.get_melwin_users_email(self.helper.collect_users(users=users, roles=roles, groups=groups))
+        
+        message = {}
         
         subject = 'Observasjon #%s %s' % (int(self.db_wf.get('id')), self._trigger_attrs[self.action]['descr'])
         
-        action_by = self.helper.get_user_name(app.globals['user_id'])
+        message.update({'observation_id': self.db_wf['id']})
+        message.update({'action_by': self.helper.get_user_name(app.globals['user_id'])})
+        message.update({'action': self._trigger_attrs[self.action]['descr']})
+        message.update({'title': '%s' % ' '.join(self.db_wf.get('tags'))})
+        message.update({'wf_from': self._state_attrs[self.initial_state]['description']})
+        message.update({'wf_to': self._state_attrs[self.state]['description']})
+        message.update({'club': self.helper.get_melwin_club_name(self.db_wf.get('club'))})
+        message.update({'date': datetime.today().strftime('%Y-%m-%d %H:%M')})
+        message.update({'url': 'app/obs/#!/observation/report/%i\n' % int(self.db_wf.get('id'))})
+        message.update({'url_root': request.url_root})
+        message.update({'comment': self.comment})
+        message.update({'context': 'transition'})
         
-        message = '%s\n' % subject
-        message += '\n'
-        #message += '%s\n' % self._trigger_attrs[self.action]['descr']
-        message += 'Tittel:\t %s\n' % ' '.join(self.db_wf.get('tags'))
-        message += 'Fra:\t %s\n' % self._state_attrs[self.initial_state]['description']
-        message += 'Til:\t %s\n' % self._state_attrs[self.state]['description']
-        message += 'Klubb:\t %s\n' % self.helper.get_melwin_club_name(self.db_wf.get('club'))
-        message += '\n'
-        message += 'Av:\t %s\n' % action_by
-        message += 'Dato:\t %s\n' % datetime.today().strftime('%Y-%m-%d %H:%M')
-        if self.state == 'closed':
-            message += 'Url:\t %sapp/obs/#!/observation/report/%i\n' % (request.url_root, int(self.db_wf.get('id')))
-        else:
-            message += 'Url:\t %sapp/obs/#!/observation/%i\n' % (request.url_root, int(self.db_wf.get('id')))
-        message += '\nMelding:\n'
-        message += '%s\n' % self.comment
+        mail.add_message_html(message, 'ors')                                                                                                                                              
+        mail.add_message_plain(message, 'ors')  
         
-        # Safety! Should be to admin!
-        if len(recepients) > 50:
-            recepients = self.helper.get_melwin_users_email([45199])
-            subject = "Too many recepients!"
-            message = "Safety measure when too many recepient"
-            message += "Recepients: %i" % len(recepient)
+        mail.send(recepients, subject, prefix='ORS')
         
-        notify.send_email(recepients, subject, message)
-    
-

@@ -20,8 +20,8 @@ from gridfs.errors import NoFile
 
 import base64
 
-from ext.decorators import *
-from ext.tokenauth import TokenAuth
+from ext.app.decorators import *
+from ext.auth.tokenauth import TokenAuth
 
 Files = Blueprint('Custom files resource', __name__,)
 

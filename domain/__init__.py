@@ -25,6 +25,7 @@ import gear_manufacturers
 
 # Definitions
 import jump_categories
+import jumps_quarterly_reports
 
 # Incident Reporting
 import observations
@@ -55,6 +56,7 @@ DOMAIN = {
     "observations" : observations.definition,
     "observations/components" : observation_components.definition,
     "jumps/categories": jump_categories.definition,
+    "jumps/quarterly/reports": jumps_quarterly_reports.definition,
     "dev" : dev.definition,
     "files" : files.definition,
     "tags" : tags.definition,

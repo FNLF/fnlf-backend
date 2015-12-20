@@ -1,7 +1,7 @@
 #Custom files
 .*.md.html
-*melwin.py
-*notification.py
+scf.py
+*nlf-admin@fnlf
 #Python virtualenv
 bin/
 include/
@@ -64,3 +64,6 @@ docs/_build/
 
 # PyBuilder
 target/
+
+ext/scf.py
+scripts.txt

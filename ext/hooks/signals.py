@@ -7,7 +7,6 @@
     
 """
 
-
 from flask import current_app as app, request, Response, abort
 
 from flask.signals import Namespace
@@ -20,8 +19,8 @@ from datetime import datetime
 import json
 from bson.objectid import ObjectId
 
-from ext.helpers import helpers
-from ext.notification import notification
+from ext.auth.helpers import Helpers
+from ext.notifications import Email #, Sms
     
 # TIME & DATE - better with arrow only?
 import arrow
@@ -85,24 +84,29 @@ def insert_workflow(c_app, **extra):
                                       "reporter": c_app.globals.get('user_id')
                                       } 
                             })
-         # Notify!
-        notify = notification()
-        helper = helpers()
         
-        recepients = helper.get_melwin_users_email(helper.collect_users(users=[app.globals['user_id']], roles=[helper.get_role_hi(r.get('club'))]))
+        mail = Email()
+        helper = Helpers()
+        recepients = recepients = helper.get_melwin_users_email(helper.collect_users(users=[app.globals['user_id']], roles=[helper.get_role_hi(r.get('club'))]))
+        
+        message = {}
+        
         subject = 'Observasjon #%s ble opprettet' % number
         
-        action_by = helper.get_user_name(app.globals['user_id'])
+        message.update({'observation_id': number})
+        message.update({'action_by': helper.get_user_name(app.globals['user_id'])})
+        message.update({'action': 'opprettet'})
+        message.update({'title': '%s ble opprettet' % number})
+        message.update({'club': helper.get_melwin_club_name(r.get('club'))})
+        message.update({'date': datetime.today().strftime('%Y-%m-%d %H:%M')})
+        message.update({'url': 'app/obs/#!/observation/%i\n' % number})
+        message.update({'url_root': request.url_root})
+        message.update({'context': 'created'})
         
-        message = '%s\n' % subject
-        message += '\n'
-        message += 'Klubb:\t %s\n' % helper.get_melwin_club_name(r.get('club'))
-        message += '\n'
-        message += 'Av:\t %s\n' % action_by
-        message += 'Dato:\t %s\n' % datetime.today().strftime('%Y-%m-%d %H:%M')
-        message += 'Url:\t %sapp/obs/#!/observation/%i\n' % (request.url_root, number)
+        mail.add_message_html(message, 'ors')                                                                                                                                              
+        mail.add_message_plain(message, 'ors') 
         
-        notify.send_email(recepients, subject, message)
+        mail.send(recepients, subject, prefix='ORS')
         
 @signal_init_acl.connect
 def init_acl(c_app, **extra):

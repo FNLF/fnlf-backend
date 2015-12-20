@@ -6,10 +6,10 @@ import json
 from eve.methods.patch import patch_internal
 
 # Need custom decorators
-from ext.decorators import *
+from ext.app.decorators import *
 
-from ext.helpers import helpers
-from ext.notification import notification
+from ext.auth.helpers import Helpers
+from ext.notifications import Email #, Sms
 
 ObsShare = Blueprint('Observation Share', __name__,)
 
@@ -19,25 +19,30 @@ def share_observation(observation_id):
     
     args = request.get_json() #use force=True to do anyway!
     users = args.get('recepients')
-    # Notify!
-    notify = notification()
-    helper = helpers()
     
+    mail = Email()
+    helper = Helpers()
+        
     recepients = helper.get_melwin_users_email(users)
-    
-    action_by = helper.get_user_name(app.globals['user_id'])
-    
+    action_by = helper.get_user_name(app.globals.get('user_id'))
+        
     subject = '%s har delt observasjon #%i' % (action_by, observation_id)
     
-    message = '%s\n' % subject
-    message += '\n'
-    message += 'Tittel:\t %s\n' % args.get('title')
-    message += 'Av:\t %s\n' % action_by
-    message += 'Dato:\t %s\n' % datetime.today().strftime('%Y-%m-%d %H:%M')
-    message += 'Url:\t %sapp/obs/#!/observation/report/%i\n' % (request.url_root, observation_id)
-    message += '\nMelding:\n'
-    message += args.get('comment')
-    print(recepients)
-    notify.send_email(recepients, subject, message)
+    message = {}
+    message.update({'observation_id': observation_id})
+    message.update({'action_by': action_by})
+    message.update({'action': 'delt'})
+    message.update({'title': args.get('title')})
+    #message.update({'club': self.helper.get_melwin_club_name(self.db_wf.get('club'))})
+    message.update({'date': datetime.today().strftime('%Y-%m-%d %H:%M')})
+    message.update({'url': 'app/obs/#!/observation/report/%i\n' % observation_id})
+    message.update({'url_root': request.url_root})
+    message.update({'comment': args.get('comment')})
+    message.update({'context': 'shared'})
+    
+    mail.add_message_html(message, 'ors')                                                                                                                                              
+    mail.add_message_plain(message, 'ors') 
+        
+    mail.send(recepients, subject, 'ORS')
     
     return Response(json.dumps({'status': 'ok', 'code': 200}),  mimetype='application/json')
