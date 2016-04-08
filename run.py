@@ -183,6 +183,15 @@ app.on_pre_GET_observations += hook.observations.before_get
 app.on_pre_PATCH_observations += hook.observations.before_patch
 
 """
+    Melwin updater via timer
+"""
+import ext.melwin.melwin_updater as updater
+if app.debug and not os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+    """Make sure to run only once"""
+    updater.start(app)
+    #melwin_updater.do_melwin_update(app)
+
+"""
 
     START:
     ======

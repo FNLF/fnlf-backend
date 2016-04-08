@@ -221,24 +221,37 @@ class Melwin():
 			
 			key = data[0]
 			i = 0
-			
 			for v in data[1][0]:
 				
 				#Make sure to break when no result - only for first iteration?
 				#if str(v).strip() == '' or v is None:
 				#	continue
 				
+				#print("Key: %s" % key)
+				#print("Val: %s" % v)
+				
 				v = str(v)
+				
+				if i not in d:
+					d[i] = {}
+					d[i]['location'] = {}
+					d[i]['membership'] = {}
+					d[i]['active'] = False
 					
 				if v == '':
 					v = None
 						
 				if key == 'aClubMembers':
 					
+					print("IN MEMBER NR: %s" % v)
+					
 					#if v is None:
 					#	continue
 					
-					d[i] = {'id': int(v), 'active': True, 'location': {}, 'membership': {}}
+					d[i].update({'id': int(v)})
+					d[i]['active'] = True
+					
+					print(d)
 					
 					
 					rev[v] = i
@@ -248,7 +261,7 @@ class Melwin():
 					d[i]['updated'] = ("%sT00:00:00CET" % v)
 					
 				elif key == 'aFornavn':
-					d[i]['firstname'] = v
+					d[i].update({'firstname': v})
 					
 				elif key == 'aEtternavn':
 					d[i]['lastname'] = v
@@ -318,11 +331,12 @@ class Melwin():
 		
 		# Pivot into members
 		# members key is member number
+		
 		members = {}
 		
 		for key, val in d.items():
-			
-			members[int(val['id'])] = val
+			if 'id' in val:
+				members[int(val['id'])] = val
 			
 		# Now insert terminated items!
 		# WTF is terminated a seperate array inside the arry with different non-existing member id's???
