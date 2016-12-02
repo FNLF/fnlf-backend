@@ -1,7 +1,7 @@
 import requests
 import json
 import random
-from ext.melwin import Melwin
+from .melwin import Melwin
 from pprint import pprint
 
 ### Eve
@@ -17,7 +17,7 @@ def post_persons():
 
     persons = m.get_all()
     
-        
+    i = 0    
     for key, person in persons.items():
         
         """
@@ -46,6 +46,10 @@ def post_persons():
         else:
             #m.__dbg('POST', 'ERR: Posted %s failed' % person['id'])
             pprint(r)
+            
+        i += 1
+        if i > 10:
+            break
     
     return None
 
@@ -257,16 +261,14 @@ if __name__ == '__main__':
     #print(ids)
     #delete('persons')
     #ids = post_licenses()
-    ids = post_persons()
-
-
+    #ids = post_persons()
+    pass 
 
 """
     Melwin import!
     ==============
 
 """
-
 """
 from melwin import *
 

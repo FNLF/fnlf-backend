@@ -54,9 +54,9 @@ import json
 import ext.hooks as hook
 
 # Eve docs (blueprint) dep on bootstrap
-from flask.ext.bootstrap import Bootstrap
-from eve_docs import eve_docs
-
+#from flask.ext.bootstrap import Bootstrap
+#from eve_docs import eve_docs
+from eve_swagger import swagger
 # Import blueprints
 from blueprints.authentication import Authenticate
 from blueprints.melwin_search import MelwinSearch
@@ -69,6 +69,7 @@ from blueprints.files import Files
 from blueprints.tags import Tags
 from blueprints.acl import ACL
 from blueprints.observation_share import ObsShare
+from blueprints.melwin_updater import MelwinUpdater
 
 # Custom url mappings (for flask)
 from ext.app.url_maps import ObjectIDConverter, RegexConverter
@@ -85,6 +86,7 @@ SETTINGS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'settin
 # Start Eve (and flask)
 # Instantiate with custom auth
 app = CustomEve(auth=TokenAuth, settings=SETTINGS_PATH)
+#app = CustomEve(settings=SETTINGS_PATH)
 
 
 
@@ -101,14 +103,35 @@ app.globals['auth'].update({"auth_collection": "users_auth",
                             })
 
 # Start Bootstrap (needed by eve-docs)
-Bootstrap(app)
+#Bootstrap(app)
 
 #Custom url mapping (needed by native flask routes)
 app.url_map.converters['objectid']  = ObjectIDConverter
 app.url_map.converters['regex']     = RegexConverter
 
 # Register eve-docs blueprint 
-app.register_blueprint(eve_docs,        url_prefix="%s/docs" % app.globals.get('prefix'))
+#app.register_blueprint(eve_docs,        url_prefix="%s/docs" % app.globals.get('prefix'))
+app.register_blueprint(swagger)
+# You might want to simply update the eve settings module instead.
+SWAGGER = {
+    'info': {
+        'title': 'F/NLF API',
+        'version': '0.1',
+        'description': 'API to the F/NLF application framework',
+        'termsOfService': 'Ole brum',
+        'contact': {
+            'name': 'Jan Erik Wang',
+            'email': 'janerik.wang@nlf.no',
+            'url': 'https://www.nlf.no/fallskjerm'
+        },
+        'license': {
+            'name': 'BSD',
+            'url': 'https://github.com/FNLF/fnlf-backend/blob/master/LICENSE',
+        }
+    },
+    'host': 'app.nlf.no'
+}
+app.config['SWAGGER'] = SWAGGER
 
 # Register custom blueprints
 app.register_blueprint(Authenticate,    url_prefix="%s/user" % app.globals.get('prefix'))
@@ -124,6 +147,7 @@ app.register_blueprint(Locations,       url_prefix="%s/locations" % app.globals.
 app.register_blueprint(Tags,            url_prefix="%s/tags" % app.globals.get('prefix'))
 app.register_blueprint(ACL,             url_prefix="%s/users/acl" % app.globals.get('prefix'))
 app.register_blueprint(ObsShare,        url_prefix="%s/observations/share" % app.globals.get('prefix'))
+app.register_blueprint(MelwinUpdater,   url_prefix="%s/muppet" % app.globals.get('prefix'))
 
 """ A simple python logger setup
 Eve do not yet support logging, but will for 0.5
@@ -182,6 +206,8 @@ app.on_pre_GET_observations += hook.observations.before_get
 
 app.on_pre_PATCH_observations += hook.observations.before_patch
 
+print(app.config['OPLOG_CUSTOM_FIELDS'])
+
 """
 
     START:
@@ -196,10 +222,18 @@ app.on_pre_PATCH_observations += hook.observations.before_patch
     @todo: Config file for gunicorn deployment and -C see http://gunicorn-docs.readthedocs.org/en/latest/settings.html
 
 """
-
+#import ext.melwin.melwin_updater as muppet
+import ext.melwin.dummy as melwin_updater
+if app.debug and not os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+    """Make sure to run only once"""
+    #muppet.start(app)
+    melwin_updater.do_melwin_update(app)
+meth = 'auth.get_user_id'
+r = getattr(app, meth)
+print(r)
 
 if __name__ == '__main__':
     port = 8081
     host = '127.0.0.1'
-
+    
     app.run(host=host, port=port)

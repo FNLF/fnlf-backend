@@ -92,7 +92,7 @@ OPLOG_NAME = 'oplog' #This is the name of the database collection where the Oper
 OPLOG_METHODS = ['DELETE', 'POST', 'PATCH', 'PUT'] # List of HTTP methods which operations should be logged in the Operations Log. Defaults to ['DELETE', 'POST, 'PATCH', 'PUT'].
 OPLOG_ENDPOINT = 'oplog' #Name of the Operations Log endpoint. If the endpoint is enabled it can be configured like any other API endpoint. Set it to None to disable the endpoint. Defaults to None.
 OPLOG_AUDIT = True #Set it to True to enable the audit feature. When audit is enabled client IP and document changes are also logged to the Operations Log. Defaults to True.
-
+OPLOG_CUSTOM_FIELDS = {'u': None,'k': None, 'fuck': None}
 # The DOMAIN dict explains which resources will be available and how they will
 # be accessible to the API consumer.
 DOMAIN = domain.DOMAIN

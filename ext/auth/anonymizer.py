@@ -38,6 +38,21 @@ def anonymize_obs(item):
         except:
             print("Unexpected error:", sys.exc_info()[0])
             pass
+        
+        #Get rigger 
+        try:
+            #if 'rigger' in item['involved'][key]['gear']:
+                #if 'rigger' in item['involved'][key]['gear']:
+            if 'tmpname' in item['involved'][key]['gear']['rigger']:
+                del item['involved'][key]['gear']['rigger']['tmpname']
+            item['involved'][key]['gear']['rigger']['id'] = -1
+
+            item['involved'][key]['gear']['rigger'] = -1
+        except KeyError:
+            pass
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+            pass
     
     # Involved in components
     for key, val in enumerate(item['components']):
