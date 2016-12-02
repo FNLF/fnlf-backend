@@ -1,6 +1,7 @@
 from flask import current_app as app
 from bson.objectid import ObjectId
 import ext.auth.acl as acl_helper
+import sys
 
 def anonymize_obs(item):
     """ Anonymizes based on a simple scheme
@@ -12,116 +13,127 @@ def anonymize_obs(item):
     @todo: for workflow see if all involved should be added to nanon or seperate logic to handle that?
     @todo: add "hopper 1" "hopper 2" etc involved[45199] = -3
     """
-    
-    # Reporter AND owner
-    item['reporter'] = -1
-    item['owner'] = -1
-    
-    if 'audit' not in item['workflow']:
-        item['workflow']['audit'] = []
+    try:
+        # Reporter AND owner
+        item['reporter'] = -1
+        item['owner'] = -1
         
-    if 'involved' not in item:
-        item['involved'] = []
-    
-    if 'components' not in item:
-        item['components'] = []
-    
-    # Involved
-    for key, val in enumerate(item['involved']):
+        if 'audit' not in item['workflow']:
+            item['workflow']['audit'] = []
+            
+        if 'involved' not in item:
+            item['involved'] = []
         
-        try:
-            item['involved'][key]['id'] = -1
-            if 'tmpname' in item['involved'][key]:
-                item['involved'][key]['tmpname'] = 'Anonymisert'
-        except KeyError:
-            pass
-        except:
-            print("Unexpected error:", sys.exc_info()[0])
-            pass
+        if 'components' not in item:
+            item['components'] = []
         
-        #Get rigger 
-        try:
-            #if 'rigger' in item['involved'][key]['gear']:
+        # Involved
+        for key, val in enumerate(item['involved']):
+            
+            try:
+                item['involved'][key]['id'] = -1
+                if 'tmpname' in item['involved'][key]:
+                    item['involved'][key]['tmpname'] = 'Anonymisert'
+            except KeyError:
+                app.logger.info("Keyerr 1")
+                pass
+            except:
+                app.logger.info("Unexpected error 1: %s" % sys.exc_info()[0])
+                pass
+            
+            #Get rigger 
+            try:
                 #if 'rigger' in item['involved'][key]['gear']:
-            if 'tmpname' in item['involved'][key]['gear']['rigger']:
-                del item['involved'][key]['gear']['rigger']['tmpname']
-            item['involved'][key]['gear']['rigger']['id'] = -1
-
-            item['involved'][key]['gear']['rigger'] = -1
-        except KeyError:
-            pass
-        except:
-            print("Unexpected error:", sys.exc_info()[0])
-            pass
-    
-    # Involved in components
-    for key, val in enumerate(item['components']):
-        try:
-            for k, v in enumerate(item['components'][key]['involved']):
-                
-                if 'tmpname' in item['components'][key]['involved'][k]:
-                    del item['components'][key]['involved'][k]['tmpname']
-                    item['components'][key]['involved'][k]['id'] = -1
+                #if 'rigger' in item['involved'][key]['gear']:
+                if 'tmpname' in item['involved'][key]['gear']['rigger']:
+                    del item['involved'][key]['gear']['rigger']['tmpname']
+                item['involved'][key]['gear']['rigger']['id'] = -1
+            except KeyError:
+                app.logger.info("Keyerror is 2")
+                pass
+            except:
+                app.logger.info("Unexpected error 2: %s" % sys.exc_info()[0])
+                pass
+        
+        # Involved in components
+        for key, val in enumerate(item['components']):
+            try:
+                for k, v in enumerate(item['components'][key]['involved']):
+                    app.logger.info("before %s" % item['components'][key]['involved'][k]['id'])                    
+                    if 'tmpname' in item['components'][key]['involved'][k]:
+                        del item['components'][key]['involved'][k]['tmpname']
+                        item['components'][key]['involved'][k]['id'] = -1
+                        
+                    elif 'id' in item['components'][key]['involved'][k]:
+                        item['components'][key]['involved'][k]['id'] = -1
+                    app.logger.info("after %s" % item['components'][key]['involved'][k]['id'])                    
                     
-                elif 'id' in item['components'][key]['involved'][k]:
-                    item['components'][key]['involved'][k]['id'] = -1
-                
-        except KeyError:
-            pass
-        except:
-            print("Unexpected error:", sys.exc_info()[0])
-            pass
-    
-    # Files
-    item['files'][:] = [d for d in item['files'] if d.get('r') != True]
-    
-    # Workflow audit trail        
-    for key, val in enumerate(item['workflow']['audit']):
+            except KeyError:
+                app.logger.info("Keyerror 3")
+                pass
+            except:
+                app.logger.info("Unexpected error 3: %s" % sys.exc_info()[0])
+                pass
         
+        # Files
         try:
-            if item['workflow']['audit'][key]['a'] in ['init', 'set_ready', 'send_to_hi', 'withdraw']:
-                item['workflow']['audit'][key]['u'] = -1
-        except KeyError:
-            pass
+            item['files'][:] = [d for d in item['files'] if d.get('r') != True]
         except:
-            print("Unexpected error:", sys.exc_info()[0])
-            pass
-    
-    # Organization        
-    for key, val in enumerate(item['organization']):
-        
-        try:
-            if 'hl' in item['organization']:    
-                for k, hl in enumerate(item['organization']['hl']):
-                    if 'id' in item['organization']['hl'][k]:
-                        item['organization']['hl'][k]['id'] = -1
-                    if 'tmpname' in  item['organization']['hl'][k]:
-                        del item['organization']['hl'][k]['tmpname']
-            if 'hfl' in item['organization']:          
-                for k, hfl in enumerate(item['organization']['hfl']):
-                    if 'id' in item['organization']['hfl'][k]:
-                        item['organization']['hfl'][k]['id'] = -1
-                    if 'tmpname' in  item['organization']['hfl'][k]:
-                        del item['organization']['hfl'][k]['tmpname']
-            if 'hm' in item['organization']:          
-                for k, hm in enumerate(item['organization']['hm']):
-                    if 'id' in item['organization']['hm'][k]:
-                        item['organization']['hm'][k]['id'] = -1
-                    if 'tmpname' in item['organization']['hm'][k]:
-                        del item['organization']['hm'][k]['tmpname']
-            if 'pilot' in item['organization']:          
-                for k, pilot in enumerate(item['organization']['pilot']):
-                    if 'id' in item['organization']['pilot'][k]:
-                        item['organization']['pilot'][k]['id'] = -1
-                    if 'tmpname' in item['organization']['pilot'][k]:
-                        del item['organization']['pilot'][k]['tmpname']
-        except KeyError:
-            pass
-        except:
-            print("Unexpected error:", sys.exc_info()[0])
+            app.logger.info("File error: %s" % sys.exec_info()[0])
             pass
         
-    return item
+        # Workflow audit trail        
+        for key, val in enumerate(item['workflow']['audit']):
+            
+            try:
+                if item['workflow']['audit'][key]['a'] in ['init', 'set_ready', 'send_to_hi', 'withdraw']:
+                    item['workflow']['audit'][key]['u'] = -1
+            except KeyError:
+                app.logger.info("Keyerror 4")
+                pass
+            except:
+                app.logger.info("Unexpected error 4: %s" % sys.exc_info()[0])
+                pass
+        
+        # Organization        
+        for key, val in enumerate(item['organization']):
+            
+            try:
+                if 'hl' in item['organization']:    
+                    for k, hl in enumerate(item['organization']['hl']):
+                        if 'id' in item['organization']['hl'][k]:
+                            item['organization']['hl'][k]['id'] = -1
+                        if 'tmpname' in  item['organization']['hl'][k]:
+                            del item['organization']['hl'][k]['tmpname']
+                if 'hfl' in item['organization']:          
+                    for k, hfl in enumerate(item['organization']['hfl']):
+                        if 'id' in item['organization']['hfl'][k]:
+                            item['organization']['hfl'][k]['id'] = -1
+                        if 'tmpname' in  item['organization']['hfl'][k]:
+                            del item['organization']['hfl'][k]['tmpname']
+                if 'hm' in item['organization']:          
+                    for k, hm in enumerate(item['organization']['hm']):
+                        if 'id' in item['organization']['hm'][k]:
+                            item['organization']['hm'][k]['id'] = -1
+                        if 'tmpname' in item['organization']['hm'][k]:
+                            del item['organization']['hm'][k]['tmpname']
+                if 'pilot' in item['organization']:          
+                    for k, pilot in enumerate(item['organization']['pilot']):
+                        if 'id' in item['organization']['pilot'][k]:
+                            item['organization']['pilot'][k]['id'] = -1
+                        if 'tmpname' in item['organization']['pilot'][k]:
+                            del item['organization']['pilot'][k]['tmpname']
+            except KeyError:
+                app.logger.info("Keyerror 5")
+                pass
+            except:
+                app.logger.info("Unexpected error 5: %s" % sys.exc_info()[0])
+                pass
+        return item
+    except:
+        app.logger.info("Unexpected error in anon %s" % sys.exc_info()[0])
+        
+    return {}
 
 def has_permission_obs(id, type):
     """ Checks if has type (execute, read, write) permissions on an observation or not

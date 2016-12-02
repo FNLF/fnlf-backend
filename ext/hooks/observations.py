@@ -69,6 +69,9 @@ def after_get(request, response):
     
     d = json.loads(response.get_data().decode('UTF-8'))
     
+    # Just to be sure, we remove all data if anything goes wrong!
+    #response.set_data({})
+
     changed = False
     
     try:
@@ -99,10 +102,12 @@ def after_get(request, response):
                     
         if changed:
             response.set_data(json.dumps(d))
+            changed = False
     except KeyError:
+        app.logger.info("Keyerror in hook")
         pass        
     except:
-        print("Unexpected error: ", sys.exc_info()[0])
+        app.logger.info("Unexpected error: ", sys.exc_info()[0])
     
 
 
