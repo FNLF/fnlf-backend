@@ -17,6 +17,7 @@ import io
 import mimetypes
 from gridfs import GridFS
 from gridfs.errors import NoFile
+from bson.objectid import ObjectId
 
 import base64
 
@@ -33,7 +34,7 @@ def process_request(file_id):
     
     if has_permission():
         col = app.data.driver.db['files']
-        file = col.find_one({'_id': file_id})
+        file = col.find_one({'_id': ObjectId(file_id)})
         
         if not file:
             abort(404)
@@ -64,7 +65,7 @@ def process_image_request(file_id, size):
              }
 
     col = app.data.driver.db['files']
-    image = col.find_one({'_id': file_id})
+    image = col.find_one({'_id': ObjectId(file_id)})
     
     grid_fs = GridFS(app.data.driver.db)
     

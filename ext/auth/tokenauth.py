@@ -69,7 +69,8 @@ class TokenAuth(TokenAuth):
                 # @note: This corresponds to domain definition 'auth_field': 'id'
                 if method != 'GET' and resource == 'users':
                     self.set_request_auth_value(u['id'])
-                
+
+                print(request.authorization)
                 return True # Token exists and is valid, renewed for another hour
             
             else: # Expired validity
