@@ -67,3 +67,5 @@ target/
 
 ext/scf.py
 scripts.txt
+
+.idea/
