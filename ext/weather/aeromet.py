@@ -40,3 +40,33 @@ class Aeromet():
             shorttaf += "%s " % line.decode("utf-8").strip()
                 
         return shorttaf.strip()
+
+    def tafmetar(self):
+        """Uses api.met.no for retrival of norwegian airport codes
+        Other:
+        http://api.met.no/weatherapi/tafmetar/1.0/?icao=ENTO;content_type=text/plain;content=info
+
+        content:
+        tafmetar
+        taf
+        metar
+        info
+
+        """
+
+        metar = []
+        taf = []
+        finished_metar = False
+
+        for line in urlopen('http://api.met.no/weatherapi/tafmetar/1.0/?icao=%s;content_type=text/plain;content=tafmetar;date=2015-12-14' % self.airport):
+            line = line.strip().decode('utf-8')
+            if not finished_metar and len(line.strip()) != 0:
+                metar.append("%s" % line[:-1])
+            elif len(line.strip()) == 0:
+                finished_metar = True
+                pass
+            else:
+                if len(line.strip()) != 0:
+                    taf.append("TAF %s" % line[:-1])
+
+        return taf, metar
