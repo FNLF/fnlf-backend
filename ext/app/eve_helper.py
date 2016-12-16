@@ -8,11 +8,12 @@
 from flask import jsonify, abort, Response
 import json
 
-def eve_abort(code, description):
+
+def eve_abort(code, message):
     
     resp = Response(None, code)
-    
-    abort(code, description='You cant edit someone elses account', response=resp)
+
+    abort(code, description=message, response=resp)
 
 
 def eve_response(data):
