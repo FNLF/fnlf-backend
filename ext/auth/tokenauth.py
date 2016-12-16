@@ -9,10 +9,10 @@
 
 # Atuhentication
 from eve.auth import TokenAuth
-
 from flask import current_app as app, request, Response, abort
-
 from eve.methods.get import getitem as get_internal
+from bson.objectid import ObjectId
+
 # TIME & DATE - better with arrow only?
 import arrow
 
@@ -67,8 +67,12 @@ class TokenAuth(TokenAuth):
                 # This effectively limits all operations except GET
                 # hence only the authenticated user can change the corresponding users item (by id)
                 # @note: This corresponds to domain definition 'auth_field': 'id'
+                # Should be set anyway - on all then domain definition should activate where necessary
                 if method != 'GET' and resource == 'users':
                     self.set_request_auth_value(u['id'])
+
+                # This allows oplog to push u = id (membership #)
+                self.set_user_or_token(u['id'])
 
                 return True # Token exists and is valid, renewed for another hour
             
@@ -100,8 +104,7 @@ class TokenAuth(TokenAuth):
         col = app.data.driver.db[app.globals['auth']['users_collection']]
         user = col.find_one({'id': id}, {'acl': 1})
         acl = user['acl']
-        print(acl)
-        
+
         # Now get from all clubs!
         melwin = app.data.driver.db['melwin_users']
         melwin_user = melwin.find_one({'id': id}, {'membership': 1})
@@ -125,5 +128,3 @@ class TokenAuth(TokenAuth):
             app.globals.update({'acl': acl})
             
         raise NotImplemented
-        
-        
