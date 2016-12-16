@@ -30,6 +30,14 @@ class Anon(object):
         if not 'id' in x:
             x['id'] = 0
 
+        # Allow users to see themself
+        if int(x['id']) == int(app.globals['id']):
+            # Always delete tmpname!
+            if 'tmpname' in x:
+                del x['tmpname']
+            return x
+
+
         elif 'id' in x and 'tmpname' not in x:
             # print("ID: %s" % x['id'])
             if x['id'] > 0:
@@ -154,7 +162,7 @@ def anonymize_obs(item):
             if item['workflow'].get('audit', False):
                 for key, val in enumerate(item['workflow']['audit']):
 
-                    if item['workflow']['audit'].get(key, False):
+                    if item['workflow']['audit'][key]:
 
                         if item['workflow']['audit'][key]['a'] in ['init', 'set_ready', 'send_to_hi', 'withdraw']:
                             item['workflow']['audit'][key]['u'] = anon.assign(item['workflow']['audit'][key]['u'])

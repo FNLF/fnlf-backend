@@ -47,7 +47,7 @@ class TokenAuth(TokenAuth):
                 valid = utc.replace(hours=+1)
                 
                 # If it fails, then token is not renewed
-                accounts.update({'_id': u['_id']}, { "$set": { "auth.valid": valid.datetime } } )
+                accounts.update({'_id': u['_id']}, {"$set": {"auth.valid": valid.datetime}})
                 
                 # For use in pre_insert/update - handled in set_acl
                 #app.globals.update({'id': u['id']})
@@ -60,7 +60,7 @@ class TokenAuth(TokenAuth):
                 
                 #Set acl - use id to make sure
                 self.set_acl(u['id'])
-                
+
                 self.is_auth = True
                 
                 # Set request auth value IF on users resource
@@ -70,7 +70,6 @@ class TokenAuth(TokenAuth):
                 if method != 'GET' and resource == 'users':
                     self.set_request_auth_value(u['id'])
 
-                print(request.authorization)
                 return True # Token exists and is valid, renewed for another hour
             
             else: # Expired validity
@@ -101,6 +100,7 @@ class TokenAuth(TokenAuth):
         col = app.data.driver.db[app.globals['auth']['users_collection']]
         user = col.find_one({'id': id}, {'acl': 1})
         acl = user['acl']
+        print(acl)
         
         # Now get from all clubs!
         melwin = app.data.driver.db['melwin_users']
@@ -118,8 +118,7 @@ class TokenAuth(TokenAuth):
         acl['roles'] = list(set(acl['roles']))
             
         app.globals.update({'acl': acl})
-        
-    
+
     def _set_acl(self, acl, _id, id):
         
         if acl:

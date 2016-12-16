@@ -3,7 +3,9 @@
     Event hooks:
     ============
     
-    Using Eve defined events 
+    Using Eve defined events
+
+    From 0.7 - needs request token?
     
     Mixed with signals to ext.hooks for flask and direct database access compatibility
     
@@ -23,6 +25,7 @@
 from flask import current_app as app
 import ext.auth.anonymizer as anon
 import ext.app.eve_helper as eve_helper
+from ext.app.decorators import *
 import json
 import sys
 
@@ -31,15 +34,17 @@ from ext.hooks.signals import signal_activity_log, signal_insert_workflow, \
     signal_change_owner, signal_init_acl
 
 
+@require_token()
 def before_post(request, payload=None):
     pass
 
 
+@require_token()
 def before_patch(updates, original):
     app.logger.info(updates)
     app.logger.info(original)
     app.logger.info("IN BF PATCH!")
-    # raise NotImplementedError
+    raise NotImplementedError
 
 
 def after_patch(request, response):
@@ -66,6 +71,7 @@ def after_post(request, response):
     pass
 
 
+@require_token()
 def before_get(request, lookup):
     raise NotImplementedError
     pass
@@ -147,18 +153,22 @@ def after_get(request, response):
         eve_helper.eve_abort(500, 'Server experienced problems (unknown) anonymousing the observation and aborted as a safety measure')
 
 
+@require_token()
 def before_get(request, lookup):
+    print(lookup)
     lookup.update({'$or': [{"acl.read.groups": {'$in': app.globals['acl']['groups']}}, \
                            {"acl.read.roles": {'$in': app.globals['acl']['roles']}}, \
                            {"acl.read.users": {'$in': [app.globals.get('user_id')]}}]})
 
 
+@require_token()
 def before_patch(request, lookup):
     lookup.update({'$or': [{"acl.write.groups": {'$in': app.globals['acl']['groups']}}, \
                            {"acl.write.roles": {'$in': app.globals['acl']['roles']}}, \
                            {"acl.write.users": {'$in': [app.globals.get('user_id')]}}]})
 
 
+@require_token()
 def before_post_comments(resource, items):
     if resource == 'observation/comments':
         items[0].update({'user': int(app.globals.get('user_id'))})
