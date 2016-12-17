@@ -124,9 +124,11 @@ def after_get(request, response):
                     if d['weather']['auto'].get('taf', False):
                         try:
                             import pytaf
-                            taf = pytaf.TAF("TAF %s" % d['weather']['auto'].get('taf'))
+                            taf_raw = d['weather']['auto'].get('taf')
+                            # print(taf_raw[17:])
+                            taf = pytaf.TAF(taf_raw[17:])
                             decoder = pytaf.Decoder(taf)
-                            d['weather']['auto']['taf']['decoded'] = decoder.decode_taf()
+                            d['weather']['auto'].update({'taf_decoded': decoder.decode_taf()})
                         except:
                             app.logger.info("ERR TAF ", sys.exc_info()[0])
                             pass
@@ -134,7 +136,6 @@ def after_get(request, response):
                     if d['weather']['auto'].get('metar', False):
                         try:
                             from metar import Metar
-
                             met = Metar.Metar("METAR %s" % d['weather']['auto']['metar'][17:])
                             d['weather']['auto'].update({'metar_decoded': met.string()})
 
@@ -155,7 +156,6 @@ def after_get(request, response):
 
 @require_token()
 def before_get(request, lookup):
-    print(lookup)
     lookup.update({'$or': [{"acl.read.groups": {'$in': app.globals['acl']['groups']}}, \
                            {"acl.read.roles": {'$in': app.globals['acl']['roles']}}, \
                            {"acl.read.users": {'$in': [app.globals.get('user_id')]}}]})
