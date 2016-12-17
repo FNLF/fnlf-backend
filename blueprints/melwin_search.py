@@ -6,17 +6,12 @@
 from flask import Blueprint, current_app as app, request, Response, abort, jsonify
 
 # from ext.melwin import Melwin
-# Debug
-from pprint import pprint
 # TIME & DATE - better with arrow only?
 import arrow
-# Auth, not needed since token based
-from time import sleep
 
 # Need those badly!
 from ext.app.decorators import *
-from ext.app.eve_helper import eve_abort
-import json
+from ext.app.eve_helper import eve_abort, eve_response
 import re
 
 MelwinSearch = Blueprint('Melwin Search', __name__, )
@@ -64,12 +59,12 @@ def search_user():
 
         else:
             message = "You need at least 3 characters for searching"
-        # Build the result
 
+        # Build the result
         data.update({'_meta': {'err': err, 'total': num_results, 'max_results': max_results, 'message': message}, '_items': result})
 
         # return jsonify(**{data})
-        return Response(json.dumps(data), mimetype='application/json')
+        return eve_response(data)
 
     except:
         # 406, not acceptable
