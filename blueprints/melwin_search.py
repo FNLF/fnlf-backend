@@ -63,7 +63,6 @@ def search_user():
         # Build the result
         data.update({'_meta': {'err': err, 'total': num_results, 'max_results': max_results, 'message': message}, '_items': result})
 
-        # return jsonify(**{data})
         return eve_response(data)
 
     except:
