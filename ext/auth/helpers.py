@@ -14,6 +14,9 @@ from bson.objectid import ObjectId
 
 
 class Helpers():
+    def get_user_id(self):
+        return app.globals['user_id']
+
     def get_user_name(self, id):
 
         melwin = app.data.driver.db['melwin_users']
@@ -94,11 +97,6 @@ class Helpers():
 
         r = roles.find_one({"ref": 'hi', 'group': ObjectId(self.get_group_club(club))})
 
-        print("CLUB")
-        print(club)
-        print(self.get_group_club(club))
-        print("HIS")
-        print(r)
         if '_id' in r:
             return r['_id']
         else:
@@ -126,6 +124,18 @@ class Helpers():
             return role['_id']
         else:
             return None
+
+    def get_superadmins(self):
+        """ Return the role id of the role fs
+        """
+        roles = app.data.driver.db['acl_roles']
+        role = roles.find_one({'ref': 'superadmin'})
+
+        if '_id' in role:
+            return self.get_users_from_roles([role['_id']])
+        else:
+            return None
+
 
     def get_group_club(self, club):
 
