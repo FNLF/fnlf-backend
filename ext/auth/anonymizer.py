@@ -1,7 +1,7 @@
 from flask import current_app as app
 from bson.objectid import ObjectId
 import ext.auth.acl as acl_helper
-import ext.app.eve_helper as eve_helper
+from ext.app.eve_helper import eve_abort
 import sys
 from pprint import pprint
 
@@ -109,7 +109,6 @@ def anonymize_obs(item):
         for key, val in enumerate(item['involved']):
 
             if item['involved'][key] == None or item['involved'][key] == '' or not item['involved'][key]:
-                print("Error in Involved!")
                 item['involved'][key] = None
 
             else:
@@ -124,7 +123,6 @@ def anonymize_obs(item):
         for key, val in enumerate(item['components']):
 
             if item['components'][key] == None or item['components'][key] == '' or not item['components'][key]:
-                print("Error in Components!")
                 item['components'][key] = None
             else:
                 for k, v in enumerate(item['components'][key]['involved']):
@@ -171,12 +169,11 @@ def anonymize_obs(item):
         item['reporter'] = anon.assign(item['reporter'])
         item['owner'] = anon.assign(item['owner'])
 
+        return item
+
     except:
-        eve_helper.eve_abort(500, 'Server experienced problems (Anon) anonymousing the observation and aborted as a safety measure')
-
-    return item
-
-    return {}
+        eve_abort(500, 'Server experienced problems (Anon) anonymousing the observation and aborted as a safety measure')
+        return {}
 
 
 def has_permission_obs(id, type):
