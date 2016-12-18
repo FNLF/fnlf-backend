@@ -14,7 +14,7 @@ sys.path.insert(0, "domain")
 import domain
 
 # @TODO: use sys.argv to parse this as cmdline input
-APP_INSTANCE = 'develop-local'  # develop || develop-local || production
+APP_INSTANCE = 'production'  # develop || develop-local || production
 
 if APP_INSTANCE == 'develop':
     MONGO_HOST = 'localhost'
@@ -36,7 +36,7 @@ elif APP_INSTANCE == 'develop-local':
 
 elif APP_INSTANCE == 'production':
     MONGO_HOST = 'localhost'
-    MONGO_PORT = 27018
+    MONGO_PORT = 27017
     MONGO_USERNAME = ''
     MONGO_PASSWORD = ''
     MONGO_DBNAME = 'fnlf'
