@@ -9,7 +9,7 @@ from eve.methods.patch import patch_internal
 from ext.app.decorators import *
 
 from ext.auth.helpers import Helpers
-from ext.notifications import Email #, Sms
+from ext.notifications.email import Email  # , Sms
 
 ObsShare = Blueprint('Observation Share', __name__,)
 
