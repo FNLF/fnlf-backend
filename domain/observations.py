@@ -104,7 +104,6 @@ definition = {
     # 'auth_field': 'owner',
 
     'versioning': True,
-
     'resource_methods': ['GET', 'POST'],
     'item_methods': ['GET', 'PATCH', 'PUT'],
 
