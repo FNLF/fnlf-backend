@@ -20,7 +20,7 @@ import json
 from bson.objectid import ObjectId
 
 from ext.auth.helpers import Helpers
-from ext.notifications import Email  # , Sms
+from ext.notifications.email import Email  # , Sms
 
 # TIME & DATE - better with arrow only?
 import arrow
