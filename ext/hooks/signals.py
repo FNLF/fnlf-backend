@@ -13,6 +13,7 @@ from flask.signals import Namespace
 
 from eve.methods.post import post_internal
 from eve.methods.common import oplog_push
+from ext.app.eve_helper import eve_abort
 
 from datetime import datetime
 
@@ -134,11 +135,11 @@ def init_acl(dict_app, **extra):
         groups = app.data.driver.db['acl_groups']
         group = groups.find_one({'ref': club})
 
-        if group:
+        if group and group.get('_id', False):
             roles = app.data.driver.db['acl_roles']
             role = roles.find_one({'group': ObjectId(group['_id']), 'ref': 'hi'})
 
-            if role:
+            if role and role.get('_id', False):
                 users = app.data.driver.db['users']
                 hi = list(users.find({'acl.roles': {'$in': [ObjectId(role['_id'])]}}))
 
@@ -146,17 +147,31 @@ def init_acl(dict_app, **extra):
                 if isinstance(hi, list):
                     for user in hi:
                         his.append(user['id'])
-                else:
+                elif hi.get('id', False):
                     his.append(hi['id'])
+                else:
+                    his = []
+
+                roles = [role.get('_id')]
+
+            else:
+                eve_abort(400, 'No HI for club %s' % club)
+
+        else:
+            eve_abort(400, 'No group for club %s' % club)
+
 
         # Adds user and hi!
-        acl = {'read': {'users': [app.globals.get('user_id')], 'groups': [], 'roles': [role['_id']]},
-               'write': {'users': [app.globals.get('user_id')], 'groups': [], 'roles': []},
-               'execute': {'users': [app.globals.get('user_id')], 'groups': [], 'roles': []}
-               }
+        try:
+            acl = {'read': {'users': [app.globals.get('user_id')], 'groups': [], 'roles': roles},
+                   'write': {'users': [app.globals.get('user_id')], 'groups': [], 'roles': []},
+                   'execute': {'users': [app.globals.get('user_id')], 'groups': [], 'roles': []}
+                   }
 
-        test = obs.update({'_id': ObjectId(_id)}, {'$set': {'acl': acl}})
-        obs.update({'_id': ObjectId(_id)}, {'$set': {'organization.hi': his}})
+            test = obs.update({'_id': ObjectId(_id)}, {'$set': {'acl': acl}})
+            obs.update({'_id': ObjectId(_id)}, {'$set': {'organization.hi': his}})
+        except:
+            eve_abort(503, 'THe database would not comply with our demands')
 
 
 @signal_change_owner.connect

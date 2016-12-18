@@ -38,7 +38,8 @@ _schema = {'id': {'type': 'integer',
                     'required': True
                     },
 
-           'location': {'type': 'dict'},
+           'location': {'type': 'dict',
+                        'default': {}},
 
            'owner': {'type': 'integer', 'readonly': True},
            'reporter': {'type': 'integer', 'readonly': True},
@@ -64,7 +65,8 @@ _schema = {'id': {'type': 'integer',
                                   }
                        },
 
-           'components': {'type': 'list'
+           'components': {'type': 'list',
+                          'default': []
 
                           },
 

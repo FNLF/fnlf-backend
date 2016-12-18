@@ -97,7 +97,7 @@ class Helpers():
 
         r = roles.find_one({"ref": 'hi', 'group': ObjectId(self.get_group_club(club))})
 
-        if '_id' in r:
+        if r and r.get('_id', False):
             return r['_id']
         else:
             return None
