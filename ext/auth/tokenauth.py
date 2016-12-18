@@ -77,8 +77,8 @@ class TokenAuth(TokenAuth):
             
             else: # Expired validity
                 return False
-        else: # No token in database
-            return False
+
+        return False
     
     def get_user_id(self):
         return self.user_id

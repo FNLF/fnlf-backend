@@ -11,6 +11,9 @@ from datetime import datetime
 from ext.auth.tokenauth import TokenAuth
 from ext.auth.helpers import Helpers
 
+# from ext.app.eve_helper import eve_response
+
+
 from threading import Thread
 
 
@@ -47,15 +50,15 @@ def require_token():
         def wrapped(*args, **kwargs):
             
             auth = TokenAuth()
-            
-            if not auth.check_auth(token=request.authorization['username'], 
-                                   method=request.method, 
-                                   resource=request.path[len(app.globals.get('prefix')):], 
-                                   allowed_roles=None):
-                
-                resp = Response(None, 401)
-                abort(401, description='Please provide proper credentials', response=resp)
-                
+
+            try:
+                if not auth.check_auth(token=request.authorization['username'], method=request.method, resource=request.path[len(app.globals.get('prefix')):], allowed_roles=None):
+                    eve_abort(401, 'Please provide proper credentials')
+            except TypeError:
+                eve_abort(401, 'No token given, aborting')
+            except:
+                eve_abort(500, "Whats going on? We don't know.")
+
             return f(*args, **kwargs)
         return wrapped
 
