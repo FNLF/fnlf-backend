@@ -86,17 +86,15 @@ def login():
                     r_user = post_internal(app.globals['auth']['users_collection'], {'id': melwin_user['id'], 'acl': acl}, skip_validation=True)
 
                 except:
-                    eve_abort(500, 'Something went wrong with your user update from membership system')
+                    eve_abort(503, 'Something went wrong with your user update from membership system')
 
                 try:  # Users auth collection
                     users_auth_collection = app.data.driver.db[app.globals['auth']['auth_collection']]
                     r_auth = users_auth_collection.insert({'id': melwin_user['id'], 'user': r_user[0]['_id'], 'auth': {"token": "", "valid": ""}})
                     _id = r_auth
 
-                except pymongo.errors.ServerSelectionTimeoutError as mongoerr:
-                    eve_abort(503, 'The server experienced network timeout problems', mongoerr)
                 except:
-                    eve_abort(500, 'Something went wrong with your user authentication setup')
+                    eve_abort(503, 'Something went wrong with your user authentication setup')
 
         else:
             _id = user['_id']
@@ -117,10 +115,8 @@ def login():
             accounts = app.data.driver.db[app.globals['auth']['auth_collection']]
             accounts.update({'_id': _id}, {"$set": {"auth.token": token, "auth.valid": valid.datetime}})
 
-        except pymongo.errors.ServerSelectionTimeoutError as mongoerr:
-            eve_abort(503, 'The server experienced network timeout problems', mongoerr)
         except:
-            eve_abort(500, 'Something went wrong setting your authentication token')
+            eve_abort(504, 'Something went wrong setting your authentication token')
 
         # Base 64 for reuse
         t = '%s:' % token

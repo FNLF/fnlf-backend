@@ -13,6 +13,7 @@ from ..scf import Scf
 from ext.notifications.sms import Sms  # Email
 from ext.app.decorators import async
 
+CRITICAL_ERROR_CODES = [503]
 
 def eve_abort(status=500, message='', sysinfo=''):
     """Abort processing and logging
@@ -31,8 +32,10 @@ def eve_abort(status=500, message='', sysinfo=''):
         # Check if mongo is down
         app.logger.error("%s: %s" % (message, sys.exc_info()[0]))
 
-        if not is_mongo_alive(status):
-            app.logger.critical("Mongo DB is DOWN %s" % sys.exc_info()[0])
+        # 503 Service Unavailable
+        if status in CRITICAL_ERROR_CODES:
+            if not is_mongo_alive(status):
+                app.logger.critical("Mongo DB is DOWN %s" % sys.exc_info()[0])
 
     else:
         app.logger.debug("%s: %s" % (message, sys.exc_info()[0]))
