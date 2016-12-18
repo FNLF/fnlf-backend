@@ -4,8 +4,6 @@ from transitions import Machine
 from flask import current_app as app, request
 from bson.objectid import ObjectId
 
-from pprint import pprint
-
 from eve.methods.patch import patch_internal
 
 from datetime import datetime
@@ -14,7 +12,7 @@ import re
 
 from ext.auth.helpers import Helpers
 from ext.auth.acl import has_permission as acl_has_permission
-from ext.notifications import Email #, Sms
+from ext.notifications.email import Email  # , Sms
 
 class ObservationWorkflow(Machine):
     """ For further work, should use https://github.com/einarhuseby/transitions instead of https://github.com/tyarkoni/transitions
@@ -452,7 +450,6 @@ class ObservationWorkflow(Machine):
         """ A wrapper around notifications
         """
         mail = Email()
-        helper = Helpers()
         recepients = self.helper.get_melwin_users_email(self.helper.collect_users(users=users, roles=roles, groups=groups))
         
         message = {}
