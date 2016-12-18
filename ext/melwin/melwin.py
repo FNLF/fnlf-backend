@@ -79,17 +79,16 @@ Client.sax.Date.__parse = monkeypatch_suds_sax_date
 
 
 class Filter(MessagePlugin):
-
-	def received(self, context):
-		# pprint(context.reply)
+    def received(self, context):
+        # pprint(context.reply)
         # decoded = context.reply.decode('utf-8', errors='ignore')
         # reencoded = decoded.encode('utf-8')
         # context.reply = reencoded
         reply = context.reply
         context.reply = reply.replace(b'0000-00-00', b'1900-01-01')
 
-    # pprint(context.reply)
-    # pass
+        # pprint(context.reply)
+        # pass
 
 
 """
@@ -99,21 +98,20 @@ To save as file!!!
 
 
 class PayloadInterceptor(MessagePlugin):
-
     def __init__(self, *args, **kwargs):
         self.last_payload = None
 
     def received(self, context):
         # recieved xml as a string
 
-        print("(Suds) %s bytes received (reported by payloadinterceptor)" % len(context.reply))
+        # print("(Suds) %s bytes received (reported by payloadinterceptor)" % len(context.reply))
 
         # Make a copy available
         self.last_payload = context.reply
 
-    # clean up reply to prevent parsing
-    # context.reply = ""
-    # return context
+        # clean up reply to prevent parsing
+        # context.reply = ""
+        # return context
 
 
 """
@@ -488,7 +486,7 @@ class Melwin():
             except:
                 pass
 
-            # i++dict(zip([1,2,3,4], [a,b,c,d]))
+                # i++dict(zip([1,2,3,4], [a,b,c,d]))
 
         """
         # Some debug stuff!
@@ -911,7 +909,7 @@ class Melwin():
                             curr_members[int(nak)]['location'].update({'geo_class': geo.raw['class']})
                             curr_members[int(nak)]['location'].update({'geo_importance': float(geo.raw['importance'])})
                             curr_members[int(nak)]['location'].update({'geo_place_id': int(geo.raw['place_id'])})
-                        # curr_members[int(nak)]['location']['geo'].update({'altitude': geo.raw['altitude']})
+                            # curr_members[int(nak)]['location']['geo'].update({'altitude': geo.raw['altitude']})
                     except:
                         # members[val['id']].update({'location': {"type":"Point","coordinates":[0.0,0.0]}})
                         # members[val['id']].update({'location': {}})
