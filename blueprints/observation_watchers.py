@@ -23,6 +23,8 @@
 from flask import Blueprint, current_app as app, request, Response, abort, jsonify
 from bson import json_util
 import json
+from bson.objectid import ObjectId
+
 
 from eve.methods.patch import patch_internal
 
@@ -89,7 +91,7 @@ def get_watchers(observation_id):
     
     col = app.data.driver.db['observations']
     
-    r = col.find_one({'_id': observation_id}, {'watchers': 1})
+    r = col.find_one({'_id': ObjectId(observation_id)}, {'watchers': 1})
    
     return r['watchers']
 
@@ -98,7 +100,7 @@ def update_watchers(observation_id, watchers):
     
     col = app.data.driver.db['observations']
 
-    r = col.update({'_id': observation_id}, {"$set": {"watchers": watchers}})
+    r = col.update({'_id': ObjectId(observation_id)}, {"$set": {"watchers": watchers}})
     
     if r:
         return True

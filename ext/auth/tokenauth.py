@@ -9,10 +9,10 @@
 
 # Atuhentication
 from eve.auth import TokenAuth
-
 from flask import current_app as app, request, Response, abort
-
 from eve.methods.get import getitem as get_internal
+from bson.objectid import ObjectId
+
 # TIME & DATE - better with arrow only?
 import arrow
 
@@ -47,7 +47,7 @@ class TokenAuth(TokenAuth):
                 valid = utc.replace(hours=+1)
                 
                 # If it fails, then token is not renewed
-                accounts.update({'_id': u['_id']}, { "$set": { "auth.valid": valid.datetime } } )
+                accounts.update({'_id': u['_id']}, {"$set": {"auth.valid": valid.datetime}})
                 
                 # For use in pre_insert/update - handled in set_acl
                 #app.globals.update({'id': u['id']})
@@ -60,7 +60,7 @@ class TokenAuth(TokenAuth):
                 
                 #Set acl - use id to make sure
                 self.set_acl(u['id'])
-                
+
                 self.is_auth = True
                 
                 # Set request auth value IF on users resource
@@ -69,13 +69,16 @@ class TokenAuth(TokenAuth):
                 # @note: This corresponds to domain definition 'auth_field': 'id'
                 if method != 'GET' and resource == 'users':
                     self.set_request_auth_value(u['id'])
-                
+
+                # This allows oplog to push u = id (membership #)
+                self.set_user_or_token(u['id'])
+
                 return True # Token exists and is valid, renewed for another hour
             
             else: # Expired validity
                 return False
-        else: # No token in database
-            return False
+
+        return False
     
     def get_user_id(self):
         return self.user_id
@@ -100,7 +103,7 @@ class TokenAuth(TokenAuth):
         col = app.data.driver.db[app.globals['auth']['users_collection']]
         user = col.find_one({'id': id}, {'acl': 1})
         acl = user['acl']
-        
+
         # Now get from all clubs!
         melwin = app.data.driver.db['melwin_users']
         melwin_user = melwin.find_one({'id': id}, {'membership': 1})
@@ -117,13 +120,10 @@ class TokenAuth(TokenAuth):
         acl['roles'] = list(set(acl['roles']))
             
         app.globals.update({'acl': acl})
-        
-    
+
     def _set_acl(self, acl, _id, id):
         
         if acl:
             app.globals.update({'acl': acl})
             
         raise NotImplemented
-        
-        
