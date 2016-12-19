@@ -11,7 +11,7 @@ from datetime import datetime
 from ext.auth.tokenauth import TokenAuth
 from ext.auth.helpers import Helpers
 
-# from ext.app.eve_helper import eve_response
+# from ext.app.eve_helper import eve_abort
 
 
 from threading import Thread
@@ -71,15 +71,14 @@ def require_superadmin():
     @TODO: use a switch for ref [superadmin, admin,..]?
     @TODO: in ext.auth.helpers define a get_users_in_roles_by_ref(ref)?
     """
-
+    from ext.app.eve_helper import eve_abort
     def decorator(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
-            h = Helpers()
 
-            if int(app.globals['user_id']) not in h.get_superadmins():
-                resp = Response(None, 401)
-                abort(401, description='Please provide proper credentials', response=resp)
+            h = Helpers()
+            if int(app.globals['user_id']) not in h.get_superadmins():  # [99999]: # # #
+                eve_abort(401, 'You do not have sufficient privileges')
 
             return f(*args, **kwargs)
 

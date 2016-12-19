@@ -10,9 +10,9 @@
 # Atuhentication
 from eve.auth import TokenAuth
 from flask import current_app as app, request, Response, abort
-from eve.methods.get import getitem as get_internal
-from bson.objectid import ObjectId
-
+# from eve.methods.get import getitem as get_internal
+# from bson.objectid import ObjectId
+from ext.auth.helpers import Helpers
 # TIME & DATE - better with arrow only?
 import arrow
 
@@ -33,6 +33,9 @@ class TokenAuth(TokenAuth):
         # Can also get the database lookup for the resource and check that here!!
         # Can also issue a new token here, and that needs to be returned by injecting to pre dispatch
         # use the abort/eve_error_msg to issue errors!
+
+
+
         accounts = app.data.driver.db[app.globals['auth']['auth_collection']]
         
         u = accounts.find_one({'auth.token': token})
@@ -60,6 +63,20 @@ class TokenAuth(TokenAuth):
                 
                 #Set acl - use id to make sure
                 self.set_acl(u['id'])
+
+                # See if needed for the resource
+                # Contains per method (ie read or write or all verbs)
+                if allowed_roles:
+
+                    helper = Helpers()
+                    local_roles = []
+                    for role in allowed_roles:
+                        local_roles.extend(helper.get_all_users_in_role_by_ref(ref=role))
+
+                    if len(local_roles) == 0 or u['id'] not in local_roles:
+                        self.is_auth = False
+                        return False
+
 
                 self.is_auth = True
                 

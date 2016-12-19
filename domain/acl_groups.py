@@ -17,8 +17,11 @@ _schema = {'name': {'type': 'string',
             }
 
 definition = {
-        'item_title': 'acl/groups',
+    'item_title': 'acl_groups',
+    'item_name': 'acl_groups',
         'url': 'acl/groups',
+    'allowed_write_roles': ['superadmin'],
+    'allowed_item_write_roles': ['superadmin'],
         'datasource': {'source': 'acl_groups',
                        },
         'internal_resource': False,
