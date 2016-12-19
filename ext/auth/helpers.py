@@ -148,17 +148,47 @@ class Helpers():
         else:
             return None
 
-    def get_all_groups(self):
+    def get_all_groups(self, ref=None):
 
         groups = app.data.driver.db['acl_groups']
 
-        return list(groups.find())
+        if ref:
+            where = {'ref': ref}
+        else:
+            where = {}
+
+        return list(groups.find(where))
+
+    def get_all_roles(self, ref=None):
+
+        roles = app.data.driver.db['acl_roles']
+
+        if ref:
+            where = {'ref': ref}
+        else:
+            where = {}
+
+        return list(roles.find(where))
+
 
     def get_all_clubs(self):
 
         groups = app.data.driver.db['melwin_clubs']
 
         return list(groups.find())
+
+    def get_all_users_in_role_by_ref(self, ref):
+
+        # find all roles, then all users by role _id
+
+        roles = app.data.driver.db['acl_roles']
+        roles_list = []
+
+        for role in list(roles.find({'ref': ref}, {'_id': 1})):
+            roles_list.append(role.get('_id'))
+
+        return self.get_users_from_roles(roles_list)
+
 
     def get_melwin_users_email(self, users):
         """ Returns a list of tuples (name, email) from a list of user id'

@@ -25,7 +25,6 @@ ACL = Blueprint('Acl', __name__, )
 
 @ACL.route("/<string:collection>/<int:observation_id>", methods=['GET'])
 @require_token()
-@require_superadmin()
 def get_observation_user_acl(collection, observation_id):
     ''' This is NOT a good one since jsonifying those objectid's are bad
     Should rather use Eve for getting stuff!
@@ -38,7 +37,6 @@ def get_observation_user_acl(collection, observation_id):
 
 @ACL.route("/group/<objectid:group_id>", methods=['GET'])
 @require_token()
-@require_superadmin()
 def get_users_by_group(group_id):
 
     col = app.data.driver.db['users']
@@ -49,7 +47,6 @@ def get_users_by_group(group_id):
 
 @ACL.route("/<int:username>", methods=['GET'])
 @require_token()
-@require_superadmin()
 def get_user_acl(username):
     ''' This is NOT a good one since jsonifying those objectid's are bad
     Should rather use Eve for getting stuff!
@@ -107,7 +104,6 @@ def delete_role_acl(username, roleid):
 
 @ACL.route("/hi/<club>", methods=['GET'])
 @require_token()
-@require_superadmin()
 def get_club_hi(club):
     groups = app.data.driver.db['acl_groups']
     group = groups.find_one({'ref': club})

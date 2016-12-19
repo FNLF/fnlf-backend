@@ -27,6 +27,8 @@ _schema = {'name': {'type': 'string',
 definition = {
         'item_title': 'acl/roles',
         'url': 'acl/roles',
+    'allowed_write_roles': ['superadmin'],
+    'allowed_item_write_roles': ['superadmin'],
         'datasource': {'source': 'acl_roles',
                        },
         'internal_resource': False,
