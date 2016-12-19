@@ -14,7 +14,7 @@ sys.path.insert(0, "domain")
 import domain
 
 # @TODO: use sys.argv to parse this as cmdline input
-APP_INSTANCE = 'production'  # develop || develop-local || production
+APP_INSTANCE = 'develop'  # develop || develop-local || production
 
 if APP_INSTANCE == 'develop':
     MONGO_HOST = 'localhost'
