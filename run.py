@@ -22,7 +22,7 @@
     @license:       MIT, see LICENSE for more details. Note that Eve is BSD licensed
 """
 
-__version_info__ = ('0', '4', '2-dev')
+__version_info__ = ('0', '4', '4-hotfix')
 __version__         = '.'.join(__version_info__)
 __author__          = 'Einar Huseby'
 __license__         = 'MIT'
@@ -52,7 +52,7 @@ from blueprints.files import Files
 from blueprints.tags import Tags
 from blueprints.acl import ACL
 from blueprints.observation_share import ObsShare
-from blueprints.melwin_updater import MelwinUpdater
+# from blueprints.melwin_updater import MelwinUpdater
 
 # Custom url mappings (for flask)
 from ext.app.url_maps import ObjectIDConverter, RegexConverter
@@ -96,12 +96,11 @@ app.url_map.converters['regex']     = RegexConverter
 #app.register_blueprint(eve_docs,        url_prefix="%s/docs" % app.globals.get('prefix'))
 app.register_blueprint(swagger)
 # You might want to simply update the eve settings module instead.
-SWAGGER = {
-    'info': {
+app.config['SWAGGER_INFO'] = {
         'title': 'F/NLF API',
-        'version': '0.1',
+    'version': __version__,
         'description': 'API to the F/NLF application framework',
-        'termsOfService': 'Ole brum',
+    'termsOfService': 'Ole Brum',
         'contact': {
             'name': 'Jan Erik Wang',
             'email': 'janerik.wang@nlf.no',
@@ -109,12 +108,9 @@ SWAGGER = {
         },
         'license': {
             'name': 'BSD',
-            'url': 'https://github.com/FNLF/fnlf-backend/blob/master/LICENSE',
+            'url': 'https://github.com/FNLF/fnlf-backend/',
         }
-    },
-    'host': 'app.nlf.no'
 }
-app.config['SWAGGER'] = SWAGGER
 
 # Register custom blueprints
 app.register_blueprint(Authenticate,    url_prefix="%s/user" % app.globals.get('prefix'))
@@ -130,7 +126,7 @@ app.register_blueprint(Locations,       url_prefix="%s/locations" % app.globals.
 app.register_blueprint(Tags,            url_prefix="%s/tags" % app.globals.get('prefix'))
 app.register_blueprint(ACL,             url_prefix="%s/users/acl" % app.globals.get('prefix'))
 app.register_blueprint(ObsShare,        url_prefix="%s/observations/share" % app.globals.get('prefix'))
-app.register_blueprint(MelwinUpdater,   url_prefix="%s/muppet" % app.globals.get('prefix'))
+#app.register_blueprint(MelwinUpdater,   url_prefix="%s/muppet" % app.globals.get('prefix'))
 
 """ A simple python logger setup
 Eve do not yet support logging, but will for 0.5

@@ -151,7 +151,10 @@ class Melwin():
         self.melwin_url = c['url']
 
         # Instantiate the suds soap client NB use doc for it to work!!!!
-        self.client = Client(self.melwin_url, plugins=[Filter(), self.payload_interceptor])
+        try:
+            self.client = Client(self.melwin_url, plugins=[Filter(), self.payload_interceptor])
+        except:
+            return None
 
         if self.do_geo:
             self.geocoder = Nominatim()
