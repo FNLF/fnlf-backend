@@ -12,7 +12,7 @@
 """
 from flask import Blueprint, current_app as app, request, Response, abort, jsonify
 from ext.melwin.melwin import Melwin
-from ext.app.eve_helper import eve_response, eve_abort
+from ext.app.eve_helper import eve_response, eve_abort, eve_response_get
 
 # TIME & DATE - better with arrow only?
 import arrow
@@ -35,8 +35,12 @@ Authenticate = Blueprint('Authenticate', __name__, )
 def login():
     username = None
     password = None
+    logged_in = False
 
     m = Melwin()
+
+    if m is None:
+        eve_abort('503', 'Service Melwin is unavailable')
 
     # Request via json
     rq = request.get_json()
@@ -49,9 +53,15 @@ def login():
         # Now it will fail in the next if
         pass
 
-        # if request.form.get('username',type=int) == 45199 and request.form.get('password',type=int) == 45199:
+    try:
+        logged_in = m.login(username, password)
+    except:
+        eve_abort(503, 'Could not log you into Melwin, is Melwin down?')
+        logged_in = False
+
+    # if request.form.get('username',type=int) == 45199 and request.form.get('password',type=int) == 45199:
     # if m.login(request.form.get('username',type=int), request.form.get('password',type=int)):
-    if isinstance(username, int) and len(password) == 9 and m.login(username, password):
+    if isinstance(username, int) and len(password) == 9 and logged_in:
 
         # app = current_app._get_current_object()
 
@@ -137,12 +147,16 @@ def login():
                              'token': token,
                              'token64': b64,
                              'valid': valid.datetime,
+
                              '_id': str(_id)})
+
+    else:
+        pass
 
     # On error sleep a little against brute force
     sleep(1)
     # return jsonify(**{'success': False, 'token': None, 'message': 'Wrong username or password'})
-    return eve_response({'success': False, 'token': None, 'message': 'Wrong username or password'})
+    return eve_response({'success': False, 'token': None, 'token64': None, 'message': 'Wrong username or password'})
 
 
 """
