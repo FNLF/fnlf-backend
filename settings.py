@@ -14,7 +14,7 @@ sys.path.insert(0, "domain")
 import domain
 
 # @TODO: use sys.argv to parse this as cmdline input
-APP_INSTANCE = 'develop'  # develop || develop-local || production
+APP_INSTANCE = 'develop-local'  # develop || develop-local || production
 
 if APP_INSTANCE == 'develop':
     MONGO_HOST = 'localhost'
@@ -88,7 +88,8 @@ RETURN_MEDIA_AS_BASE64_STRING = True  # When true loads the file references as b
 # X_HEADERS = None
 # X_EXPOSE_HEADERS = None
 # X_MAX_AGE = 21600
-
+X_DOMAINS = ['http://localhost:8081']
+X_HEADERS = ['Content-Type', 'If-Match']  # Needed for the "Try it out" buttons
 """
     OP Log
     ======
