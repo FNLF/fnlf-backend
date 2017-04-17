@@ -13,8 +13,16 @@ sys.path.insert(0, "domain")
 # Import the apps - DOMAIN definition (app.DOMAIN)
 import domain
 
+
+__version_info__    = ('0', '4', '4-hotfix')
+APP_VERSION         = '.'.join(__version_info__)
+APP_AUTHOR          = 'Einar Huseby'
+APP_LICENSE         = 'MIT'
+APP_COPYRIGHT       = '(c) 2014-2016 F/NLF'
+APP_ALL             = ['fnlf-backend']
+
 # @TODO: use sys.argv to parse this as cmdline input
-APP_INSTANCE = 'develop-local'  # develop || develop-local || production
+APP_INSTANCE = 'develop'  # develop || develop-local || production
 
 if APP_INSTANCE == 'develop':
     MONGO_HOST = 'localhost'
@@ -25,6 +33,9 @@ if APP_INSTANCE == 'develop':
     # Use default 30s?
     MONGO_CONNECT_TIMEOUT_MS = 200
 
+    APP_HOST = '127.0.0.1'
+    APP_PORT = 8081
+
 elif APP_INSTANCE == 'develop-local':
     MONGO_HOST = 'localhost'
     MONGO_PORT = 27018
@@ -34,6 +45,9 @@ elif APP_INSTANCE == 'develop-local':
     # Use default 30s?
     MONGO_CONNECT_TIMEOUT_MS = 200
 
+    APP_HOST = '127.0.0.1'
+    APP_PORT = 8081
+
 elif APP_INSTANCE == 'production':
     MONGO_HOST = 'localhost'
     MONGO_PORT = 27017
@@ -41,6 +55,9 @@ elif APP_INSTANCE == 'production':
     MONGO_PASSWORD = ''
     MONGO_DBNAME = 'fnlf'
     MONGO_CONNECT_TIMEOUT_MS = 5000
+
+    APP_HOST = '127.0.0.1'
+    APP_PORT = 8080
 
 # Will also make server watch inode and reload on changes
 DEBUG = True
@@ -79,6 +96,9 @@ ALLOW_UNKNOWN = False
 # ISO
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
+# Will create on PUT wen not existing
+#UPSERT_ON_PUT = True
+
 # File storage
 EXTENDED_MEDIA_INFO = ['content_type', 'name', 'length']
 RETURN_MEDIA_AS_BASE64_STRING = True  # When true loads the file references as base64. Ok for (small) images, rubbish for files (video, documents) and large images Should make a seperate download/streaming resource
@@ -106,6 +126,23 @@ OPLOG_METHODS = ['DELETE', 'POST', 'PATCH', 'PUT']  # List of HTTP methods which
 OPLOG_ENDPOINT = 'oplog'  # Name of the Operations Log endpoint. If the endpoint is enabled it can be configured like any other API endpoint. Set it to None to disable the endpoint. Defaults to None.
 OPLOG_AUDIT = True  # Set it to True to enable the audit feature. When audit is enabled client IP and document changes are also logged to the Operations Log. Defaults to True.
 # OPLOG_CUSTOM_FIELDS = {'u': None}
+
+SWAGGER_INFO = {
+        'title': 'F/NLF API',
+    'version': APP_VERSION,
+        'description': 'API to the F/NLF application framework',
+    'termsOfService': 'Ole Brum',
+        'contact': {
+            'name': 'Jan Erik Wang',
+            'email': 'janerik.wang@nlf.no',
+            'url': 'https://www.nlf.no/fallskjerm'
+        },
+        'license': {
+            'name': 'BSD',
+            'url': 'https://github.com/FNLF/fnlf-backend/',
+        }
+}
+
 # The DOMAIN dict explains which resources will be available and how they will
 # be accessible to the API consumer.
 DOMAIN = domain.DOMAIN

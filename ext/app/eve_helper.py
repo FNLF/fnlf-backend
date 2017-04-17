@@ -11,7 +11,7 @@ import bson.json_util as json_util
 from ..scf import Scf
 
 from ext.notifications.sms import Sms  # Email
-from ext.app.decorators import async
+#from ext.app.decorators import async
 
 CRITICAL_ERROR_CODES = [503]
 

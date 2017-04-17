@@ -2,6 +2,8 @@
     Custom decorators
     =================
     
+    Custom decorators for various tasks and to bridge Flask with Eve
+    
 """
 from flask import current_app as app, request, Response, abort
 from functools import wraps
@@ -11,7 +13,14 @@ from datetime import datetime
 from ext.auth.tokenauth import TokenAuth
 from ext.auth.helpers import Helpers
 
-from ext.app.eve_helper import *
+
+# Because of circular import in context
+try:
+    from ext.app.eve_helper import eve_abort
+except:
+
+    def eve_abort(status=500, message='', sysinfo=None):
+        pass
 
 
 from threading import Thread
