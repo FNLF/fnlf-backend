@@ -45,7 +45,7 @@ from blueprints.files import Files
 from blueprints.tags import Tags
 from blueprints.acl import ACL
 from blueprints.observation_share import ObsShare
-from blueprints.melwin_updater import MelwinUpdater
+#from blueprints.melwin_updater import MelwinUpdater
 
 # Custom url mappings (for flask)
 from ext.app.url_maps import ObjectIDConverter, RegexConverter
