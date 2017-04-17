@@ -100,7 +100,7 @@ def login():
 
                 try:  # Users auth collection
                     users_auth_collection = app.data.driver.db[app.globals['auth']['auth_collection']]
-                    r_auth = users_auth_collection.insert({'id': melwin_user['id'], 'user': r_user[0]['_id'], 'auth': {"token": "", "valid": ""}})
+                    r_auth = users_auth_collection.insert_one({'id': melwin_user['id'], 'user': r_user[0]['_id'], 'auth': {"token": "", "valid": ""}})
                     _id = r_auth
 
                 except:
@@ -123,7 +123,7 @@ def login():
 
             # Wont work with the update or patch_internal or any other internal for now
             accounts = app.data.driver.db[app.globals['auth']['auth_collection']]
-            accounts.update({'_id': _id}, {"$set": {"auth.token": token, "auth.valid": valid.datetime}})
+            accounts.update_one({'_id': _id}, {"$set": {"auth.token": token, "auth.valid": valid.datetime}})
 
         except:
             eve_abort(504, 'Something went wrong setting your authentication token')
