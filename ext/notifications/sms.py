@@ -67,3 +67,6 @@ class Sms:
 
     def get_password(self):
         return self.config.get('password')
+
+    def get_warn_sms(self):
+        return self.config.get_warn_sms(self)
