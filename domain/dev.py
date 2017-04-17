@@ -27,6 +27,7 @@ _schema = {
 
 definition = {
         'item_title': 'dev',
+        'url': 'dev',
         'versioning': False,
         
         # Full on!
