@@ -45,7 +45,6 @@ from blueprints.files import Files
 from blueprints.tags import Tags
 from blueprints.acl import ACL
 from blueprints.observation_share import ObsShare
-#from blueprints.melwin_updater import MelwinUpdater
 
 # Custom url mappings (for flask)
 from ext.app.url_maps import ObjectIDConverter, RegexConverter
@@ -102,7 +101,6 @@ app.register_blueprint(Locations, url_prefix="%s/locations" % app.globals.get('p
 app.register_blueprint(Tags, url_prefix="%s/tags" % app.globals.get('prefix'))
 app.register_blueprint(ACL, url_prefix="%s/users/acl" % app.globals.get('prefix'))
 app.register_blueprint(ObsShare, url_prefix="%s/observations/share" % app.globals.get('prefix'))
-app.register_blueprint(MelwinUpdater, url_prefix="%s/muppet" % app.globals.get('prefix'))
 
 """
     Eve hooks
