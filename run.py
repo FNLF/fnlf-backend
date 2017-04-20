@@ -123,14 +123,15 @@ app.on_pre_PATCH_observations += hook.observations.before_patch
 
 app.on_post_PATCH_observations += hook.observations.after_patch
 
-app.on_insert += hook.observations.before_post_comments
-# app.on_insert_observation_comments += before_post_observation_comments
+#app.on_insert += hook.observations.before_post_comments
+app.on_insert_observation_comments += hook.observations.before_post_comments
 
 app.on_post_GET_observations += hook.observations.after_get
 
 app.on_pre_GET_observations += hook.observations.before_get
 
 app.on_pre_PATCH_observations += hook.observations.before_patch
+
 
 """
 
@@ -168,7 +169,6 @@ if __name__ == '__main__':
 
 		if 1 == 1:
 			import ext.melwin.melwin_updater as updater
-
 			updater.start(app)
 
 		import pkg_resources
