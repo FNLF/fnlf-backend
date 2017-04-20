@@ -56,8 +56,8 @@ from ext.auth.tokenauth import TokenAuth
 from pprint import pprint
 
 if not hasattr(sys, 'real_prefix'):
-	print("Outside virtualenv, aborting....")
-	sys.exit(-1)
+    print("Outside virtualenv, aborting....")
+    sys.exit(-1)
 
 # Make sure gunicorn passes settings.py
 SETTINGS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'settings.py')
@@ -123,7 +123,7 @@ app.on_pre_PATCH_observations += hook.observations.before_patch
 
 app.on_post_PATCH_observations += hook.observations.after_patch
 
-#app.on_insert += hook.observations.before_post_comments
+# app.on_insert += hook.observations.before_post_comments
 app.on_insert_observation_comments += hook.observations.before_post_comments
 
 app.on_post_GET_observations += hook.observations.after_get
@@ -131,7 +131,6 @@ app.on_post_GET_observations += hook.observations.after_get
 app.on_pre_GET_observations += hook.observations.before_get
 
 app.on_pre_PATCH_observations += hook.observations.before_patch
-
 
 """
 
@@ -146,44 +145,43 @@ app.on_pre_PATCH_observations += hook.observations.before_patch
     @todo: Config file for gunicorn deployment and -C see http://gunicorn-docs.readthedocs.org/en/latest/settings.html
 
 """
+""" A simple python logger setup
+Use app.logger.<level>(<message>) for manual logging
+Levels: debug|info|warning|error|critical"""
+if 1 == 1 or not app.debug:
+    import logging
+    from logging.handlers import RotatingFileHandler
+
+    file_handler = RotatingFileHandler('fnlf-backend.log', 'a', 1 * 1024 * 1024, 10)
+    file_handler.setFormatter(
+        logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
+    app.logger.setLevel(logging.INFO)
+    file_handler.setLevel(logging.INFO)
+    app.logger.addHandler(file_handler)
+    app.logger.info('FNLF-backend startup')
+
+# Run only once
+if app.debug and not os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+
+    if 1 == 1:
+        import ext.melwin.melwin_updater as updater
+
+        updater.start(app)
+
+    import pkg_resources
+
+    print(" App:         %s" % app.config['APP_VERSION'])
+    print(" Eve:         %s" % pkg_resources.get_distribution("eve").version)
+    print(" Cerberus:    %s" % pkg_resources.get_distribution("cerberus").version)
+    print(" Flask:       %s" % pkg_resources.get_distribution("flask").version)
+    print(" Pymongo:     %s" % pkg_resources.get_distribution("pymongo").version)
+    print(" Pillow:      %s" % pkg_resources.get_distribution("Pillow").version)
+    print(" Suds:        %s" % pkg_resources.get_distribution("suds-jurko").version)
+    print(" Transtions:  %s" % pkg_resources.get_distribution("transitions").version)
+    print(" Pytaf:       %s" % pkg_resources.get_distribution("pytaf").version)
+    print(" Py Metar:    %s" % pkg_resources.get_distribution("python-metar").version)
+    print(" Py YR:       %s" % pkg_resources.get_distribution("python-yr").version)
+    print("--------------------------------------------------------------------------------")
 
 if __name__ == '__main__':
-
-	""" A simple python logger setup
-	Use app.logger.<level>(<message>) for manual logging
-	Levels: debug|info|warning|error|critical"""
-	if 1 == 1 or not app.debug:
-		import logging
-		from logging.handlers import RotatingFileHandler
-
-		file_handler = RotatingFileHandler('fnlf-backend.log', 'a', 1 * 1024 * 1024, 10)
-		file_handler.setFormatter(
-			logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
-		app.logger.setLevel(logging.INFO)
-		file_handler.setLevel(logging.INFO)
-		app.logger.addHandler(file_handler)
-		app.logger.info('FNLF-backend startup')
-
-	# Run only once
-	if app.debug and not os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-
-		if 1 == 1:
-			import ext.melwin.melwin_updater as updater
-			updater.start(app)
-
-		import pkg_resources
-
-		print(" App:         %s" % app.config['APP_VERSION'])
-		print(" Eve:         %s" % pkg_resources.get_distribution("eve").version)
-		print(" Cerberus:    %s" % pkg_resources.get_distribution("cerberus").version)
-		print(" Flask:       %s" % pkg_resources.get_distribution("flask").version)
-		print(" Pymongo:     %s" % pkg_resources.get_distribution("pymongo").version)
-		print(" Pillow:      %s" % pkg_resources.get_distribution("Pillow").version)
-		print(" Suds:        %s" % pkg_resources.get_distribution("suds-jurko").version)
-		print(" Transtions:  %s" % pkg_resources.get_distribution("transitions").version)
-		print(" Pytaf:       %s" % pkg_resources.get_distribution("pytaf").version)
-		print(" Py Metar:    %s" % pkg_resources.get_distribution("python-metar").version)
-		print(" Py YR:       %s" % pkg_resources.get_distribution("python-yr").version)
-		print("--------------------------------------------------------------------------------")
-
-	app.run(host=app.config['APP_HOST'], port=app.config['APP_PORT'])
+    app.run(host=app.config['APP_HOST'], port=app.config['APP_PORT'])
