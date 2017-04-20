@@ -8,6 +8,7 @@ import datetime, time
 import pickle
 from .melwin import Melwin
 import threading
+import os
 
 
 # @track_time_spent('Melwin Update')
@@ -98,11 +99,21 @@ def get_timer():
 
     return seconds
 
+def touch(path):
+    with open(path, 'a'):
+        os.utime(path, None)
+
+def check(path):
+    return os.path.isfile(path)
 
 def start(app):
     """Schedule after startup for first run
     @todo: smart schedule "04 tomorrow"
     """
-
-    s = get_timer()
-    threading.Timer(get_timer(), do_melwin_update, [app]).start()
+    pid = 'melwin_updater.pid'
+    if check(pid):
+        return
+    else:
+        touch(pid)
+        s = get_timer()
+        threading.Timer(get_timer(), do_melwin_update, [app]).start()
