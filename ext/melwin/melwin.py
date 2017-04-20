@@ -29,6 +29,7 @@
 from suds.client import Client
 from suds.xsd.doctor import ImportDoctor, Import
 from suds.plugin import MessagePlugin
+from suds.cache import NoCache
 
 import json, re, unicodedata
 
@@ -124,9 +125,11 @@ class Melwin():
 
 		self.melwin_url = c['url']
 
-		# Instantiate the suds soap client NB use doc for it to work!!!!
+		"""SUDS-jurko instantiating
+		Needs cache=NoCache() because suds do not check in a predicable manner...
+		With cache it complains of open files"""
 		try:
-			self.client = Client(self.melwin_url, plugins=[Filter(), UnicodeFilter(), self.payload_interceptor])
+			self.client = Client(self.melwin_url, plugins=[Filter(), UnicodeFilter(), self.payload_interceptor], cache=NoCache())
 		except:
 			return None
 
