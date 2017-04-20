@@ -15,7 +15,7 @@ import threading
 def do_melwin_update(app):
 
     app.logger.info("[MELWIN] Updater started")
-    use_pickle = True
+    use_pickle = False
 
     result = {'replaced': 0, 'created': 0, 'errors': 0, 'error_ids': []}
 
