@@ -47,10 +47,11 @@ def eve_abort(status=500, message='', sysinfo=None):
             if status in CRITICAL_ERROR_CODES:
                 if not is_mongo_alive(status):
                     app.logger.critical("MongoDB is down [%s]" % sysinfo)
-                    send_sms(status, "MongoDB is down")
+                    send_sms(status, "MongoDB is down (%s)" % app.config['APP_INSTANCE'])
                 else:
                     app.logger.critical("%s [%s]" % (message, sysinfo))
-                    send_sms(status, message)
+                    message = message
+                    send_sms(status, "%s (%s)" % (message, app.config['APP_INSTANCE']))
 
         else:
             #app.logger.debug("%s: %s" % (message, sysinfo))
@@ -113,12 +114,12 @@ def eve_response_patch(data={}, status=200, error_message=False):
     return eve_response_pppd(data, status, error_message)
 
 
-def is_mongo_alive(status):
+def is_mongo_alive(status=502):
     try:
         app.data.driver.db.command('ping')
         return True
     except:
-        send_sms(status, "Mongodb is down")
+        send_sms(status, "Mongodb is down (%s)" % app.config['APP_INSTANCE'])
         return False
 
 
