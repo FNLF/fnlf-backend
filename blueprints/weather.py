@@ -66,3 +66,22 @@ def aero(what, icao):
         return jsonify(**{'taf': w.taf()})
     elif what == 'shorttaf':
         return jsonify(**{'shorttaf': w.shorttaf()})
+
+@require_token()
+@Weather.route("/tafmetar/<regex('[aA-zZ]{4}'):icao>/<regex('(metar|taf|tafmetar)'):what>", methods=['GET'])
+def tafmetar(what, icao):
+    """ Aero resource retrieves metar and taf for given icao code
+    @todo: support switches for raw and decoded messages
+    @todo: support for historical data
+    """
+    ret = ''
+    w = Aeromet(icao.upper())
+    taf, metar = w.tafmetar()
+    if what == 'taf':
+        return jsonify(**{'taf': taf})
+    elif what == 'metar':
+        return jsonify(**{'metar': metar})
+    else:
+        return jsonify(**{'metar': metar, 'taf': taf})
+
+

@@ -53,6 +53,15 @@ class Aeromet():
         taf
         metar
         info
+        
+        Info:
+        http://api.met.no/weatherapi/tafmetar/1.0/?icao=ENGM;content_type=text/plain;content=info
+        Icaoid: ENGM
+        Name:   OSLO/GARDERMOEN RWY 01RL/19LR
+        WMO:    0
+        Lon:    1108
+        Lat:    6020
+        Alt:    0
 
         """
 
