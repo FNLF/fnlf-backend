@@ -158,7 +158,7 @@ if 1 == 1 or not app.debug:
     app.logger.setLevel(logging.INFO)
     file_handler.setLevel(logging.INFO)
     app.logger.addHandler(file_handler)
-    app.logger.info('FNLF-backend startup')
+    app.logger.info('FNLF-backend startup on database %s' % app.config['MONGO_DBNAME'])
 
 # Run only once
 if app.debug and not os.environ.get("WERKZEUG_RUN_MAIN") == "true":
