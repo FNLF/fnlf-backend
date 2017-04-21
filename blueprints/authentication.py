@@ -11,8 +11,9 @@ from eve.methods.post import post_internal
 from eve.methods.patch import patch_internal
 from eve.methods.get import getitem_internal
 from ext.melwin.melwin import Melwin
-from ext.app.eve_helper import eve_abort, eve_response
+from ext.app.eve_helper import eve_abort, eve_response, is_mongo_alive
 import datetime
+import arrow
 from time import sleep
 from uuid import uuid4
 from base64 import b64encode
@@ -72,7 +73,6 @@ def create_user(username):
 
 @Authenticate.route("/authenticate", methods=['POST'])
 def login():
-
     username = None
     password = None
     logged_in = False
@@ -105,6 +105,8 @@ def login():
             user, last_modified, etag, status = getitem_internal(resource='users', **{'id': username})
         except:
             user = None
+            if not is_mongo_alive():
+                eve_abort(502, 'Network problems')
 
         # If not existing, make from melwin!
         if user is None or status != 200:
@@ -118,11 +120,14 @@ def login():
         token = uuid4().hex
 
         # valid = utc.replace(hours=+2)  # @bug: utc and cet!!!
-        valid = datetime.datetime.now() + datetime.timedelta(seconds=3600)
+        utc = arrow.utcnow()
+        valid = utc.replace(seconds=+app.config['AUTH_SESSION_LENGHT'])
+        # Pure datetime
+        #valid = datetime.datetime.now() + datetime.timedelta(seconds=60)
 
         try:
             response, last_modified, etag, status = patch_internal('users/auth',
-                                                                   payload={'auth': {'token': token, 'valid': valid}},
+                                                                   payload={'auth': {'token': token, 'valid': valid.datetime}},
                                                                    concurrency_check=False, **{'id': username})
             if status != 200:
                 app.logger.error("Could not insert token for %i" % username)
@@ -143,7 +148,7 @@ def login():
         return eve_response(data={'success': True,
                                   'token': token,
                                   'token64': b64.decode('utf-8'),
-                                  'valid': valid},
+                                  'valid': valid.datetime},
                             status=200)
 
     # On error sleep a little against brute force
