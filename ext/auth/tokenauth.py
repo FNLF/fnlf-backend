@@ -8,12 +8,12 @@
 """
 
 # Atuhentication
-from flask import current_app as app, request, Response, abort
 from eve.auth import TokenAuth
-from eve.methods.patch import patch_internal
-from eve.methods.get import getitem_internal, get_internal
+from flask import current_app as app, request, Response, abort
+# from eve.methods.get import getitem as get_internal
 # from bson.objectid import ObjectId
 from ext.auth.helpers import Helpers
+# TIME & DATE - better with arrow only?
 import arrow
 
 class TokenAuth(TokenAuth):
@@ -35,36 +35,34 @@ class TokenAuth(TokenAuth):
         # use the abort/eve_error_msg to issue errors!
 
 
-        user, _, _, status = getitem_internal(resource='users/auth', **{'auth.token': token})
 
-        if '_id' in user and status == 200:
+        accounts = app.data.driver.db[app.globals['auth']['auth_collection']]
+        
+        u = accounts.find_one({'auth.token': token})
 
-            self.user_id = user['id']
+        if u:
+
+            self.user_id = u['id']
 
             utc = arrow.utcnow()
-            if utc.timestamp < arrow.get(user['auth']['valid']).timestamp:
+            if utc.timestamp < arrow.get(u['auth']['valid']).timestamp:
 
                 valid = utc.replace(hours=+1)
                 
                 # If it fails, then token is not renewed
-                #accounts.update_one({'_id': u['_id']}, {"$set": {"auth.valid": valid.datetime}})
-
-                response, _, _, status = patch_internal('users/auth',
-                                                                       payload={
-                                                                           'auth': {'valid': valid.datetime}},
-                                                                       concurrency_check=False, **{'_id': user['_id']})
+                accounts.update({'_id': u['_id']}, {"$set": {"auth.valid": valid.datetime}})
                 
                 # For use in pre_insert/update - handled in set_acl
                 #app.globals.update({'id': u['id']})
                 #app.globals.update({'_id':  u['_id']})
                 
                 # Set acl
-                app.globals.update({'user_id': user['id']})
+                app.globals.update({'user_id': u['id']})
                 #self.set_acl(u['acl'], u['_id'], u['id'])
-                self._set_globals(user['id'], user['user'])
+                self._set_globals(u['id'], u['user'])
                 
                 #Set acl - use id to make sure
-                self.set_acl(user['id'])
+                self.set_acl(u['id'])
 
                 # See if needed for the resource
                 # Contains per method (ie read or write or all verbs)
@@ -75,7 +73,7 @@ class TokenAuth(TokenAuth):
                     for role in allowed_roles:
                         local_roles.extend(helper.get_all_users_in_role_by_ref(ref=role))
 
-                    if len(local_roles) == 0 or user['id'] not in local_roles:
+                    if len(local_roles) == 0 or u['id'] not in local_roles:
                         self.is_auth = False
                         return False
 
@@ -87,10 +85,10 @@ class TokenAuth(TokenAuth):
                 # hence only the authenticated user can change the corresponding users item (by id)
                 # @note: This corresponds to domain definition 'auth_field': 'id'
                 if method != 'GET' and resource == 'users':
-                    self.set_request_auth_value(user['id'])
+                    self.set_request_auth_value(u['id'])
 
                 # This allows oplog to push u = id (membership #)
-                self.set_user_or_token(user['id'])
+                self.set_user_or_token(u['id'])
 
                 return True # Token exists and is valid, renewed for another hour
             
@@ -118,19 +116,21 @@ class TokenAuth(TokenAuth):
         """ Sets the acl dict on the current authenticated user
         Needs to get clubs from melwin in order to sport the acl_groups.ref link
         """
-
-        user, _, _, status = getitem_internal(resource='users', **{'id': id})
-
+        # Get users acl
+        col = app.data.driver.db[app.globals['auth']['users_collection']]
+        user = col.find_one({'id': id}, {'acl': 1})
         acl = user['acl']
 
-        melwin_user, _, _, status = getitem_internal(resource='melwin/users', **{'id': id})
+        # Now get from all clubs!
+        melwin = app.data.driver.db['melwin_users']
+        melwin_user = melwin.find_one({'id': id}, {'membership': 1})
         clubs = melwin_user['membership']['clubs']
         
         # Then those pescy groups from clubs!
-        groups, _, _, status, _ = get_internal(resource='acl/groups', **{'ref': {'$in': clubs}})
-        print(groups)
-
-        for key, _id in enumerate(g['_id'] for g in groups['_items']):
+        acl_groups = app.data.driver.db['acl_groups']
+        groups = acl_groups.find({'ref': {'$in': clubs}})
+        groups_list = []
+        for key, _id in enumerate(d['_id'] for d in groups):
             acl['groups'].append(_id)
         
         acl['groups'] = list(set(acl['groups']))
