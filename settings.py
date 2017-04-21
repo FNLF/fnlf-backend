@@ -21,7 +21,7 @@ APP_LICENSE         = 'MIT'
 APP_COPYRIGHT       = '(c) 2014-2016 F/NLF'
 APP_ALL             = ['fnlf-backend']
 
-AUTH_SESSION_LENGHT = 60 #Seconds
+AUTH_SESSION_LENGHT = 3600 #Seconds
 
 # @TODO: use sys.argv to parse this as cmdline input
 APP_INSTANCE = 'develop'  # develop || develop-local || production
