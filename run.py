@@ -163,7 +163,7 @@ if 1 == 1 or not app.debug:
 # Run only once
 if app.debug and not os.environ.get("WERKZEUG_RUN_MAIN") == "true":
 
-    if 1 == 1:
+    if 1 == 2:
         import ext.melwin.melwin_updater as updater
 
         updater.start(app)
