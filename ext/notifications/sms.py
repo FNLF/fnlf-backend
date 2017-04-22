@@ -68,4 +68,4 @@ class Sms:
         return self.config.get('password')
 
     def get_warn_sms(self):
-        return self.config.get_warn_sms(self)
+        return self.c.get_warn_sms()

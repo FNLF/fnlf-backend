@@ -42,6 +42,38 @@ def do_melwin_update(app):
                 pass
 
             for key, user in persons.items():
+                """"Iterate every person from Melwin"""
+
+                try:
+                    existing_user, _, _, status = getitem_internal(resource='melwin/users', **{'id': user['id']})
+                    if not existing_user or status != 200:
+                        existing_user = None
+                except:
+                    app.logger.info("[MELWIN] No existing user %i" % user['id'])
+                    existing_user = None
+
+                if existing_user is None \
+                        or user['location']['street'] != existing_user['location']['street'] \
+                        or user['location']['zip'] != existing_user['location']['zip'] \
+                        or user['location']['country'] != existing_user['location']['country'] \
+                        or user['location']['city'] != existing_user['location']['city']:
+
+                    app.logger.info("[MELWIN] Geocoding %i" % user['id'])
+                    try:
+                        geo = m.get_geo(user['location']['street'],
+                                        user['location']['city'],
+                                        user['location']['zip'],
+                                        user['location']['country'])
+                        if geo != None:
+                            user['location'].update(
+                                {'geo': {"type": "Point", "coordinates": [geo.latitude, geo.longitude]}})
+                            user['location'].update({'geo_type': geo.raw['type']})
+                            user['location'].update({'geo_class': geo.raw['class']})
+                            user['location'].update({'geo_importance': float(geo.raw['importance'])})
+                            user['location'].update({'geo_place_id': int(geo.raw['place_id'])})
+                    except:
+                        app.logger.error("[MELWIN] Geocoding for user %i failed" % user['id'])
+
 
                 if not 'fullname' in user:
                     user.update({'fullname': "%s %s" % (user['firstname'], user['lastname'])})
@@ -90,7 +122,7 @@ def get_timer():
     """Return seconds until we run
     """
     # For testing
-    return 10
+    #return 3600*3
 
     # Tomorrows date + time!
     tomorrow = datetime.datetime.combine((datetime.date.today() + datetime.timedelta(days=1)), datetime.time(4, 0))
