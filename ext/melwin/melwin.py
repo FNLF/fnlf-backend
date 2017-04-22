@@ -152,7 +152,8 @@ class Melwin():
             print("(%s)\t %s" % (prefix, data))
         pass
 
-    """MELWIN SERVICES"""
+    """MELWIN SERVICES
+    @TODO: Exceptions for retry, include urllib.error.URLError caused by socket.gaierror"""
 
     def __status(self):
 
@@ -163,58 +164,58 @@ class Melwin():
 
         return False
 
-    @retry(exceptions=(ResourceWarning, Exception, socket.timeout), tries=3, delay=2)
+    @retry(exceptions=(ResourceWarning, Exception, socket.timeout, socket.gaierror), tries=3, delay=2)
     def __login(self, member, pin):
         """Authenticates via Melwin"""
         return self.client.service.ws_APP_User_Autenticate(member, pin)
 
-    @retry(exceptions=(ResourceWarning, Exception, socket.timeout), tries=3, delay=2)
+    @retry(exceptions=(ResourceWarning, Exception, socket.timeout, socket.gaierror), tries=3, delay=2)
     def __get_all_memberships(self):
         """Returns all membership types"""
         return self.client.service.ws_GetMemberTypes()
 
-    @retry(exceptions=(ResourceWarning, Exception, socket.timeout), tries=3, delay=2)
+    @retry(exceptions=(ResourceWarning, Exception, socket.timeout, socket.gaierror), tries=3, delay=2)
     def __get_all_members(self, club):
         """Returns all members in given club"""
         return self.client.service.ws_GetAllClubMemberData(self.member, self.pin, club)
 
-    @retry(exceptions=(ResourceWarning, Exception, socket.timeout), tries=3, delay=2)
+    @retry(exceptions=(ResourceWarning, Exception, socket.timeout, socket.gaierror), tries=3, delay=2)
     def __get_member_clubs(self, member):
         """Returns all clubs for member"""
         return self.client.service.ws_pm_TilknyttetKlubber(member)
 
-    @retry(exceptions=(ResourceWarning, Exception, socket.timeout), tries=3, delay=2)
+    @retry(exceptions=(ResourceWarning, Exception, socket.timeout, socket.gaierror), tries=3, delay=2)
     def __get_member_licenses(self, member):
         """Get licenses for given member"""
         return self.client.service.ws_GetORSLisenser(self.ors_id, self.ors_pwd, member)
 
-    @retry(exceptions=(ResourceWarning, Exception, socket.timeout), tries=3, delay=2)
+    @retry(exceptions=(ResourceWarning, Exception, socket.timeout, socket.gaierror), tries=3, delay=2)
     def __get_all_club_licenses(self, club):
         "Returns all members and licenses for given club"
         return self.client.service.ws_Lisenser(self.member, self.pin, club)
 
-    @retry(exceptions=(ResourceWarning, Exception, socket.timeout), tries=3, delay=2)
+    @retry(exceptions=(ResourceWarning, Exception, socket.timeout, socket.gaierror), tries=3, delay=2)
     def __get_club(self, club):
         """Returns info on given club"""
         return self.client.service.ws_pm_Klubb(club)
 
-    @retry(exceptions=(ResourceWarning, Exception, socket.timeout), tries=3, delay=2)
+    @retry(exceptions=(ResourceWarning, Exception, socket.timeout, socket.gaierror), tries=3, delay=2)
     def __get_kontigentaar(self):
         """Returns year"""
         return self.client.service.ws_kontingentaar()
 
     """ORS SPECIFIC SERVICES"""
-    @retry(exceptions=(ResourceWarning, Exception, socket.timeout), tries=3, delay=2)
+    @retry(exceptions=(ResourceWarning, Exception, socket.timeout, socket.gaierror), tries=3, delay=2)
     def __ors_get_all_club_members(self, club):
         """Returns list of membership numbers for club members in given club"""
         return self.client.service.ws_GetORSClubMembers(self.ors_id, self.ors_pwd, club)
 
-    @retry(exceptions=(ResourceWarning, Exception, socket.timeout), tries=3, delay=2)
+    @retry(exceptions=(ResourceWarning, Exception, socket.timeout, socket.gaierror), tries=3, delay=2)
     def __ors_get_member_data(self, member):
         """Returns member data for given member"""
         return self.client.service.ws_GetORSMemberData(self.ors_id, self.ors_pwd, member)
 
-    @retry(exceptions=(ResourceWarning, Exception, socket.timeout), tries=3, delay=2)
+    @retry(exceptions=(ResourceWarning, Exception, socket.timeout, socket.gaierror), tries=3, delay=2)
     def __ors_get_member_licenses(self, member):
         """Returns licenses for given member
         @NOTE vKode vKlubbnr not in use"""
