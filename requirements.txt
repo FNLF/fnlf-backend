@@ -2,6 +2,7 @@ arrow==0.10.0
 blinker==1.4
 Cerberus==0.9.2
 click==6.7
+decorator==4.0.11
 Eve==0.7.2
 Eve-Swagger==0.0.7
 Events==0.2.2
@@ -15,11 +16,13 @@ lxml==3.7.3
 MarkupSafe==0.23
 olefile==0.44
 Pillow==4.1.0
+py==1.4.33
 pymongo==3.4.0
 pytaf==1.1.1
 python-dateutil==2.6.0
 python-metar==1.4.0
 python-yr==1.4.5
+retry==0.9.2
 simplejson==3.10.0
 six==1.10.0
 suds-jurko==0.6
