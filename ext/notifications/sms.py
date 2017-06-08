@@ -7,8 +7,7 @@
         
 """
 
-from ext.app.decorators import async
-from flask import current_app as app
+from ext.app.responseless_decorators import async
 
 from suds.client import Client
 
@@ -67,3 +66,6 @@ class Sms:
 
     def get_password(self):
         return self.config.get('password')
+
+    def get_warn_sms(self):
+        return self.c.get_warn_sms()

@@ -11,7 +11,7 @@ import bson.json_util as json_util
 from ..scf import Scf
 
 from ext.notifications.sms import Sms  # Email
-from ext.app.decorators import async
+#from ext.app.decorators import async
 
 CRITICAL_ERROR_CODES = [503]
 
@@ -20,38 +20,46 @@ def eve_abort(status=500, message='', sysinfo=None):
     """Abort processing and logging
     @Param: code http code
     @Param: message string representation"""
+    try:
+        status = int(status)
+        if sysinfo == None:
+            try:
+                sysinfo = sys.exc_info()[0]
+            except:
+                pass
 
-    if sysinfo == None:
-        try:
-            sysinfo = sys.exc_info()[0]
-        except:
+        resp = Response(None, status)
+
+        if 100 <= status <= 299:
+            #app.logger.info("%s: %s" % (message, sysinfo))
             pass
+        elif 300 <= status <= 399:
+            #app.logger.warn("%s: %s" % (message, sysinfo))
+            pass
+        elif 400 <= status <= 499:
+            #app.logger.error("%s: %s" % (message, sysinfo))
+            pass
+        elif 500 <= status <= 599:
+            # Check if mongo is down
+            #app.logger.error("%s: %s" % (message, sysinfo))
 
-    resp = Response(None, status)
+            # 503 Service Unavailable
+            if status in CRITICAL_ERROR_CODES:
+                if not is_mongo_alive(status):
+                    app.logger.critical("MongoDB is down [%s]" % sysinfo)
+                    send_sms(status, "MongoDB is down (%s)" % app.config['APP_INSTANCE'])
+                else:
+                    app.logger.critical("%s [%s]" % (message, sysinfo))
+                    message = message
+                    send_sms(status, "%s (%s)" % (message, app.config['APP_INSTANCE']))
 
-    if 100 <= status <= 299:
-        app.logger.info("%s: %s" % (message, sysinfo))
-    elif 300 <= status <= 399:
-        app.logger.warn("%s: %s" % (message, sysinfo))
-    elif 400 <= status <= 499:
-        app.logger.error("%s: %s" % (message, sysinfo))
-    elif 500 <= status <= 599:
-        # Check if mongo is down
-        app.logger.error("%s: %s" % (message, sysinfo))
-
-        # 503 Service Unavailable
-        if status in CRITICAL_ERROR_CODES:
-            if not is_mongo_alive(status):
-                app.logger.critical("CRITICAL MongoDB is down [%s]" % sysinfo)
-            else:
-                app.logger.critical("CRITICAL %s [%s]" % (message, sysinfo))
-                send_sms(status, message)
-
-    else:
-        app.logger.debug("%s: %s" % (message, sysinfo))
+        else:
+            #app.logger.debug("%s: %s" % (message, sysinfo))
+            pass
+    except:
+        pass
 
     abort(status, description=message, response=resp)
-
 
 def eve_response(data={}, status=200):
     """Manually send a response like Eve
@@ -106,13 +114,12 @@ def eve_response_patch(data={}, status=200, error_message=False):
     return eve_response_pppd(data, status, error_message)
 
 
-# @async #If async, app is out of context!
-def is_mongo_alive(status):
+def is_mongo_alive(status=502):
     try:
         app.data.driver.db.command('ping')
         return True
     except:
-        send_sms(status, "Mongodb is down")
+        send_sms(status, "Mongodb is down (%s)" % app.config['APP_INSTANCE'])
         return False
 
 

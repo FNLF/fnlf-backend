@@ -6,13 +6,11 @@
     
 """
 
-from ext.app.decorators import async
+from ext.app.responseless_decorators import async
 from flask import current_app as app
 from jinja2 import Environment, FileSystemLoader
 from ext.notifications.jinja2_filters import nl2br
 import os
-from datetime import datetime
-import logging
 
 import smtplib
 from email.mime.multipart import MIMEMultipart

@@ -35,17 +35,16 @@ _schema = { # Medlemsnummer
             }
 
 definition = {
-        'item_title': 'users_auth',
-        
+        'item_title': 'user auth',
         'internal_resource': True,
-        'concurrency_check': False,
+        #'concurrency_check': False,
 
         'datasource': {'source': 'users_auth',
                        'default_sort': [('id', 1)],
                        },
         
-        'resource_methods': ['GET', 'POST'],
-        'item_methods': ['GET','PATCH'],
+        'resource_methods': [],
+        'item_methods': [],
         
         'versioning': False,
         

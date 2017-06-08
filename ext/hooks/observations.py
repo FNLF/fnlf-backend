@@ -28,7 +28,7 @@ import ext.app.eve_helper as eve_helper
 from ext.app.decorators import *
 import json
 import sys
-
+import ext.auth.helpers as h
 # import signals from hooks
 from ext.hooks.signals import signal_activity_log, signal_insert_workflow, \
     signal_change_owner, signal_init_acl
@@ -110,6 +110,17 @@ def after_get(request, response):
                             changed = True
 
         else:
+
+            """For item return nanon if roles match hi in club or fs"""
+            try:
+                helper = h.Helpers()
+                if helper.get_role_hi(d['club']) in app.globals['acl']['roles'] \
+                        or helper.get_role_fs() in app.globals['acl']['roles']:
+                    response.set_data(json.dumps(d))
+                    return
+            except:
+                app.logger.error("Could not check roles in anon for %i" %app.globals['id'])
+
 
             if d.get('workflow', False) and 'state' in d['workflow']:
                 if d['workflow']['state'] == 'closed':

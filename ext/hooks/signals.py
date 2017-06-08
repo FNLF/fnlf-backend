@@ -75,7 +75,7 @@ def insert_workflow(dict_app, **extra):
 
         # Make a integer increment from seq collection
         seq = c_app.data.driver.db['seq']
-        seq.update({'c': 'observations'}, {'$inc': {'i': int(1)}}, True)  # ,fields={'i': 1, '_id': 0},new=True).get('i')
+        seq.update_one({'c': 'observations'}, {'$inc': {'i': int(1)}}, True)  # ,fields={'i': 1, '_id': 0},new=True).get('i')
         seq_r = seq.find_one({'c': 'observations'}, {'i': 1, '_id': 0})
         number = int(seq_r.get('i'))
 
@@ -88,7 +88,7 @@ def insert_workflow(dict_app, **extra):
                    "reporter": c_app.globals.get('user_id')
                    }
 
-        result = observation.update({'_id': ObjectId(_id), '_etag': _etag}, {"$set": content})
+        result = observation.update_one({'_id': ObjectId(_id), '_etag': _etag}, {"$set": content})
 
         mail = Email()
         helper = Helpers()
@@ -168,8 +168,8 @@ def init_acl(dict_app, **extra):
                    'execute': {'users': [app.globals.get('user_id')], 'groups': [], 'roles': []}
                    }
 
-            test = obs.update({'_id': ObjectId(_id)}, {'$set': {'acl': acl}})
-            obs.update({'_id': ObjectId(_id)}, {'$set': {'organization.hi': his}})
+            test = obs.update_one({'_id': ObjectId(_id)}, {'$set': {'acl': acl}})
+            obs.update_one({'_id': ObjectId(_id)}, {'$set': {'organization.hi': his}})
         except:
             eve_abort(503, 'THe database would not comply with our demands')
 
@@ -186,7 +186,7 @@ def change_owner(c_app, response, **extra):
 
     try:
         observation = c_app.data.driver.db['observations']
-        u = observation.update({'_id': ObjectId(_id)},
+        u = observation.update_one({'_id': ObjectId(_id)},
                                {"$set": {"owner": c_app.globals.get('user_id')}
                                 })
     except:

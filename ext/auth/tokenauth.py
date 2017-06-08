@@ -47,10 +47,10 @@ class TokenAuth(TokenAuth):
             utc = arrow.utcnow()
             if utc.timestamp < arrow.get(u['auth']['valid']).timestamp:
 
-                valid = utc.replace(hours=+1)
+                valid = utc.replace(seconds=+app.config['AUTH_SESSION_LENGHT'])
                 
                 # If it fails, then token is not renewed
-                accounts.update({'_id': u['_id']}, {"$set": {"auth.valid": valid.datetime}})
+                accounts.update_one({'_id': u['_id']}, {"$set": {"auth.valid": valid.datetime}})
                 
                 # For use in pre_insert/update - handled in set_acl
                 #app.globals.update({'id': u['id']})

@@ -1,37 +1,77 @@
 """
-    Simple authentication 
+    Token authentication 
     =====================
     
-    Should really return a authentication token to be used for the session
-    methods=['POST']
-    
-    from pprint import pprint
-    pprint(request.form.get('username'))
-    pprint(request.form.get('password'))
-    
+    Simple token based authentication - safe and sound.
+        
 """
+
 from flask import Blueprint, current_app as app, request, Response, abort, jsonify
+from eve.methods.post import post_internal
+from eve.methods.patch import patch_internal
+from eve.methods.get import getitem_internal
 from ext.melwin.melwin import Melwin
-from ext.app.eve_helper import eve_response, eve_abort, eve_response_get
-
-# TIME & DATE - better with arrow only?
+from ext.app.eve_helper import eve_abort, eve_response, is_mongo_alive
+import datetime
 import arrow
-# Auth, not needed since token based
 from time import sleep
-import sys
-
-# Token generation
 from uuid import uuid4
-# Convenience - provide a base 64 encoded token
 from base64 import b64encode
-
-from ext.app.decorators import *
+import traceback
+from ext.app.decorators import require_token
 
 Authenticate = Blueprint('Authenticate', __name__, )
 
+def create_user(username):
+
+    melwin_user, _, _, status = getitem_internal(resource='melwin/users', **{'id': username})
+
+    if melwin_user and status == 200:
+
+        try:
+            user_response, _, _, user_code, header = post_internal(resource=app.globals['auth']['users_collection'],
+                                                                   payl={'id': username},
+                                                                   skip_validation=True)
+        except:
+            app.logger.exception("503: Could not create (POST) new user %i" % username)
+            return False
+
+        try:
+            auth_response, _, _, auth_code, header = post_internal(resource='users/auth',
+                                                                   payl={'id': username,
+                                                                         'user': user_response['_id'],
+                                                                         'auth': {"token": "",
+                                                                                  "valid": ""}},
+                                                                   skip_validation=True)
+        except:
+            app.logger.exception("%i: Could not create (mongo insert) user %i auth item" % (auth_code, username))
+            return False
+
+        # Verify both post's response codes
+        if user_code == 201 and auth_code == 201:
+            return True
+        else:
+            try:
+                from eve.methods.delete import deleteitem_internal
+                if '_id' in user_response:
+                    _, _, _, code = deleteitem_internal(resource=app.globals['auth']['users_collection'],
+                                                        concurrency_check=False,
+                                                        suppress_callbacks=True,
+                                                        **{'_id': user_response['_id']})
+                    app.logger.info("Deleted user from users")
+                if '_id' in auth_response:
+                    _, _, _, code = deleteitem_internal(resource='users/auth',
+                                                        concurrency_check=False,
+                                                        suppress_callbacks=True,
+                                                        **{'_id': auth_response['_id']})
+                    app.logger.info("Deleted user from users_auth")
+            except:
+                app.logger.exception("Delete operation of user %i from users and users_auth but failed" % username)
+
+    return False
+
 
 @Authenticate.route("/authenticate", methods=['POST'])
-# @track_time_spent('authenticate')
 def login():
     username = None
     password = None
@@ -40,12 +80,12 @@ def login():
     m = Melwin()
 
     if m is None:
-        eve_abort('503', 'Service Melwin is unavailable')
+        app.logger.critical("Melwin service unavailable")
+        eve_abort('503', 'Melwin service is unavailable')
 
     # Request via json
     rq = request.get_json()
 
-    # Only integers for Melwin:
     try:
         username = int(rq['username'])
         password = rq['password']
@@ -56,125 +96,86 @@ def login():
     try:
         logged_in = m.login(username, password)
     except:
-        eve_abort(503, 'Could not log you into Melwin, is Melwin down?')
         logged_in = False
+        eve_abort(503, 'Could not log you into Melwin')
 
-    # if request.form.get('username',type=int) == 45199 and request.form.get('password',type=int) == 45199:
-    # if m.login(request.form.get('username',type=int), request.form.get('password',type=int)):
     if isinstance(username, int) and len(password) == 9 and logged_in:
 
-        # app = current_app._get_current_object()
-
-        from eve.methods.post import post_internal
-        # Will not work due to some If-Match stuff 
-        # from eve.methods.patch import patch_internal
-
-        _id = None
-        _etag = None
-
-        # Find existing:
         try:
-            accounts = app.data.driver.db[app.globals['auth']['auth_collection']]
-            user = accounts.find_one({'id': username})
-
+            user, last_modified, etag, status = getitem_internal(resource='users', **{'id': username})
         except:
             user = None
-            eve_abort(500, 'Something went wrong, we do not know what yet but admin is alerted')
+            if not is_mongo_alive():
+                eve_abort(502, 'Network problems')
 
         # If not existing, make from melwin!
-        if not user:
-            melwin_api = app.data.driver.db['melwin_users']
-            melwin_user = melwin_api.find_one({'id': username})
-
-            if melwin_user:
-
-                # NB set up acl!
-                acl = {'groups': [],
-                       'roles': []}
-
-                try:  # Users
-                    r_user = post_internal(app.globals['auth']['users_collection'], {'id': melwin_user['id'], 'acl': acl}, skip_validation=True)
-
-                except:
-                    eve_abort(503, 'Something went wrong with your user update from membership system')
-
-                try:  # Users auth collection
-                    users_auth_collection = app.data.driver.db[app.globals['auth']['auth_collection']]
-                    r_auth = users_auth_collection.insert({'id': melwin_user['id'], 'user': r_user[0]['_id'], 'auth': {"token": "", "valid": ""}})
-                    _id = r_auth
-
-                except:
-                    eve_abort(503, 'Something went wrong with your user authentication setup')
-
-        else:
-            _id = user['_id']
-            # _etag = user['_etag']
-
-        # If login, generate new token and valid to datetime
-        token = uuid4().hex
-
-        # Make token valid to
-        utc = arrow.utcnow()
-        valid = utc.replace(hours=+2)  # @bug: utc and cet!!!
-
-        try:
-            # r = patch_internal('users_auth', payload={'auth': {'token': token, 'valid': valid.datetime}}, concurrency_check=False, **{'_id': _id})
-            # last = app.data.update(app.globals['auth']['auth_collection'], _id, {"$set": {'auth': {'token': token, 'valid': valid.datetime}}}) #resource, id_, updates
-
-            # Wont work with the update or patch_internal or any other internal for now
-            accounts = app.data.driver.db[app.globals['auth']['auth_collection']]
-            accounts.update({'_id': _id}, {"$set": {"auth.token": token, "auth.valid": valid.datetime}})
-
-        except:
-            eve_abort(504, 'Something went wrong setting your authentication token')
-
-        # Base 64 for reuse
-        t = '%s:' % token
-        b64 = b64encode(t.encode())
+        if user is None or status != 200:
+            if not create_user(username):
+                app.logger.error("502: Could not create user %i from Melwin" % username)
+                eve_abort(502, 'Could not create user from Melwin')
+            else:
+                app.logger.info("Created user %i" % username)
 
         # token = uuid5(uuid4(),rq['username'])
-        # when authentication your application needs to supply the authentication token
-        # for each request valid to sets to say 1h future
-        # lookup is on auth token, then user etc
-        # This will be the one auth to send to Eve?
-        # Only jsonify seems to work? The base64 token is it?
-        return jsonify(**{'success': True,
-                          'token': token,
-                          'token64': b64,
-                          'valid': valid.datetime,
-                          '_id': str(_id)})
-        return eve_response({'success': True,
-                             'token': token,
-                             'token64': b64,
-                             'valid': valid.datetime,
+        token = uuid4().hex
 
-                             '_id': str(_id)})
+        # valid = utc.replace(hours=+2)  # @bug: utc and cet!!!
+        utc = arrow.utcnow()
+        valid = utc.replace(seconds=+app.config['AUTH_SESSION_LENGHT'])
+        # Pure datetime
+        #valid = datetime.datetime.now() + datetime.timedelta(seconds=60)
 
-    else:
-        pass
+        try:
+            response, last_modified, etag, status = patch_internal('users/auth',
+                                                                   payload={'auth': {'token': token, 'valid': valid.datetime}},
+                                                                   concurrency_check=False, **{'id': username})
+            if status != 200:
+                app.logger.error("Could not insert token for %i" % username)
+
+        except:
+            app.logger.exception("Could not update user %i auth token" % username)
+            eve_abort(500, "Could not update user %i auth token" % username)
+
+        t = '%s:' % token
+        b64 = b64encode(t.encode('utf-8'))
+
+        """return jsonify(**{'success': True,
+                  'token': token,
+                  'token64': b64,
+                  'valid': valid,
+                  })"""
+
+        return eve_response(data={'success': True,
+                                  'token': token,
+                                  'token64': b64.decode('utf-8'),
+                                  'valid': valid.datetime},
+                            status=200)
 
     # On error sleep a little against brute force
     sleep(1)
-    # return jsonify(**{'success': False, 'token': None, 'message': 'Wrong username or password'})
-    return eve_response({'success': False, 'token': None, 'token64': None, 'message': 'Wrong username or password'})
 
+    return eve_response({'success': False, 'token': None, 'token64': None, 'valid': None,
+                         'message': 'Wrong username or password'})
 
-"""
-A simple whoami
-"""
-
-
+@Authenticate.route("/whoami", methods=['GET'])
 @Authenticate.route("/self", methods=['GET'])
 @require_token()
 def get_user():
-    # app = current_app._get_current_object()
-    try:
-        col = app.data.driver.db['users']
-        user = col.find_one({'id': app.globals['id']})
+    """A simple whoami
+    Only return 'I am username'"""
 
-        if user:
-            return jsonify(**{'whoami': app.globals['id']})
-    except pymongo.errors.ServerSelectionTimeoutError as mongoerr:
-        eve_abort(503, 'The server experienced network timeout problems', mongoerr)
+    try:
+        response, last_modified, etag, status = getitem_internal(resource='users', **{'id': app.globals['id']})
+
+        if status == 200 and '_id' in response:
+            return eve_response(data={'iam': response['id']})
     except:
-        eve_abort(500, 'Unknown error occurred')
+        app.logger.error("Unknown error in get_user")
+        return eve_abort(500, 'Unknown error occurred')
+"""
+@Authenticate.route("/groups", methods=['GET'])
+@require_token()
+def get_user_groups():
+    return eve_response(data=app.globals['acl'])
+
+"""

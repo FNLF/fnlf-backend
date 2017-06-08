@@ -83,7 +83,7 @@ _schema = {
 definition = {
     'item_title': 'Melwin Users',
     'url': 'melwin/users',
-    'name': 'melwin_users',
+    'name': 'melwin/users',
     'description': 'Melwin passthrough',
 
     # 'item_url': 'users',
@@ -93,11 +93,11 @@ definition = {
                    'default_sort': [('id', 1)],
                    },
 
-    'resource_methods': ['GET', 'POST'],  # NB delete only for testing!!
-    'item_methods': ['GET', 'PATCH'],
+    'resource_methods': ['GET'],  # NB delete only for testing!!
+    'item_methods': ['GET'],
 
     'additional_lookup': {
-        'url': 'regex("[\d{1,6}]+")',
+        'url': 'regex("[\d{1,10}]+")',
         'field': 'id',
     },
 

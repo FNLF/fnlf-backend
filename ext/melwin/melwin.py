@@ -1,53 +1,42 @@
 """
 
-	Melwin package
-	==============
-	
-	A quick'n dirty (really really dirty) python implementation for the Melwin soap api using suds
-	
-	NB requires suds-0.7 ('pip install https://bitbucket.org/jurko/suds/get/1871530805fd.zip' - use tip!)
-	
-	AND changes in suds/sax/date.py line 95, comment out exception just return value!
-	#raise ValueError("date data has invalid format '%s'" % (value,))
-+	return value 
+        Melwin package
+        ==============
+        
+        A quick'n dirty (really really dirty) python implementation for the Melwin soap api using suds
+        
+        AND changes in suds/sax/date.py line 95, comment out exception just return value!
+        #raise ValueError("date data has invalid format '%s'" % (value,))
++       return value 
 
-	Oboj, suds er scattered all over the place
-	MEN fungerer med filter slik at man kan reparere fucked up s##t fra Melwin!
-	
-	@todo: Fix a cache via pickle!!! So 
-	>>> import pickle
-	>>> favorite_color = { "lion": "yellow", "kitty": "red" }
-	>>> pickle.dump( favorite_color, open( "save.p", "wb" ) )
-	>>> favorite_color = pickle.load( open( "save.p", "rb" ) )
-	So, response is a pickle object!!
-	@todo: refacor out the services calls and return whatever you need!
-	
-	@todo: .replace('Norge', 'Norway') Melwin bruker Norge for vel, men engelsk for utenlandske.... Go figure??
-	
-	@todo: Remove legacy google api since it only serves 2500 requests pd, use pygeo!
-	
-	#NB No zip code!
-	location = geolocator.geocode("Halfdan Wilhelmsens Alle 16 Tønsberg")
-	geolocator = OpenMapQuest() | Nominatim()
-	location = geolocator.geocode("Halfdan Willhelmsens Alle 16")
-	location == None
-	location methods: 'address', 'altitude', 'latitude', 'longitude', 'point', 'raw'
-	print(location.latitude, location.longitude)
-	location.raw is a dict with keys => osm_id, type, lon, class, lat, place_id, osm_type, importance,display_name,boundingbox,licence
+        @todo: refacor out the services calls and return whatever you need!
+        
+        @todo: .replace('Norge', 'Norway') Melwin bruker Norge for vel, men engelsk for utenlandske.... Go figure??
+        
+        @todo: Remove legacy google api since it only serves 2500 requests pd, use pygeo!
+        
+        #NB No zip code!
+        location = geolocator.geocode("Halfdan Wilhelmsens Alle 16 Tønsberg")
+        geolocator = OpenMapQuest() | Nominatim()
+        location = geolocator.geocode("Halfdan Willhelmsens Alle 16")
+        location == None
+        location methods: 'address', 'altitude', 'latitude', 'longitude', 'point', 'raw'
+        print(location.latitude, location.longitude)
+        location.raw is a dict with keys => osm_id, type, lon, class, lat, place_id, osm_type, importance,display_name,boundingbox,licence
 
 """
 
 from suds.client import Client
 from suds.xsd.doctor import ImportDoctor, Import
 from suds.plugin import MessagePlugin
+from suds.cache import NoCache
+from retry import retry
+import socket
 
-from pprint import pprint
-import json
+import json, re, unicodedata
 
 # import datetime
-from datetime import date
-from datetime import datetime
-from datetime import time
+import datetime
 
 # Use the free one!! Or should we use
 from geopy.geocoders import Nominatim, OpenMapQuest
@@ -56,78 +45,60 @@ import itertools, sys
 
 from ..scf import Scf
 
-"""
-# Monkeypatch will not work since it's not called from here...
-def monkeypatch_suds_sax_date(value):
+"""Control characters for remove_control_chars(s)"""
+all_chars = (chr(i) for i in range(0x110000))
+control_chars = ''.join(c for c in all_chars if unicodedata.category(c) == 'Cc')
+control_char_re = re.compile('[%s]' % re.escape(control_chars))
 
-		match_result = _RE_DATE.match(value)
-		if match_result is None:
-			#raise ValueError("date data has invalid format '%s'" % (value,))
-			return value
-		return _date_from_match(match_result)
-	
-Client.sax.Date.__parse = monkeypatch_suds_sax_date
-"""
 
-""" 
-	Class for suds filter
-	=====================
-	
-	- removes bambus dates from Melwin
-	@todo not needed since monkey patching return value?
-"""
+def remove_control_chars(s):
+    """Remove all control chars in string"""
+
+    return control_char_re.sub('', s)
 
 
 class Filter(MessagePlugin):
+    """Replace bambus dates from response"""
+
     def received(self, context):
-        # pprint(context.reply)
-        # decoded = context.reply.decode('utf-8', errors='ignore')
-        # reencoded = decoded.encode('utf-8')
-        # context.reply = reencoded
         reply = context.reply
         context.reply = reply.replace(b'0000-00-00', b'1900-01-01')
 
-        # pprint(context.reply)
-        # pass
 
+class UnicodeFilter(MessagePlugin):
+    """Decode and recode in utf-8 to remove gremlins"""
 
-"""
-To save as file!!!
-
-"""
+    def received(self, context):
+        dirty = context.reply.decode('utf-8', errors='ignore')
+        clean = remove_control_chars(dirty)
+        context.reply = clean.encode('utf-8')
 
 
 class PayloadInterceptor(MessagePlugin):
+    """Suds payload interceptor
+    Intercept requests and responses on httplib level.
+    Keeps last request and response"""
+
     def __init__(self, *args, **kwargs):
-        self.last_payload = None
+        self.last_response = None
+        self.last_request = None
+
+    def sending(self, context):
+        self.last_request = context.envelope
 
     def received(self, context):
-        # recieved xml as a string
-
         # print("(Suds) %s bytes received (reported by payloadinterceptor)" % len(context.reply))
-
         # Make a copy available
-        self.last_payload = context.reply
-
-        # clean up reply to prevent parsing
-        # context.reply = ""
-        # return context
-
-
-"""
-	Class Melwin
-	============
-	
-	Methods interfacing Melwin soap api
-		
-"""
+        self.last_response = context.reply
 
 
 class Melwin():
-    # Jan got all the permissions!
+    """Melwin class
+    Interfaces the Melwin Soap API
+    Suds used for xml http 
+    Parses reponses to members"""
 
-    klubb = '375-F'  # 311 bodø 375 tøfsk
-    do_geo = True
+    do_geo = False
 
     debug = True
 
@@ -146,27 +117,27 @@ class Melwin():
         self.payload_interceptor = PayloadInterceptor()
 
         c = Scf().get_melwin()
+
         self.member = c['member']
         self.pin = c['pin']
+
+        self.ors_id = c['orsid']
+        self.ors_pwd = c['orspwd']
+
         self.melwin_url = c['url']
 
-        # Instantiate the suds soap client NB use doc for it to work!!!!
+        """SUDS-jurko instantiating
+        Needs cache=NoCache() because suds do not check in a predicable manner...
+        With cache it complains of open files cache=NoCache()"""
         try:
-            self.client = Client(self.melwin_url, plugins=[Filter(), self.payload_interceptor])
+            self.client = Client(self.melwin_url, plugins=[Filter(), UnicodeFilter(), self.payload_interceptor], timeout=600)
         except:
             return None
 
-        if self.do_geo:
-            self.geocoder = Nominatim()
-
-    """
-        Dump to file
-        ============
-
-        For inspecting large data sets
-    """
+        self.geocoder = Nominatim()
 
     def _dump_file(self, data, file="data.txt", json_encoded=True):
+        """Dump data to file"""
 
         with open(file, 'w') as f:
             if json_encoded:
@@ -174,30 +145,103 @@ class Melwin():
             else:
                 f.write(data)
 
-    """
-        Debug to stdout
-    """
-
     def __dbg(self, prefix, data):
-
+        """Debug to std.out"""
         if self.debug:
             print("(%s)\t %s" % (prefix, data))
         pass
 
-    """
-        Get all members
-        ===============
+    """MELWIN SERVICES
+    @TODO: Exceptions for retry, include urllib.error.URLError caused by socket.gaierror"""
 
-        Get's all members in a club by the current club (self.club)
+    def __status(self):
 
-        @return: dict all members
+        try:
+            return self.client.service.ws_sjekkOK()
+        except:
+            pass
 
-    """
+        return False
 
+    @retry(exceptions=(ResourceWarning, Exception, socket.timeout, socket.gaierror), tries=3, delay=2)
+    def __login(self, member, pin):
+        """Authenticates via Melwin"""
+        return self.client.service.ws_APP_User_Autenticate(member, pin)
+
+    @retry(exceptions=(ResourceWarning, Exception, socket.timeout, socket.gaierror), tries=3, delay=2)
+    def __get_all_memberships(self):
+        """Returns all membership types"""
+        return self.client.service.ws_GetMemberTypes()
+
+    @retry(exceptions=(ResourceWarning, Exception, socket.timeout, socket.gaierror), tries=3, delay=2)
     def __get_all_members(self, club):
-
-        # Do a service call:
+        """Returns all members in given club"""
         return self.client.service.ws_GetAllClubMemberData(self.member, self.pin, club)
+
+    @retry(exceptions=(ResourceWarning, Exception, socket.timeout, socket.gaierror), tries=3, delay=2)
+    def __get_member_clubs(self, member):
+        """Returns all clubs for member"""
+        return self.client.service.ws_pm_TilknyttetKlubber(member)
+
+    @retry(exceptions=(ResourceWarning, Exception, socket.timeout, socket.gaierror), tries=3, delay=2)
+    def __get_member_licenses(self, member):
+        """Get licenses for given member"""
+        return self.client.service.ws_GetORSLisenser(self.ors_id, self.ors_pwd, member)
+
+    @retry(exceptions=(ResourceWarning, Exception, socket.timeout, socket.gaierror), tries=3, delay=2)
+    def __get_all_club_licenses(self, club):
+        "Returns all members and licenses for given club"
+        return self.client.service.ws_Lisenser(self.member, self.pin, club)
+
+    @retry(exceptions=(ResourceWarning, Exception, socket.timeout, socket.gaierror), tries=3, delay=2)
+    def __get_club(self, club):
+        """Returns info on given club"""
+        return self.client.service.ws_pm_Klubb(club)
+
+    @retry(exceptions=(ResourceWarning, Exception, socket.timeout, socket.gaierror), tries=3, delay=2)
+    def __get_kontigentaar(self):
+        """Returns year"""
+        return self.client.service.ws_kontingentaar()
+
+    """ORS SPECIFIC SERVICES"""
+    @retry(exceptions=(ResourceWarning, Exception, socket.timeout, socket.gaierror), tries=3, delay=2)
+    def __ors_get_all_club_members(self, club):
+        """Returns list of membership numbers for club members in given club"""
+        return self.client.service.ws_GetORSClubMembers(self.ors_id, self.ors_pwd, club)
+
+    @retry(exceptions=(ResourceWarning, Exception, socket.timeout, socket.gaierror), tries=3, delay=2)
+    def __ors_get_member_data(self, member):
+        """Returns member data for given member"""
+        return self.client.service.ws_GetORSMemberData(self.ors_id, self.ors_pwd, member)
+
+    @retry(exceptions=(ResourceWarning, Exception, socket.timeout, socket.gaierror), tries=3, delay=2)
+    def __ors_get_member_licenses(self, member):
+        """Returns licenses for given member
+        @NOTE vKode vKlubbnr not in use"""
+        return self.client.service.ws_GetORSLisenser(self.ors_id, self.ors_pwd, member)
+
+    """LOGICAL METHODS"""
+
+    def status(self):
+
+        return self.__status()
+
+    def login(self, member, pin):
+        """Authenticate via Melwin"""
+
+        r = self.__login(member, pin)
+
+        if r.vSvar == 'OK':
+            return True
+
+        return False
+
+    def get_kontigentaar(self):
+        """Return current license year"""
+
+        r = self.__get_kontigentaar()
+
+        return r.vKAAr
 
     def get_all_members(self, club):
 
@@ -217,15 +261,13 @@ class Melwin():
         for data in response:
 
             key = data[0]
+
+            if key == 'aCludDeactiveMembers' or key == 'aUtmeldt' or key == 'aCludDeactiveMembers':
+                """These keys/columns are not same length as the rest and not processable"""
+                continue
+
             i = 0
             for v in data[1][0]:
-
-                # Make sure to break when no result - only for first iteration?
-                # if str(v).strip() == '' or v is None:
-                #	continue
-
-                # print("Key: %s" % key)
-                # print("Val: %s" % v)
 
                 v = str(v)
 
@@ -240,93 +282,57 @@ class Melwin():
 
                 if key == 'aClubMembers':
 
-                    print("IN MEMBER NR: %s" % v)
-
-                    # if v is None:
-                    #	continue
-
                     d[i].update({'id': int(v)})
                     d[i]['active'] = True
-
-                    print(d)
 
                     rev[v] = i
 
                 elif key == 'aDateStamp':
-
-                    d[i]['updated'] = ("%sT00:00:00CET" % v)
-
+                    d[i]['updated'] = datetime.datetime.strptime(v, '%Y-%m-%d')
                 elif key == 'aFornavn':
                     d[i].update({'firstname': v})
-
                 elif key == 'aEtternavn':
                     d[i]['lastname'] = v
-
                 elif key == 'aDateOfBirth':
-                    d[i]['birthdate'] = ("%sT00:00:00CET" % v)
-
+                    d[i]['birthdate'] = datetime.datetime.strptime(v, '%Y-%m-%d')
                 elif key == 'aMann':
                     if v:
                         d[i]['gender'] = 'M'
                     else:
                         d[i]['gender'] = 'F'
-
                 elif key == 'aEpost':
                     d[i]['email'] = v
-
                 elif key == 'aMobil':
-
                     if str(v) == '':
                         d[i]['phone'] = None
                     else:
                         data_tmp = str(v)
                         d[i]['phone'] = data_tmp.replace(' ', '')
                         data_tmp = ''
-
                 elif key == 'aAdresse':
                     d[i]['location'].update({'street': v})
-
                 elif key == 'aPostNR':
                     d[i]['location'].update({'zip': v})
-
                 elif key == 'vPostSted':
                     d[i]['location'].update({'city': str(v).lower().title()})
-
                 elif key == 'aCountry':
                     d[i]['location'].update({'country': v})
-
                 elif key == 'aKategori':
                     d[i]['membership'].update({'type': v})
-
                 elif key == 'aInnmeldt':
-                    d[i]['membership'].update({'enrolled': "%sT00:00:00CET" % v})
-
+                    d[i]['membership'].update({'enrolled': datetime.datetime.strptime(v, '%Y-%m-%d')})
                 elif key == 'aBetAAr':
-                    d[i]['membership'].update({'valid': "%s-12-31T23:59:59CET" % v})
-
+                    if v == '0':
+                        v = datetime.datetime.now().year - 1
+                    n = "%s-12-31" % v
+                    d[i]['membership'].update({'valid': datetime.datetime.combine(
+                        datetime.datetime.strptime(n, '%Y-%m-%d'), datetime.datetime.max.time())})
                 elif key == 'aSaldo':
                     d[i]['membership'].update({'balance': float(v)})
-
                 elif key == 'aArsavgift':
                     d[i]['membership'].update({'fee': float(v)})
 
-                """
-                Utter rubbish from Melwin two arrays one with membership nr, the next with termination date...
-                # Terminations
-                elif key == 'aCludDeactiveMembers':
-                    term[i] = {'id': int(v)} # @todo: what the heck what kind of type is this?
-
-                #elif key == 'aUtmeldt':
-                #	term[i]['terminated'] = v
-
-                elif key == 'aDateDeactive':
-                    term[i].update({'terminated': "%sT00:00:00CET" % v})
-                """
-
                 i += 1
-
-        # Pivot into members
-        # members key is member number
 
         members = {}
 
@@ -334,131 +340,41 @@ class Melwin():
             if 'id' in val:
                 members[int(val['id'])] = val
 
-        # Now insert terminated items!
-        # WTF is terminated a seperate array inside the arry with different non-existing member id's???
-        """
-        for k,t in term.items():
-            try:
-                members[int(t['id'])].update({'active': False})
-                members[int(t['id'])]['membership'].update({'terminated': t[int(t['id'])]['terminated']})
+        return members
 
-            except:
+    def get_member_licenses(self, member):
+        """Get and parse licenses for given member"""
+
+        licenses = {'rights': []}
+        response = self.__get_member_licenses(member)
+
+        try:
+            if len(response[1][0]) > 0:
+
+                licenses = {'rights': response[1][0]}
+                if isinstance(response[5][0][0], datetime.date):
+                    licenses.update(
+                        {'expiry': datetime.datetime.combine(response[5][0][0], datetime.datetime.max.time())})
+            else:
                 pass
-        """
-
-        return members
-
-        """
-        Termination, unsync with the rest!
-        """
-        term = {}
-
-        i = 0
-        for data in response.aCludDeactiveMembers:
-            term[i] = {'id': data}
-            i += 1
-
-        i = 0
-        for data in response.aUtmeldt:
-            term[i]['terminated'] = ("%sT00:00:00CET" % data)
-            i += 1
-
-        i = 0
-        for data in response.aDateDeactive:
-            term[i]['terminated_date'] = ("%sT00:00:00CET" % data)
-            i += 1
-
-        """
-        Now pivot and make id key for new dict!
-        """
-        members = {}
-
-        for k, v in enumerate(d):
-            members.update({k: v})
-        # members[v['id']].update(v)
-
-        """
-        Now we join onto main list a key as id
-
-        for data in term:
-
-            members[data['id']].update({'terminated': data['terminated'],
-                                        'terminated_date': data['terminated_date']})
-
-        """
-        return members
-
-    """
-        Login
-        =====
 
 
+        except:
+            pass
 
+        if 'expiry' not in licenses:
+            licenses.update(
+                {'expiry': datetime.datetime.combine(datetime.date((datetime.datetime.now().year - 1), 12, 31),
+                                                     datetime.datetime.max.time())})
 
-        (reply){
-               vSvar = "OK"
-               vRolle = "Ingen"
-         }
-    """
-
-    def login(self, member, pin):
-
-        r = self.client.service.ws_APP_User_Autenticate(member, pin)
-
-        if r.vSvar == 'OK':
-            return True
-
-        return False
-
-    """
-    Float???
-    <ns1:ws_kontingentaarResponse>
-    <vKAAr xsi:type="xsd:float">2014</vKAAr>
-    </ns1:ws_kontingentaarResponse>
-    """
-
-    def __get_kontigentaar(self):
-
-        return self.client.service.ws_kontingentaar()
-
-    def get_kontigentaar(self):
-
-        r = self.__get_kontigentaar()
-
-        return r.vKAAr
-
-    """
-
-        Get members from Melwin
-        Then pivots around licenses and make a json encoded array
-
-        @todo add exceptions try/catch
-        @todo check response status before doing anything
-        @todo break out pivoting into seperate method?
-
-    """
-
-    def __get_all_licenses(self, club):
-
-        return self.client.service.ws_Lisenser(self.member, self.pin, club)
+        return licenses
 
     def get_all_licenses(self, club):
+        """Get all members and licenses for given club"""
 
         self.__dbg('Suds', 'ws_Lisenser starting...')
-
-        response = self.__get_all_licenses(club)
-        # response = client.service.ws_pm_Klubb(klubb)
-        # response = client.service.ws_enkeltadresse(medlem, pin, 45199)
+        response = self.__get_all_club_licenses(club)
         self.__dbg('Suds', 'ws_Lisenser ended')
-
-        """
-        pprint('The type of the response is: ')
-        pprint(type(response))
-        pprint(response.aRettighet)
-        print('Methods')
-        pprint(dir(response))
-        pprint(dir(response))
-        """
 
         key_list = []
         nak_list = []
@@ -482,26 +398,13 @@ class Melwin():
                     elif key == 'aRettighet':
                         license_list.append(str(item))
                     elif key == 'aExpires':
-                        expiry_list.append(item)
+                        expiry_list.append(datetime.datetime.strptime(item, '%Y-%m-%d'))
                     else:
                         key = ''
                         pass
             except:
                 pass
 
-                # i++dict(zip([1,2,3,4], [a,b,c,d]))
-
-        """
-        # Some debug stuff!
-        pprint(nak_list[8])
-        pprint(license_list[8])
-        pprint(expiry_list[8])
-        pprint(key_list)
-        """
-
-        """
-        So have the lists, now we need to merge
-        """
         tmp_license = 0
         d = {}
         tmp_licenses = []
@@ -529,31 +432,17 @@ class Melwin():
                     if nak_list[key + 1] != value:
                         break
 
-            # set converts list to unique values but we need it to be list, expiry date is datetime.date object!
+            # set converts list to unique values but we need it to be list, expiry date is datetime.datetime.date object!
             d[int(curr_nak)] = {'rights': list(set(tmp_licenses)),
-                                'expiry': "%sT00:00:00CET" % expiry_list[key]}  #  expiry_list[key].isoformat()}
+                                'expiry': datetime.datetime.strptime(expiry_list[key], '%Y-%m-%d')}
+            # "%sT00:00:00CET" % expiry_list[key]}  #  expiry_list[key].isoformat()}
             tmp_licenses = []
             mylist = []
 
         return d
 
-    # END get_members
-
-
-
-    """
-        Get member's clubs
-        ==================
-
-        Returns a list
-    """
-
-    def __get_member_clubs(self, member):
-
-        return self.client.service.ws_pm_TilknyttetKlubber(member)
-
     def get_member_clubs(self, member):
-
+        """Get and parse clubs for given member"""
         self.__dbg('Suds', ('ws_pm_TilknyttetKlubber(%s) starting...' % member))
         response = self.__get_member_clubs(member)
         self.__dbg('Suds', ('ws_pm_TilknyttetKlubber(%s) ended' % member))
@@ -565,26 +454,15 @@ class Melwin():
 
         return clubs
 
-    """
-        All clubs
-        =========
-
-        Using the open ws_pm_Klubb one can get the list of clubs in one section
-
-        Hackish and yet another sign that Melwin is a piece of s##t
-    """
-
-    def __get_all_clubs(self, club):
-
-        return self.client.service.ws_pm_Klubb(club)
-
     def get_all_clubs(self):
+        """Get and parse all clubs in melwin for -F
+        @NOTE: Assumes club numbers between 300 and 399"""
 
         clubs = {}
         active = True
         for i in range(299, 400):
             club = "%i-F" % i
-            response = self.__get_all_clubs(club)
+            response = self.__get_club(club)
 
             if response == 'Ukjent':
                 pass
@@ -623,16 +501,13 @@ class Melwin():
 
         Hackish and yet another sign that Melwin is a piece of s##t
 
-        @return: dict :{id,name}
-
-        @todo:	Does not work, server error using doc, and suds fails due to schema s##t n regular wdsl....
+        
     """
 
-    def __get_all_memberships(self):
-
-        return self.client.service.ws_GetMemberTypes()
-
     def get_all_memberships(self):
+        """Get list of all types of memberships, parse and return
+        @return: dict :{id,name}
+        @todo:  Does not work, server error using doc, and suds fails due to schema s##t n regular wdsl...."""
 
         m = {}
         d = {}
@@ -660,25 +535,9 @@ class Melwin():
 
         return m
 
-    """
-        Set Club
-        ========
-
-        Set the current club
-    """
-
-    def set_club(self, club):
-
-        self.klubb = club
-
-    """
-        Geolocation
-        ===========
-
-        @attention: Max requests: 2500/day 5/sec
-    """
-
     def get_geo(self, street, city='', zip='', country='Norway'):
+        """Geolocation wrapper
+        @NOTE: Max requests: 2500/day 5/sec"""
 
         try:
             self.__dbg('Geo', "Reverse lookup for %s %s %s %s" % (street, zip, city, country))
@@ -697,35 +556,9 @@ class Melwin():
         self.__dbg('Geo', "Got  %s" % location.point)
         return location
 
-    """
-        Medlem
-        ======
-
-        Get one member only, seems legit...
-
-        vNavn = "Huseby Einar"
-        vAdresse_1 = "Halfdan Wllhelmsens Alle 16"
-        vAdresse_2 = None
-        vPostnr = "3116"
-        vEpost = "einar.huseby@gmail.com"
-        vPrivat = None
-        vArbeid = None
-        vTelefaks = None
-        vMobil = "40222889"
-        vFDato = "28.11.1974"
-        vMann = True
-        vInfo = "TROMS FALLSKJERMKLUBB (380-F), FALLSKJERMSEKSJONEN, Innmeldt: 08.05.1995, Utmeldt: 17.04.1997, Betalt år: 1996, Kategori: SIDEMEDLEM (samme seksjon)
-                TØNSBERG FALLSKJERMKLUBB (375-F), FALLSKJERMSEKSJONEN, Innmeldt: 17.08.1995, Utmeldt: 00.00.00, Betalt år: 2014, Kategori: SENIOR
-                NTNU FALLSKJERMKLUBB (351-F), FALLSKJERMSEKSJONEN, Innmeldt: 17.04.1997, Utmeldt: 04.01.2008, Betalt år: 2007, Kategori: SENIOR
-                VOSS FALLSKJERMKLUBB (391-F), FALLSKJERMSEKSJONEN, Innmeldt: 30.07.2001, Utmeldt: 09.01.2008, Betalt år: 2007, Kategori: SENIOR
-                BERGEN FALLSKJERMKLUBB (310-F), FALLSKJERMSEKSJONEN, Innmeldt: 29.08.2005, Utmeldt: 31.12.2005, Betalt år: 0, Kategori: SIDEMEDLEM (samme seksjon)
-                TØNSBERG FALLSKJERMKLUBB (375-F), FALLSKJERMSEKSJONEN, Innmeldt: 24.06.2014, Utmeldt: 00.00.00, Betalt år: 2014, Kategori: TANDEMELEV
-                "
-        vPostSted = "TØNSBERG"
-
-    """
-
     def get_member(self, member):
+        """Get one member via ws_enkeltadresse
+        @NOTE: Do not work anymore"""
 
         response = self.client.service.ws_enkeltadresse(self.member, self.pin, member)
 
@@ -754,11 +587,6 @@ class Melwin():
 
             elif key == 'vMobil':
 
-                # Parsing phone numbers should be done smarter....
-                # Should it be string or int?
-                # Should one seperate phone number and country code
-                # phone = {'cc': 47, 'nr': 40222889} ?
-
                 data_tmp = str(data)
                 d['phone'] = data_tmp.replace(' ', '')
 
@@ -774,7 +602,7 @@ class Melwin():
             elif key == 'vFDate':
 
                 tmp = data.split('.')
-                d['birthdate'] = str(datetime.date(tmp[2], tmp[1], tmp[0]))
+                d['birthdate'] = str(datetime.datetime.datetime(tmp[2], tmp[1], tmp[0]))
 
             elif key == 'vInfo':
 
@@ -799,32 +627,24 @@ class Melwin():
 
         return d
 
-    """
-        Get All
-        =======
-
-        Collects member info, licenses, clubs and makes one dict
-        From all clubs!
-
+    def get_all(self):
+        """Get all members from all clubs:
+        Collects member info, licenses, clubs and returns one dict using member no as key
         @todo: Should use twister and get all clubs at once => heavy load on Melwin?
         @return: dict members
-
-
-    """
-
-    def get_all(self):
+        @USES: 
+            get_all_clubs()
+            get_all_members(club)
+            get_member_licenses(member)
+            get_member_clubs(member)
+            get_geo(..)
+        """
 
         members = {}
 
         self.__dbg('Clubs', 'Getting a list of all clubs')
-        # Get list of all clubs!
         clubs = self.get_all_clubs()
         self.__dbg('Clubs', ('Got %s clubs' % len(clubs)))
-
-        # clubs = {}
-        # Remove banned clubs! No need to anymore?
-        # clubs.pop('300-F', None)
-        # clubs = {'330-F': {'id': '330-F', 'name': 'Tøfsk', 'active': True}} #Overriding for testing!!
 
         self.__dbg('Get All', 'Starting member merging')
 
@@ -837,7 +657,6 @@ class Melwin():
                 continue
 
             # Iterate over get_all_members
-            self.set_club(club['id'])
             tmp_members = self.get_all_members(club['id'])
 
             # @todo: Must validate reply here - items?? All objects can be saved as cPicle or pickle then save/load responses to disk!
@@ -845,81 +664,58 @@ class Melwin():
                 self.__dbg('Clubs', ('%s (%s) has no members, continuing' % (club['name'], club['id'])))
                 continue
 
-            # try:
-            # Now do get licenses for new ones!
-            # iterate and get all licenses
-
-            try:
-                all_licenses = self.get_all_licenses(club['id'])
-            except:
-                self.__dbg('Error', 'Something went wrong')
-
             curr_members = tmp_members.copy()
-            for nak, val in tmp_members.items():
+            for member, val in tmp_members.items():
 
-                # Drop if exists already!
-                if int(nak) in members:
-                    curr_members.pop(int(nak))
-                    self.__dbg('Merging', ('Removed %s from list already exists' % nak))
+                # Drop if exists already and continue!
+                if int(member) in members:
+                    members[int(member)]['membership']['fee'] += curr_members[int(member)]['membership']['fee']
+                    curr_members.pop(int(member))
+                    self.__dbg('Merging', ('Removed %s from list - exists' % member))
                     continue
 
+                # Get liceneses
                 try:
-                    curr_members[int(nak)].update({'licenses': all_licenses[int(nak)]})
-                    self.__dbg('Merging', ('%s has licenses, merging' % nak))
+                    curr_members[int(member)].update({'licenses': self.get_member_licenses([int(member)])})
+                    self.__dbg('Merging', ('%s has licenses, merging' % member))
                 except:
-                    curr_members[int(nak)].update({'licenses': {}})
-                    self.__dbg('Merging', ('%s has no licenses, skipping' % nak))
+                    curr_members[int(member)].update({'licenses': {}})
+                    self.__dbg('Merging', ('%s has no licenses, skipping' % member))
                     pass
 
+                # Get current member clubs
                 try:
-                    member_clubs = self.get_member_clubs(nak)
-                    curr_members[int(nak)]['membership'].update({'clubs': member_clubs})
-                    self.__dbg('Merging', ('%s has member clubs, merging' % nak))
+                    member_clubs = self.get_member_clubs(member)
+                    curr_members[int(member)]['membership'].update({'clubs': member_clubs})
+                    self.__dbg('Merging', ('%s has member clubs, merging' % member))
                 except:
-                    curr_members[int(nak)]['membership'].update(
+                    curr_members[int(member)]['membership'].update(
                         {'clubs': [club['id']]})  # Always member of member club...
-                    self.__dbg('Merging', ('%s has no member clubs, skipping' % nak))
+                    self.__dbg('Merging', ('%s has no member clubs, skipping' % member))
                     pass
 
-                """
-                Geojson!
-                Using pygeo
-                 'address', 'altitude', 'latitude', 'longitude', 'point', 'raw'
-                 raw: {
-                 'place_id': '2627969483',
-                 'display_name': '16, Halfdan Wilhelmsens Alle, Kaldnes, Tønsberg, Vestfold, 3116, Norge',
-                 'lat': '59.2723302',
-                 'lon': '10.4151179',
-                 'importance': 0.611,
-                 'osm_id': '3130212004',
-                 'osm_type': 'node',
-                 'type': 'house',
-                 'licence': 'Data © OpenStreetMap contributors, ODbL 1.0. http://www.openstreetmap.org/copyright',
-                 'class': 'place',
-                 'boundingbox': ['59.2722802', '59.2723802', '10.4150679', '10.4151679']}
-                """
+                # Get geolocaiton for location
                 if self.do_geo:
                     try:
 
-                        geo = self.get_geo(curr_members[int(nak)]['location']['street'],
-                                           curr_members[int(nak)]['location']['city'],
-                                           curr_members[int(nak)]['location']['zip'],
-                                           curr_members[int(nak)]['location']['country'])
+                        geo = self.get_geo(curr_members[int(member)]['location']['street'],
+                                           curr_members[int(member)]['location']['city'],
+                                           curr_members[int(member)]['location']['zip'],
+                                           curr_members[int(member)]['location']['country'])
                         if geo != None:
-                            curr_members[int(nak)]['location'].update(
+                            curr_members[int(member)]['location'].update(
                                 {'geo': {"type": "Point", "coordinates": [geo.latitude, geo.longitude]}})
-                            curr_members[int(nak)]['location'].update({'geo_type': geo.raw['type']})
-                            curr_members[int(nak)]['location'].update({'geo_class': geo.raw['class']})
-                            curr_members[int(nak)]['location'].update({'geo_importance': float(geo.raw['importance'])})
-                            curr_members[int(nak)]['location'].update({'geo_place_id': int(geo.raw['place_id'])})
-                            # curr_members[int(nak)]['location']['geo'].update({'altitude': geo.raw['altitude']})
+                            curr_members[int(member)]['location'].update({'geo_type': geo.raw['type']})
+                            curr_members[int(member)]['location'].update({'geo_class': geo.raw['class']})
+                            curr_members[int(member)]['location'].update(
+                                {'geo_importance': float(geo.raw['importance'])})
+                            curr_members[int(member)]['location'].update({'geo_place_id': int(geo.raw['place_id'])})
+                        # curr_members[int(nak)]['location']['geo'].update({'altitude': geo.raw['altitude']})
                     except:
                         # members[val['id']].update({'location': {"type":"Point","coordinates":[0.0,0.0]}})
                         # members[val['id']].update({'location': {}})
+                        self.__dbg('Geo', ('Could not geocode %s' % member))
                         pass
-            # except:
-            #	self.__dbg('Merging', 'Error occured in merging loop with %s' % club['id'])
-            #	pass
 
             # First iteration vs next
             # Unfortunately this overwrites the old ones..
@@ -928,142 +724,4 @@ class Melwin():
             else:
                 members = curr_members
 
-        # Build a humongous obj, replace with newer
-
-        # for member in members.items():
         return members
-
-
-# example:
-
-# import time
-# @spinner(10)
-# def process_chunk():
-#     time.sleep(.1)
-
-# sys.stdout.write("running... ")
-# while True:
-#     process_chunk()	
-
-"""
-
-Working loop!
-	
-m = Melwin()
-
-r = m.get_all()
-
-pprint(r[45199])
-		
-pprint(json.dumps(r[45199]))		
-
-"""
-
-########################################################################
-#
-#	LEGACY S##T
-#	
-#######################################################################
-
-
-
-
-
-
-
-"""
-Test bygge user object
-NB denne bygger fra lisenser!!!
-"""
-
-"""
-all = m.ggg()
-
-all_licenses = m.get_all_licenses()
-
-for key, val in all.items():
-	
-	try:
-		all[key].update({'licenses': all_licenses[int(key)]})
-	except:
-		all[key].update({'licenses': {}})
-		print('EEE Could not get licenses for %s' % str(key))
-		pass
-	
-	try:
-		clubs = m.get_member_clubs(key)
-		all[key].update({'clubs': clubs})
-	except:
-		all[key].update({'clubs': {}})
-		print('EEE Could not get clubs for %s' % str(key))
-		pass
-
-pprint(dir(all))
-for k,v in all.items():
-	print(type(k))
-	print("%s: %s" % (k, v['id']))
-	
-pprint(json.dumps(all))
-"""
-
-"""
-import json
-print('>>> 45199')
-pprint(json.dumps(d[45199]))
-print('>>> 38168')
-pprint(json.dumps(d[38168]))
-"""
-
-"""
-This works!
-for k, v in response:
-	pprint(type(v))
-	for key, val in v:
-		pprint(type(val))
-		for vin in val:
-			print('Now key:')
-			pprint(vin)
-			break #just one iteration
-"""
-# fml = {}
-# for r in response:
-#	for n in r:
-#		for s in n:
-#			fml = s
-#
-
-
-
-"""
-Pure xml play?
-#response = client.service.ws_Instruktorer(klubb)
-#response = client.service.ws_GetMemberTypes()
-import xml.etree.ElementTree as ET
-tree = ET.ElementTree(ET.fromstring(response))
-
-root = tree.getroot()
-
-for child in root:
-	#print(child.tag, child.attrib)
-	pprint(child.ns1)
-
-END
-"""
-"""
-for data in response:
-	
-	for i in data:
-		for t in i:
-			for r in t:
-				print('>>>>>>>>\n')
-				pprint(r)
-				for endelig in r:
-					print(endelig)
-	#pprint(data[2])
-	# 1 is aNummer (key), then 3 is aRettighet	
-	# fmt[item[1]].append(str(item[3]))
-	#for i in data:
-	#	pprint(i)
-
-#client.service.ws_sjekkOK()
-"""

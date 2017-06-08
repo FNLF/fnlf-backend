@@ -37,22 +37,23 @@ _schema = {
     # 'verdicts': {'type': 'dict',},
 
     'acl': {'type': 'dict',
-            'readonly': False,
+            'readonly': True,
             'schema': {'groups': {'type': 'list', 'default': [], 'schema': {'type': 'objectid'}},
                        'roles': {'type': 'list', 'default': [], 'schema': {'type': 'objectid'}},
                        },
+            'default': {'groups': [], 'roles': []}
             },
 
 }
 
 definition = {
     'item_title': 'users',
-    'url': 'users',
+    #'internal_resource': True,
     'datasource': {'source': 'users',
                    'default_sort': [('id', 1)],
                    },
     'extra_response_fields': ['id'],
-    'resource_methods': ['GET', 'POST'],  # No post, only internal!!
+    'resource_methods': ['POST', 'GET'],  # No post, only internal!!
     'item_methods': ['GET', 'PATCH'],
     'auth_field': 'id',  # This will limit only users who has
     'versioning': True,
