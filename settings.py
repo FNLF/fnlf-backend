@@ -26,7 +26,7 @@ AUTH_SESSION_LENGHT = 3600 #Seconds
 # @TODO: use sys.argv to parse this as cmdline input
 APP_INSTANCE = 'production'  # develop || develop-local || production
 
-if APP_INSTANCE == 'production':
+if APP_INSTANCE == 'develop':
     MONGO_HOST = 'localhost'
     MONGO_PORT = 27017
     MONGO_USERNAME = ''
