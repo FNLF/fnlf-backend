@@ -14,19 +14,19 @@ sys.path.insert(0, "domain")
 import domain
 
 
-__version_info__    = ('0', '4', '4-hotfix')
+__version_info__    = ('0', '4', '5')
 APP_VERSION         = '.'.join(__version_info__)
 APP_AUTHOR          = 'Einar Huseby'
 APP_LICENSE         = 'MIT'
-APP_COPYRIGHT       = '(c) 2014-2016 F/NLF'
+APP_COPYRIGHT       = '(c) 2014-2017 F/NLF'
 APP_ALL             = ['fnlf-backend']
 
 AUTH_SESSION_LENGHT = 3600 #Seconds
 
 # @TODO: use sys.argv to parse this as cmdline input
-APP_INSTANCE = 'develop'  # develop || develop-local || production
+APP_INSTANCE = 'production'  # develop || develop-local || production
 
-if APP_INSTANCE == 'develop':
+if APP_INSTANCE == 'production':
     MONGO_HOST = 'localhost'
     MONGO_PORT = 27017
     MONGO_USERNAME = ''
@@ -110,7 +110,7 @@ RETURN_MEDIA_AS_BASE64_STRING = True  # When true loads the file references as b
 # X_HEADERS = None
 # X_EXPOSE_HEADERS = None
 # X_MAX_AGE = 21600
-X_DOMAINS = ['http://localhost:8081']
+X_DOMAINS = ['http://localhost:8080']
 X_HEADERS = ['Content-Type', 'If-Match']  # Needed for the "Try it out" buttons
 """
     OP Log
