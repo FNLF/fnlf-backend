@@ -41,6 +41,19 @@ import datetime
 # Use the free one!! Or should we use
 from geopy.geocoders import Nominatim, OpenMapQuest
 
+
+import ssl
+"""Need to allow the SSL certificate at melwin"""
+try:
+    _create_unverified_https_context = ssl._create_unverified_context
+except AttributeError:
+    # Legacy Python that doesn't verify HTTPS certificates by default
+    pass
+else:
+    # Handle target environment that doesn't support HTTPS verification
+    ssl._create_default_https_context = _create_unverified_https_context
+
+
 import itertools, sys
 
 from ..scf import Scf
@@ -132,6 +145,7 @@ class Melwin():
         try:
             self.client = Client(self.melwin_url, plugins=[Filter(), UnicodeFilter(), self.payload_interceptor], timeout=600)
         except:
+            self.__dbg('SUDS', 'Could not create suds client instanse')
             return None
 
         self.geocoder = Nominatim()
