@@ -147,7 +147,6 @@ class Melwin():
 
     def __dbg(self, prefix, data):
         """Debug to std.out"""
-
         if self.debug:
             print("(%s)\t %s" % (prefix, data))
         pass
@@ -348,6 +347,7 @@ class Melwin():
 
         licenses = {'rights': []}
         response = self.__get_member_licenses(member)
+
         try:
             if len(response[1][0]) > 0:
 
@@ -714,6 +714,7 @@ class Melwin():
                     except:
                         # members[val['id']].update({'location': {"type":"Point","coordinates":[0.0,0.0]}})
                         # members[val['id']].update({'location': {}})
+                        self.__dbg('Geo', ('Could not geocode %s' % member))
                         pass
 
             # First iteration vs next
