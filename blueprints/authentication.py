@@ -22,6 +22,7 @@ from ext.app.decorators import require_token
 
 # Token auth - oauth
 import jwt
+
 ISSUER = 'nlf-auth-server'
 JWT_LIFE_SPAN = 1800
 REALM = 'mi.nif.no'
@@ -29,19 +30,15 @@ REALM = 'mi.nif.no'
 Authenticate = Blueprint('Authenticate', __name__, )
 import os.path
 
+
 def _get_public_key():
     public_key = None
-    if os.path.isfile('ors-public.pem'):
-        print('Exists')
-
     with open('ors-public.pem', 'rb') as f:
-        print('IN file reading wee')
         public_key = f.read()
     return public_key
 
 
 def create_user(username):
-
     melwin_user, _, _, status = getitem_internal(resource='melwin/users', **{'id': username})
 
     if melwin_user and status == 200:
@@ -111,7 +108,6 @@ def login():
         # Now it will fail in the next if
         pass
 
-
     if username == 'access_token':
 
         public_key = _get_public_key()
@@ -124,12 +120,18 @@ def login():
             else:
                 username = int(username)
 
-        except (jwt.exceptions.InvalidTokenError,
-                jwt.exceptions.InvalidSignatureError,
-                jwt.exceptions.InvalidIssuerError,
-                jwt.exceptions.ExpiredSignatureError):
+        except jwt.exceptions.InvalidTokenError:
             logged_in = False
-            eve_abort(401, 'Could not validate the token')
+            eve_abort(401, 'Could not validate the token, InvalidTokenError')
+        except jwt.exceptions.InvalidSignatureError:
+            logged_in = False
+            eve_abort(401, 'Could not validate the token, InvalidSignatureError')
+        except jwt.exceptions.InvalidIssuerError:
+            logged_in = False
+            eve_abort(401, 'Could not validate the token, InvalidIssuerError')
+        except jwt.exceptions.ExpiredSignatureError:
+            logged_in = False
+            eve_abort(401, 'Could not validate the token, ExpiredSignatureError')
 
     else:
         try:
@@ -137,9 +139,9 @@ def login():
             logged_in = m.login(username, password)
         except:
             logged_in = False
-            eve_abort(503, 'Could not log you into Melwin')
+            eve_abort(503, 'Could not log you into Melwin')  # isinstance(username, int) and len(password) == 9 and
 
-    # isinstance(username, int) and len(password) == 9 and
+    # Now process user and successful authentication
     if logged_in is True:
 
         try:
@@ -164,11 +166,12 @@ def login():
         utc = arrow.utcnow()
         valid = utc.replace(seconds=+app.config['AUTH_SESSION_LENGHT'])
         # Pure datetime
-        #valid = datetime.datetime.now() + datetime.timedelta(seconds=60)
+        # valid = datetime.datetime.now() + datetime.timedelta(seconds=60)
 
         try:
             response, last_modified, etag, status = patch_internal('users/auth',
-                                                                   payload={'auth': {'token': token, 'valid': valid.datetime}},
+                                                                   payload={'auth': {'token': token,
+                                                                                     'valid': valid.datetime}},
                                                                    concurrency_check=False, **{'id': username})
             if status != 200:
                 app.logger.error("Could not insert token for %i" % username)
@@ -198,6 +201,7 @@ def login():
     return eve_response({'success': False, 'token': None, 'token64': None, 'valid': None,
                          'message': 'Wrong username or password'})
 
+
 @Authenticate.route("/whoami", methods=['GET'])
 @Authenticate.route("/self", methods=['GET'])
 @require_token()
@@ -213,6 +217,8 @@ def get_user():
     except:
         app.logger.error("Unknown error in get_user")
         return eve_abort(500, 'Unknown error occurred')
+
+
 """
 @Authenticate.route("/groups", methods=['GET'])
 @require_token()
