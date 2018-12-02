@@ -18,13 +18,13 @@ __version_info__    = ('0', '4', '5')
 APP_VERSION         = '.'.join(__version_info__)
 APP_AUTHOR          = 'Einar Huseby'
 APP_LICENSE         = 'MIT'
-APP_COPYRIGHT       = '(c) 2014-2017 F/NLF'
+APP_COPYRIGHT       = '(c) 2014-2018 F/NLF'
 APP_ALL             = ['fnlf-backend']
 
 AUTH_SESSION_LENGHT = 3600 #Seconds
 
 # @TODO: use sys.argv to parse this as cmdline input
-APP_INSTANCE = 'production'  # develop || develop-local || production
+APP_INSTANCE = 'develop'  # develop || develop-local || production || develop-remote-db
 
 if APP_INSTANCE == 'develop':
     MONGO_HOST = 'localhost'
@@ -38,12 +38,24 @@ if APP_INSTANCE == 'develop':
     APP_HOST = '127.0.0.1'
     APP_PORT = 8081
 
-elif APP_INSTANCE == 'develop-local':
+elif APP_INSTANCE == 'develop-remote-db':
     MONGO_HOST = 'localhost'
     MONGO_PORT = 27018
     MONGO_USERNAME = ''
     MONGO_PASSWORD = ''
     MONGO_DBNAME = 'fnlf-dev'
+    # Use default 30s?
+    MONGO_CONNECT_TIMEOUT_MS = 200
+
+    APP_HOST = '127.0.0.1'
+    APP_PORT = 8081
+
+elif APP_INSTANCE == 'develop-remote-db-prod':
+    MONGO_HOST = 'localhost'
+    MONGO_PORT = 27018
+    MONGO_USERNAME = ''
+    MONGO_PASSWORD = ''
+    MONGO_DBNAME = 'fnlf'
     # Use default 30s?
     MONGO_CONNECT_TIMEOUT_MS = 200
 
@@ -69,8 +81,8 @@ URL_PREFIX = 'api'
 API_VERSION = 'v1'
 
 # Pagination settings
-PAGINATION_LIMIT = 1000
-PAGINATION_DEFAULT = 50
+PAGINATION_LIMIT = 100000
+PAGINATION_DEFAULT = 10000
 
 # Enable reads (GET), inserts (POST) and DELETE for resources/collections
 # (if you omit this line, the API will default to ['GET'] and provide
@@ -86,12 +98,8 @@ ITEM_METHODS = ['GET', 'PATCH', 'DELETE', 'PUT']
 CACHE_CONTROL = 'max-age=20'
 CACHE_EXPIRES = 20
 
-# Support only json response
-XML = False
-JSON = True
-
-# Maximum value allowed for max_results query parameter
-PAGINATION_LIMIT = 1000
+# Support only json response 'eve.render.XMLRenderer'
+RENDERERS = ['eve.render.JSONRenderer']
 
 ALLOW_UNKNOWN = False
 
@@ -110,7 +118,7 @@ RETURN_MEDIA_AS_BASE64_STRING = True  # When true loads the file references as b
 # X_HEADERS = None
 # X_EXPOSE_HEADERS = None
 # X_MAX_AGE = 21600
-X_DOMAINS = ['http://localhost:8080']
+X_DOMAINS = ['http://localhost:4200']
 X_HEADERS = ['Content-Type', 'If-Match']  # Needed for the "Try it out" buttons
 """
     OP Log
@@ -133,7 +141,7 @@ SWAGGER_INFO = {
         'title': 'F/NLF API',
     'version': APP_VERSION,
         'description': 'API to the F/NLF application framework',
-    'termsOfService': 'Ole Brum',
+    'termsOfService': 'See www.nlf.no',
         'contact': {
             'name': 'Jan Erik Wang',
             'email': 'janerik.wang@nlf.no',
