@@ -29,7 +29,7 @@ REALM = 'mi.nif.no'
 Authenticate = Blueprint('Authenticate', __name__, )
 
 
-def _get_public_key(self):
+def _get_public_key():
     with open('ors-public.pem', 'rb') as f:
         public_key = f.read()
     return public_key
