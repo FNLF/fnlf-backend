@@ -110,14 +110,15 @@ def login():
 
     if username == 'access_token':
 
-        public_key = _get_public_key()
         try:
+            public_key = _get_public_key()
             decoded_token = jwt.decode(password, public_key, issuer=ISSUER, algorithm='HS256')
             logged_in = True
             username = decoded_token.get('melwin_id', None)
             if username is None:
-                eve_abort(401, 'Could not validate the token')
+                eve_abort(401, 'Could not validate the token, could not find username')
             else:
+                print('Username', username)
                 username = int(username)
 
         except jwt.exceptions.InvalidTokenError:
@@ -132,7 +133,9 @@ def login():
         except jwt.exceptions.ExpiredSignatureError:
             logged_in = False
             eve_abort(401, 'Could not validate the token, ExpiredSignatureError')
-
+        except Exception as e:
+            logged_in = False
+            eve_abort(401, 'Could not validate your token {}'.format(e))
     else:
         try:
             username = int(username)
