@@ -148,7 +148,7 @@ class Melwin():
             self.__dbg('SUDS', 'Could not create suds client instanse')
             return None
 
-        self.geocoder = Nominatim()
+        self.geocoder = Nominatim(user_agent='ors-app')
 
     def _dump_file(self, data, file="data.txt", json_encoded=True):
         """Dump data to file"""
