@@ -20,7 +20,20 @@ from base64 import b64encode
 import traceback
 from ext.app.decorators import require_token
 
+# Token auth - oauth
+import jwt
+ISSUER = 'nlf-auth-server'
+JWT_LIFE_SPAN = 1800
+REALM = 'mi.nif.no'
+
 Authenticate = Blueprint('Authenticate', __name__, )
+
+
+def _get_public_key(self):
+    with open('ors-public.pem', 'rb') as f:
+        public_key = f.read()
+    return public_key
+
 
 def create_user(username):
 
@@ -87,19 +100,42 @@ def login():
     rq = request.get_json()
 
     try:
-        username = int(rq['username'])
+        username = rq['username']
         password = rq['password']
     except:
         # Now it will fail in the next if
         pass
 
-    try:
-        logged_in = m.login(username, password)
-    except:
-        logged_in = False
-        eve_abort(503, 'Could not log you into Melwin')
 
-    if isinstance(username, int) and len(password) == 9 and logged_in:
+    if username == 'access_token':
+
+        public_key = _get_public_key()
+        try:
+            decoded_token = jwt.decode(password, public_key, issuer=ISSUER, algorithm='HS256')
+            logged_in = True
+            username = decoded_token.get('melwin_id', None)
+            if username is None:
+                eve_abort(401, 'Could not validate the token')
+            else:
+                username = int(username)
+
+        except (jwt.exceptions.InvalidTokenError,
+                jwt.exceptions.InvalidSignatureError,
+                jwt.exceptions.InvalidIssuerError,
+                jwt.exceptions.ExpiredSignatureError):
+            logged_in = False
+            eve_abort(401, 'Could not validate the token')
+
+    else:
+        try:
+            username = int(username)
+            logged_in = m.login(username, password)
+        except:
+            logged_in = False
+            eve_abort(503, 'Could not log you into Melwin')
+
+    # isinstance(username, int) and len(password) == 9 and
+    if logged_in is True:
 
         try:
             user, last_modified, etag, status = getitem_internal(resource='users', **{'id': username})
