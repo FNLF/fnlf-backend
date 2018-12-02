@@ -125,6 +125,24 @@ class Helpers():
         else:
             return None
 
+    def get_role_by_ref(self, ref):
+        roles = app.data.driver.db['acl_roles']
+        role = roles.find_one({'ref': ref})
+
+        if '_id' in role:
+            return role['_id']
+        else:
+            return None
+
+    def get_group_by_ref(self, ref):
+        groups = app.data.driver.db['acl_groups']
+        group = groups.find_one({'ref': ref})
+
+        if '_id' in group:
+            return group['_id']
+        else:
+            return None
+
     def get_superadmins(self):
         """ Return the role id of the role fs
         """

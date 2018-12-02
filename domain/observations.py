@@ -13,6 +13,7 @@
 """
 from _base import workflow_schema, comments_schema, watchers_schema, audit_schema, acl_item_schema, ask_schema
 from observation_components import components_schema
+from datetime import datetime
 
 _schema = {'id': {'type': 'integer',
                   'required': False,
@@ -44,7 +45,7 @@ _schema = {'id': {'type': 'integer',
            'owner': {'type': 'integer', 'readonly': True},
            'reporter': {'type': 'integer', 'readonly': True},
 
-           'when': {'type': 'datetime'},
+           'when': {'type': 'datetime', 'default': datetime.utcnow()},
 
            'involved': {'type': 'list',
                         'default': []
@@ -55,8 +56,8 @@ _schema = {'id': {'type': 'integer',
                             },
 
            'rating': {'type': 'dict',
-                      'schema': {'actual': {'type': 'integer'},
-                                 'potential': {'type': 'integer'}
+                      'schema': {'actual': {'type': 'integer', 'default': 1},
+                                 'potential': {'type': 'integer', 'default': 1}
                                  }
                       },
            'weather': {'type': 'dict',

@@ -65,7 +65,7 @@ SETTINGS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'settin
 # Start Eve (and flask)
 # Instantiate with custom auth
 # app = CustomEve(auth=TokenAuth, settings=SETTINGS_PATH)
-# app = CustomEve(settings=SETTINGS_PATH)
+#app = Eve(settings=SETTINGS_PATH)
 app = Eve(auth=TokenAuth, settings=SETTINGS_PATH)
 
 """ Define global settings
@@ -132,6 +132,12 @@ app.on_pre_GET_observations += hook.observations.before_get
 
 app.on_pre_PATCH_observations += hook.observations.before_patch
 
+# Help hooks
+app.on_pre_PATCH_help += hook.help.before_patch
+app.on_post_POST_help += hook.help.after_post
+# Content hooks
+app.on_insert_content += hook.content.before_insert
+
 """
 
     START:
@@ -163,7 +169,7 @@ if 1 == 1 or not app.debug:
 # Run only once
 if app.debug and not os.environ.get("WERKZEUG_RUN_MAIN") == "true":
 
-    if 1 == 1:
+    if 1 == 6:
         import ext.melwin.melwin_updater as updater
 
         updater.start(app)
