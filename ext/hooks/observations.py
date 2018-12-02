@@ -39,14 +39,6 @@ def before_post(request, payload=None):
     pass
 
 
-@require_token()
-def before_patch(updates, original):
-    app.logger.info(updates)
-    app.logger.info(original)
-    app.logger.info("IN BF PATCH!")
-    raise NotImplementedError
-
-
 def after_patch(request, response):
     """ Change owner, owner is readonly
     """
