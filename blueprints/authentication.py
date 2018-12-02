@@ -193,6 +193,7 @@ def login():
                   })"""
 
         return eve_response(data={'success': True,
+                                  'username': username,
                                   'token': token,
                                   'token64': b64.decode('utf-8'),
                                   'valid': valid.datetime},
@@ -201,7 +202,7 @@ def login():
     # On error sleep a little against brute force
     sleep(1)
 
-    return eve_response({'success': False, 'token': None, 'token64': None, 'valid': None,
+    return eve_response({'success': False, 'username': None, 'token': None, 'token64': None, 'valid': None,
                          'message': 'Wrong username or password'})
 
 
