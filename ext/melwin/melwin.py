@@ -485,6 +485,9 @@ class Melwin():
                 if response.find("(SLETTET)") > 0:
                     response = response.replace("(SLETTET)", "")
                     active = False
+                elif response.find("(Slettet)") > 0:
+                    response = response.replace("(Slettet)", "")
+                    active = False
 
                 else:
                     active = True

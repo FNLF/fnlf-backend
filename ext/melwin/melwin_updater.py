@@ -1,3 +1,4 @@
+# noinspection PyPackageRequirements
 from flask import current_app as app
 from eve.methods.post import post_internal
 from eve.methods.patch import patch_internal
