@@ -27,10 +27,15 @@ JWT_LIFE_SPAN = 1800
 REALM = 'mi.nif.no'
 
 Authenticate = Blueprint('Authenticate', __name__, )
-
+import os.path
 
 def _get_public_key():
+    public_key = None
+    if os.path.isfile('ors-public.pem'):
+        print('Exists')
+
     with open('ors-public.pem', 'rb') as f:
+        print('IN file reading wee')
         public_key = f.read()
     return public_key
 
