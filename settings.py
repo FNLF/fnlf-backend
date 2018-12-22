@@ -13,18 +13,17 @@ sys.path.insert(0, "domain")
 # Import the apps - DOMAIN definition (app.DOMAIN)
 import domain
 
+__version_info__ = ('0', '4', '7')
+APP_VERSION = '.'.join(__version_info__)
+APP_AUTHOR = 'Einar Huseby'
+APP_LICENSE = 'MIT'
+APP_COPYRIGHT = '(c) 2014-2018 F/NLF'
+APP_ALL = ['fnlf-backend']
 
-__version_info__    = ('0', '4', '5')
-APP_VERSION         = '.'.join(__version_info__)
-APP_AUTHOR          = 'Einar Huseby'
-APP_LICENSE         = 'MIT'
-APP_COPYRIGHT       = '(c) 2014-2018 F/NLF'
-APP_ALL             = ['fnlf-backend']
-
-AUTH_SESSION_LENGHT = 3600 # Seconds
+AUTH_SESSION_LENGHT = 3600  # Seconds
 
 # @TODO: use sys.argv to parse this as cmdline input
-APP_INSTANCE = 'develop'  # develop || develop-local || production || develop-remote-db
+APP_INSTANCE = 'production'  # develop || develop-local || production || develop-remote-db
 
 if APP_INSTANCE == 'develop':
     MONGO_HOST = 'localhost'
@@ -107,7 +106,7 @@ ALLOW_UNKNOWN = False
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
 # Will create on PUT wen not existing
-#UPSERT_ON_PUT = True
+# UPSERT_ON_PUT = True
 
 # File storage
 EXTENDED_MEDIA_INFO = ['content_type', 'name', 'length']
@@ -132,25 +131,26 @@ X_HEADERS = ['Content-Type', 'If-Match']  # Needed for the "Try it out" buttons
 
 OPLOG = False  # Set it to True to enable the Operations Log. Defaults to False.
 OPLOG_NAME = 'oplog'  # This is the name of the database collection where the Operations Log is stored. Defaults to oplog.
-OPLOG_METHODS = ['DELETE', 'POST', 'PATCH', 'PUT']  # List of HTTP methods which operations should be logged in the Operations Log. Defaults to ['DELETE', 'POST, 'PATCH', 'PUT'].
-OPLOG_ENDPOINT = None #'oplog'  # Name of the Operations Log endpoint. If the endpoint is enabled it can be configured like any other API endpoint. Set it to None to disable the endpoint. Defaults to None.
+OPLOG_METHODS = ['DELETE', 'POST', 'PATCH',
+                 'PUT']  # List of HTTP methods which operations should be logged in the Operations Log. Defaults to ['DELETE', 'POST, 'PATCH', 'PUT'].
+OPLOG_ENDPOINT = None  # 'oplog'  # Name of the Operations Log endpoint. If the endpoint is enabled it can be configured like any other API endpoint. Set it to None to disable the endpoint. Defaults to None.
 OPLOG_AUDIT = True  # Set it to True to enable the audit feature. When audit is enabled client IP and document changes are also logged to the Operations Log. Defaults to True.
 # OPLOG_CUSTOM_FIELDS = {'u': None}
 
 SWAGGER_INFO = {
-        'title': 'F/NLF API',
+    'title': 'F/NLF API',
     'version': APP_VERSION,
-        'description': 'API to the F/NLF application framework',
+    'description': 'API to the F/NLF application framework',
     'termsOfService': 'See www.nlf.no',
-        'contact': {
-            'name': 'Jan Erik Wang',
-            'email': 'janerik.wang@nlf.no',
-            'url': 'https://www.nlf.no/fallskjerm'
-        },
-        'license': {
-            'name': 'BSD',
-            'url': 'https://github.com/FNLF/fnlf-backend/',
-        }
+    'contact': {
+        'name': 'Jan Erik Wang',
+        'email': 'janerik.wang@nlf.no',
+        'url': 'https://www.nlf.no/fallskjerm'
+    },
+    'license': {
+        'name': 'BSD',
+        'url': 'https://github.com/FNLF/fnlf-backend/',
+    }
 }
 
 # The DOMAIN dict explains which resources will be available and how they will
