@@ -118,7 +118,7 @@ RETURN_MEDIA_AS_BASE64_STRING = True  # When true loads the file references as b
 # X_HEADERS = None
 # X_EXPOSE_HEADERS = None
 # X_MAX_AGE = 21600
-X_DOMAINS = ['http://localhost:4200']
+X_DOMAINS = ['http://localhost:4200', 'https://doc.nlf.no']
 X_HEADERS = ['Content-Type', 'If-Match']  # Needed for the "Try it out" buttons
 """
     OP Log
