@@ -23,7 +23,7 @@ APP_ALL = ['fnlf-backend']
 AUTH_SESSION_LENGHT = 3600  # Seconds
 
 # @TODO: use sys.argv to parse this as cmdline input
-APP_INSTANCE = 'production'  # develop || develop-local || production || develop-remote-db
+APP_INSTANCE = 'develop'  # develop || develop-local || production || develop-remote-db
 
 if APP_INSTANCE == 'develop':
     MONGO_HOST = 'localhost'

@@ -45,6 +45,7 @@ from blueprints.files import Files
 from blueprints.tags import Tags
 from blueprints.acl import ACL
 from blueprints.observation_share import ObsShare
+from blueprints.lungo import Lungo
 
 # Custom url mappings (for flask)
 from ext.app.url_maps import ObjectIDConverter, RegexConverter
@@ -65,7 +66,7 @@ SETTINGS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'settin
 # Start Eve (and flask)
 # Instantiate with custom auth
 # app = CustomEve(auth=TokenAuth, settings=SETTINGS_PATH)
-#app = Eve(settings=SETTINGS_PATH)
+# app = Eve(settings=SETTINGS_PATH)
 app = Eve(auth=TokenAuth, settings=SETTINGS_PATH)
 
 """ Define global settings
@@ -101,6 +102,7 @@ app.register_blueprint(Locations, url_prefix="%s/locations" % app.globals.get('p
 app.register_blueprint(Tags, url_prefix="%s/tags" % app.globals.get('prefix'))
 app.register_blueprint(ACL, url_prefix="%s/users/acl" % app.globals.get('prefix'))
 app.register_blueprint(ObsShare, url_prefix="%s/observations/share" % app.globals.get('prefix'))
+app.register_blueprint(Lungo, url_prefix="%s/integration" % app.globals.get('prefix'))
 
 """
     Eve hooks
