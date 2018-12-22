@@ -21,7 +21,7 @@ APP_LICENSE         = 'MIT'
 APP_COPYRIGHT       = '(c) 2014-2018 F/NLF'
 APP_ALL             = ['fnlf-backend']
 
-AUTH_SESSION_LENGHT = 3600 #Seconds
+AUTH_SESSION_LENGHT = 3600 # Seconds
 
 # @TODO: use sys.argv to parse this as cmdline input
 APP_INSTANCE = 'develop'  # develop || develop-local || production || develop-remote-db
@@ -118,7 +118,7 @@ RETURN_MEDIA_AS_BASE64_STRING = True  # When true loads the file references as b
 # X_HEADERS = None
 # X_EXPOSE_HEADERS = None
 # X_MAX_AGE = 21600
-X_DOMAINS = ['http://localhost:4200']
+X_DOMAINS = ['http://localhost:4200', 'https://doc.nlf.no']
 X_HEADERS = ['Content-Type', 'If-Match']  # Needed for the "Try it out" buttons
 """
     OP Log
