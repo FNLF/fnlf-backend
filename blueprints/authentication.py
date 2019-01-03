@@ -118,7 +118,7 @@ def login():
             if username is None:
                 eve_abort(401, 'Could not validate the token, could not find username')
             else:
-                print('Username', username)
+                #  print('Username', username)
                 username = int(username)
 
         except jwt.exceptions.InvalidTokenError:
