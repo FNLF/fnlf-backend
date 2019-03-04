@@ -65,7 +65,7 @@ SETTINGS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'settin
 # Start Eve (and flask)
 # Instantiate with custom auth
 # app = CustomEve(auth=TokenAuth, settings=SETTINGS_PATH)
-#app = Eve(settings=SETTINGS_PATH)
+# app = Eve(settings=SETTINGS_PATH)
 app = Eve(auth=TokenAuth, settings=SETTINGS_PATH)
 
 """ Define global settings
@@ -173,7 +173,7 @@ if app.debug and not os.environ.get("WERKZEUG_RUN_MAIN") == "true":
         import ext.melwin.melwin_updater as updater
 
         updater.start(app)
-
+    """
     import pkg_resources
 
     print(" App:         %s" % app.config['APP_VERSION'])
@@ -188,6 +188,7 @@ if app.debug and not os.environ.get("WERKZEUG_RUN_MAIN") == "true":
     print(" Py Metar:    %s" % pkg_resources.get_distribution("python-metar").version)
     print(" Py YR:       %s" % pkg_resources.get_distribution("python-yr").version)
     print("--------------------------------------------------------------------------------")
+    """
 
 if __name__ == '__main__':
     app.run(host=app.config['APP_HOST'], port=app.config['APP_PORT'])
