@@ -119,13 +119,13 @@ class TokenAuth(TokenAuth):
         # Get users acl
         col = app.data.driver.db[app.globals['auth']['users_collection']]
         user = col.find_one({'id': id}, {'acl': 1})
-        acl = user['acl']
+        acl = user.get('acl', {'groups': [], 'roles': []})
 
         # Now get from all clubs!
         melwin = app.data.driver.db['melwin_users']
         melwin_user = melwin.find_one({'id': id}, {'membership': 1})
         clubs = melwin_user['membership']['clubs']
-        
+
         # Then those pescy groups from clubs!
         acl_groups = app.data.driver.db['acl_groups']
         groups = acl_groups.find({'ref': {'$in': clubs}})
