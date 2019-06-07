@@ -265,6 +265,11 @@ class Melwin():
         response = self.__get_all_members(club)
         self.__dbg('Suds', 'ws_GetAllClubMemberData ended')
 
+        try:
+            if str(response.vSvar) == 'Feil userID eller Password.':
+                return None
+        except:
+            pass
         # Check for empty set!
         if str(response.aClubMembers).strip() == '':
             return None
