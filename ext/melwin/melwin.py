@@ -280,7 +280,7 @@ class Melwin():
 
             key = data[0]
 
-            if key in ['vSvar', 'aCludDeactiveMembers', 'aUtmeldt', 'aCludDeactiveMembers']:
+            if key in ['vSvar', 'aCludDeactiveMembers', 'aUtmeldt', 'aCludDeactiveMembers', 'aDateDeactive']:
                 """These keys/columns are not same length as the rest and not processable"""
                 continue
 

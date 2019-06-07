@@ -77,7 +77,12 @@ def do_melwin_update(app):
 
 
                 if not 'fullname' in user:
-                    user.update({'fullname': "%s %s" % (user['firstname'], user['lastname'])})
+                    try:
+                        user.update({'fullname': "%s %s" % (user['firstname'], user['lastname'])})
+                    except Exception as e:
+                        app.logger.info("[MELWIN] error", e)
+                        user.update({'fullname': "%s %s" % (user.get('firstname', ''), user.get('lastname', ''))})
+
 
                 lookup = dict({})
 
