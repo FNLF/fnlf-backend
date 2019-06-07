@@ -264,14 +264,12 @@ class Melwin():
         self.__dbg('Suds', 'ws_GetAllClubMemberData starting...')
         response = self.__get_all_members(club)
         self.__dbg('Suds', 'ws_GetAllClubMemberData ended')
+        if response is None:
+            return response
 
-        try:
-            if str(response.vSvar) == 'Feil userID eller Password.':
-                return None
-        except:
-            pass
+        #return response
         # Check for empty set!
-        if str(response.aClubMembers).strip() == '':
+        if 'aClubMembers' in response and str(response['aClubMembers']).strip() == '':
             return None
 
         d = {}  # the first iteration of members
@@ -282,77 +280,82 @@ class Melwin():
 
             key = data[0]
 
-            if key == 'aCludDeactiveMembers' or key == 'aUtmeldt' or key == 'aCludDeactiveMembers':
+            if key in ['vSvar', 'aCludDeactiveMembers', 'aUtmeldt', 'aCludDeactiveMembers']:
                 """These keys/columns are not same length as the rest and not processable"""
                 continue
 
             i = 0
-            for v in data[1][0]:
+            try:
+                for v in data[1][0]:
+                    print(v)
+                    v = str(v)
 
-                v = str(v)
+                    if i not in d:
+                        d[i] = {}
+                        d[i]['location'] = {}
+                        d[i]['membership'] = {}
+                        d[i]['active'] = False
 
-                if i not in d:
-                    d[i] = {}
-                    d[i]['location'] = {}
-                    d[i]['membership'] = {}
-                    d[i]['active'] = False
+                    if v == '':
+                        v = None
 
-                if v == '':
-                    v = None
+                    if key == 'aClubMembers':
 
-                if key == 'aClubMembers':
+                        d[i].update({'id': int(v)})
+                        d[i]['active'] = True
 
-                    d[i].update({'id': int(v)})
-                    d[i]['active'] = True
+                        rev[v] = i
 
-                    rev[v] = i
+                    elif key == 'aDateStamp':
+                        d[i]['updated'] = datetime.datetime.strptime(v, '%Y-%m-%d')
+                    elif key == 'aFornavn':
+                        d[i].update({'firstname': v})
+                    elif key == 'aEtternavn':
+                        d[i]['lastname'] = v
+                    elif key == 'aDateOfBirth':
+                        d[i]['birthdate'] = datetime.datetime.strptime(v, '%Y-%m-%d')
+                    elif key == 'aMann':
+                        if v:
+                            d[i]['gender'] = 'M'
+                        else:
+                            d[i]['gender'] = 'F'
+                    elif key == 'aEpost':
+                        d[i]['email'] = v
+                    elif key == 'aMobil':
+                        if str(v) == '':
+                            d[i]['phone'] = None
+                        else:
+                            data_tmp = str(v)
+                            d[i]['phone'] = data_tmp.replace(' ', '')
+                            data_tmp = ''
+                    elif key == 'aAdresse':
+                        d[i]['location'].update({'street': v})
+                    elif key == 'aPostNR':
+                        d[i]['location'].update({'zip': v})
+                    elif key == 'vPostSted':
+                        d[i]['location'].update({'city': str(v).lower().title()})
+                    elif key == 'aCountry':
+                        d[i]['location'].update({'country': v})
+                    elif key == 'aKategori':
+                        d[i]['membership'].update({'type': v})
+                    elif key == 'aInnmeldt':
+                        d[i]['membership'].update({'enrolled': datetime.datetime.strptime(v, '%Y-%m-%d')})
+                    elif key == 'aBetAAr':
+                        if v == '0':
+                            v = datetime.datetime.now().year - 1
+                        n = "%s-12-31" % v
+                        d[i]['membership'].update({'valid': datetime.datetime.combine(
+                            datetime.datetime.strptime(n, '%Y-%m-%d'), datetime.datetime.max.time())})
+                    elif key == 'aSaldo':
+                        d[i]['membership'].update({'balance': float(v)})
+                    elif key == 'aArsavgift':
+                        d[i]['membership'].update({'fee': float(v)})
 
-                elif key == 'aDateStamp':
-                    d[i]['updated'] = datetime.datetime.strptime(v, '%Y-%m-%d')
-                elif key == 'aFornavn':
-                    d[i].update({'firstname': v})
-                elif key == 'aEtternavn':
-                    d[i]['lastname'] = v
-                elif key == 'aDateOfBirth':
-                    d[i]['birthdate'] = datetime.datetime.strptime(v, '%Y-%m-%d')
-                elif key == 'aMann':
-                    if v:
-                        d[i]['gender'] = 'M'
-                    else:
-                        d[i]['gender'] = 'F'
-                elif key == 'aEpost':
-                    d[i]['email'] = v
-                elif key == 'aMobil':
-                    if str(v) == '':
-                        d[i]['phone'] = None
-                    else:
-                        data_tmp = str(v)
-                        d[i]['phone'] = data_tmp.replace(' ', '')
-                        data_tmp = ''
-                elif key == 'aAdresse':
-                    d[i]['location'].update({'street': v})
-                elif key == 'aPostNR':
-                    d[i]['location'].update({'zip': v})
-                elif key == 'vPostSted':
-                    d[i]['location'].update({'city': str(v).lower().title()})
-                elif key == 'aCountry':
-                    d[i]['location'].update({'country': v})
-                elif key == 'aKategori':
-                    d[i]['membership'].update({'type': v})
-                elif key == 'aInnmeldt':
-                    d[i]['membership'].update({'enrolled': datetime.datetime.strptime(v, '%Y-%m-%d')})
-                elif key == 'aBetAAr':
-                    if v == '0':
-                        v = datetime.datetime.now().year - 1
-                    n = "%s-12-31" % v
-                    d[i]['membership'].update({'valid': datetime.datetime.combine(
-                        datetime.datetime.strptime(n, '%Y-%m-%d'), datetime.datetime.max.time())})
-                elif key == 'aSaldo':
-                    d[i]['membership'].update({'balance': float(v)})
-                elif key == 'aArsavgift':
-                    d[i]['membership'].update({'fee': float(v)})
-
-                i += 1
+                    i += 1
+            except Exception as e:
+                print('Error', e)
+                print('Data')
+                print(data)
 
         members = {}
 
