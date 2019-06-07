@@ -287,7 +287,6 @@ class Melwin():
             i = 0
             try:
                 for v in data[1][0]:
-                    print(v)
                     v = str(v)
 
                     if i not in d:
