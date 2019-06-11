@@ -30,6 +30,12 @@ from suds.client import Client
 from suds.xsd.doctor import ImportDoctor, Import
 from suds.plugin import MessagePlugin
 from suds.cache import NoCache
+
+from requests import Session
+from zeep import Client
+from zeep.transports import Transport
+from zeep.helpers import serialize_object
+
 from retry import retry
 import socket
 
@@ -122,13 +128,14 @@ class Melwin():
     def __init__(self):
 
         # Make a import filter fixing the broken schemas
+        """
         imp = Import('http://schemas.xmlsoap.org/soap/encoding/')
         imp.filter.add('http://www.4d.com/namespace/default')
         Doctor = ImportDoctor(imp)
 
         # To intercept the raw response from the server, ie storing it as cache...
         self.payload_interceptor = PayloadInterceptor()
-
+        """
         c = Scf().get_melwin()
 
         self.member = c['member']
@@ -143,7 +150,13 @@ class Melwin():
         Needs cache=NoCache() because suds do not check in a predicable manner...
         With cache it complains of open files cache=NoCache()"""
         try:
-            self.client = Client(self.melwin_url, plugins=[Filter(), UnicodeFilter(), self.payload_interceptor], timeout=600)
+            # SUDS self.client = Client(self.melwin_url, plugins=[Filter(), UnicodeFilter(), self.payload_interceptor], timeout=600)
+
+            session = Session()
+            session.verify = False
+            transport = Transport(session=session)
+            self.client = Client('https://melwin.nlf.no/4dwsdl/doc', transport=transport)
+            self.client.transport.session.verify = False
         except:
             self.__dbg('SUDS', 'Could not create suds client instanse')
             return None
@@ -162,7 +175,7 @@ class Melwin():
     def __dbg(self, prefix, data):
         """Debug to std.out"""
         if self.debug:
-            # print("(%s)\t %s" % (prefix, data))
+            print("(%s)\t %s" % (prefix, data))
             pass
         pass
 
@@ -196,12 +209,12 @@ class Melwin():
     @retry(exceptions=(ResourceWarning, Exception, socket.timeout, socket.gaierror), tries=3, delay=2)
     def __get_member_clubs(self, member):
         """Returns all clubs for member"""
-        return self.client.service.ws_pm_TilknyttetKlubber(member)
+        return self.client.service.ws_pm_TilknyttetKlubber(vMedlem=member, vKlubb='')
 
     @retry(exceptions=(ResourceWarning, Exception, socket.timeout, socket.gaierror), tries=3, delay=2)
     def __get_member_licenses(self, member):
         """Get licenses for given member"""
-        return self.client.service.ws_GetORSLisenser(self.ors_id, self.ors_pwd, member)
+        return self.client.service.ws_GetORSLisenser(vUserID=self.ors_id, vPassword=self.ors_pwd, vMedlem=member, vKode='', vKlubbnr='')
 
     @retry(exceptions=(ResourceWarning, Exception, socket.timeout, socket.gaierror), tries=3, delay=2)
     def __get_all_club_licenses(self, club):
@@ -251,6 +264,8 @@ class Melwin():
 
         return False
 
+
+
     def get_kontigentaar(self):
         """Return current license year"""
 
@@ -262,11 +277,10 @@ class Melwin():
 
         # @todo refactor out in a callable method and lambda the args
         self.__dbg('Suds', 'ws_GetAllClubMemberData starting...')
-        response = self.__get_all_members(club)
+        response = serialize_object(self.__get_all_members(club))
         self.__dbg('Suds', 'ws_GetAllClubMemberData ended')
         if response is None:
             return response
-
         #return response
         # Check for empty set!
         if 'aClubMembers' in response and str(response['aClubMembers']).strip() == '':
@@ -276,9 +290,7 @@ class Melwin():
         rev = {}  # reverse lookup
         term = {}  # terminated members are not in sync!!
 
-        for data in response:
-
-            key = data[0]
+        for key, data in response.items():
 
             if key in ['vSvar', 'aCludDeactiveMembers', 'aUtmeldt', 'aCludDeactiveMembers', 'aDateDeactive']:
                 """These keys/columns are not same length as the rest and not processable"""
@@ -286,8 +298,9 @@ class Melwin():
 
             i = 0
             try:
-                for v in data[1][0]:
-                    v = str(v)
+                for v in data['item']:
+                    #v = str(v)
+                    #print(v)
 
                     if i not in d:
                         d[i] = {}
@@ -352,9 +365,10 @@ class Melwin():
 
                     i += 1
             except Exception as e:
-                print('Error', e)
-                print('Data')
-                print(data)
+                #print('Error', e)
+                #print('Data')
+                #print(data)
+                pass
 
         members = {}
 
@@ -368,16 +382,21 @@ class Melwin():
         """Get and parse licenses for given member"""
 
         licenses = {'rights': []}
-        response = self.__get_member_licenses(member)
 
         try:
-            if len(response[1][0]) > 0:
+            # Do not do roundtrip it's None anyway'
+            raise Exception
 
-                licenses = {'rights': response[1][0]}
-                if isinstance(response[5][0][0], datetime.date):
+            response = serialize_object(self.__get_member_licenses(member))
+
+            if len(response['aRettighet']) > 0:
+
+                licenses = {'rights': response['aRettighet']}
+                if isinstance(response['aExpires'], datetime.date):
                     licenses.update(
                         {'expiry': datetime.datetime.combine(response[5][0][0], datetime.datetime.max.time())})
             else:
+                self.__dbg('Error adding licenses')
                 pass
 
 
@@ -466,13 +485,17 @@ class Melwin():
     def get_member_clubs(self, member):
         """Get and parse clubs for given member"""
         self.__dbg('Suds', ('ws_pm_TilknyttetKlubber(%s) starting...' % member))
-        response = self.__get_member_clubs(member)
+        response = serialize_object(self.__get_member_clubs(member))
         self.__dbg('Suds', ('ws_pm_TilknyttetKlubber(%s) ended' % member))
 
         clubs = []
-
-        for club in response[1].item:
-            clubs.append(str(club))
+        try:
+            for club in response['aKlubberNr']['item']:
+                if club is not None:
+                    clubs.append(str(club))
+        except:
+            self.__dbg('Error parsing clubs')
+            pass
 
         return clubs
 
@@ -586,7 +609,7 @@ class Melwin():
         @NOTE: Do not work anymore"""
 
         response = self.client.service.ws_enkeltadresse(self.member, self.pin, member)
-
+        # print(response)
         d = {}
 
         # Iterate, iterate and pivot!
@@ -634,19 +657,20 @@ class Melwin():
                 d['info'] = {}
 
                 # pprint(len(data.split('\n')))
+                try:
+                    for k, t in enumerate(data.strip().split('\n')):
+                        l = {}
 
-                for k, t in enumerate(data.strip().split('\n')):
-                    l = {}
+                        tmp = t.split(',')
 
-                    tmp = t.split(',')
-
-                    d['info'][k] = {'club': tmp[0].strip(),
-                                    'section': tmp[1].strip(),
-                                    'in': tmp[2].strip(),
-                                    'out': tmp[3].strip(),
-                                    'paid': tmp[4].strip(),
-                                    'category': tmp[5].strip()}
-
+                        d['info'][k] = {'club': tmp[0].strip(),
+                                        'section': tmp[1].strip(),
+                                        'in': tmp[2].strip(),
+                                        'out': tmp[3].strip(),
+                                        'paid': tmp[4].strip(),
+                                        'category': tmp[5].strip()}
+                except:
+                    pass
             else:
                 continue
 
