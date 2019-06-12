@@ -62,17 +62,17 @@ def do_melwin_update(app):
                     existing_user = None
 
                 if existing_user is None \
-                        or user['location']['street'] != existing_user['location']['street'] \
-                        or user['location']['zip'] != existing_user['location']['zip'] \
-                        or user['location']['country'] != existing_user['location']['country'] \
-                        or user['location']['city'] != existing_user['location']['city']:
+                        or user['location'].get('street', 'a') != existing_user['location'].get('street', 'b') \
+                        or user['location'].get('zip', 'a') != existing_user['location'].get('zip', 'b') \
+                        or user['location'].get('country', 'a') != existing_user['location'].get('country', 'b') \
+                        or user['location'].get('city', 'a') != existing_user['location'].get('city', 'b'):
 
                     app.logger.info("[MELWIN] Geocoding %i" % user['id'])
                     try:
-                        geo = m.get_geo(user['location']['street'],
-                                        user['location']['city'],
-                                        user['location']['zip'],
-                                        user['location']['country'])
+                        geo = m.get_geo(user['location'].get('street', ''),
+                                        user['location'].get('city', ''),
+                                        user['location'].get('zip', ''),
+                                        user['location'].get('country', ''))
                         if geo != None:
                             user['location'].update(
                                 {'geo': {"type": "Point", "coordinates": [geo.latitude, geo.longitude]}})
