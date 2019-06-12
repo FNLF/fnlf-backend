@@ -72,7 +72,7 @@ class Email():
         s.starttls()
         s.ehlo()
         
-        s.login(self.config['username'], self.config['password'])
+        # s.login(self.config['username'], self.config['password'])
 
         s.send_message(message)
         s.quit()
