@@ -155,7 +155,7 @@ class Melwin():
             session = Session()
             session.verify = False
             transport = Transport(session=session)
-            self.client = Client('https://melwin.nlf.no/4dwsdl/doc', transport=transport)
+            self.client = Client('https://melwin.nlf.no/4dwsdl/doc', transport=transport, strict=False)
             self.client.transport.session.verify = False
         except:
             self.__dbg('SUDS', 'Could not create suds client instanse')
