@@ -26,10 +26,11 @@
 
 """
 
-from suds.client import Client
-from suds.xsd.doctor import ImportDoctor, Import
-from suds.plugin import MessagePlugin
-from suds.cache import NoCache
+
+# from suds.client import Client
+#from suds.xsd.doctor import ImportDoctor, Import
+#from suds.plugin import MessagePlugin
+#from suds.cache import NoCache
 
 from requests import Session
 from zeep import Client
@@ -76,40 +77,6 @@ def remove_control_chars(s):
     return control_char_re.sub('', s)
 
 
-class Filter(MessagePlugin):
-    """Replace bambus dates from response"""
-
-    def received(self, context):
-        reply = context.reply
-        context.reply = reply.replace(b'0000-00-00', b'1900-01-01')
-
-
-class UnicodeFilter(MessagePlugin):
-    """Decode and recode in utf-8 to remove gremlins"""
-
-    def received(self, context):
-        dirty = context.reply.decode('utf-8', errors='ignore')
-        clean = remove_control_chars(dirty)
-        context.reply = clean.encode('utf-8')
-
-
-class PayloadInterceptor(MessagePlugin):
-    """Suds payload interceptor
-    Intercept requests and responses on httplib level.
-    Keeps last request and response"""
-
-    def __init__(self, *args, **kwargs):
-        self.last_response = None
-        self.last_request = None
-
-    def sending(self, context):
-        self.last_request = context.envelope
-
-    def received(self, context):
-        # print("(Suds) %s bytes received (reported by payloadinterceptor)" % len(context.reply))
-        # Make a copy available
-        self.last_response = context.reply
-
 
 class Melwin():
     """Melwin class
@@ -155,7 +122,7 @@ class Melwin():
             session = Session()
             session.verify = False
             transport = Transport(session=session)
-            self.client = Client('https://melwin.nlf.no/4dwsdl/doc', transport=transport, strict=False)
+            self.client = Client('https://melwin.nlf.no/4dwsdl/doc', transport=transport)
             self.client.transport.session.verify = False
         except:
             self.__dbg('SUDS', 'Could not create suds client instanse')
