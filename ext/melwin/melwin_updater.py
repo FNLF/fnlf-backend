@@ -81,6 +81,7 @@ def do_melwin_update(app):
                         user.update({'fullname': "%s %s" % (user['firstname'], user['lastname'])})
                     except Exception as e:
                         app.logger.info("[MELWIN] error", e)
+                        app.logger.error("[MELWIN] User: ", user)
                         user.update({'fullname': "%s %s" % (user.get('firstname', ''), user.get('lastname', ''))})
 
 
@@ -104,11 +105,15 @@ def do_melwin_update(app):
 
                     if status == 201:
                         result['created'] += 1
+                    else:
+                        app.logger.error("[MELWIN] Error for user %i" % user['id'])
+                        app.logger.error("[MELWIN]", r.text)
 
                 except:
                     result['errors'] += 1
                     result['error_ids'].append(user['id'])
                     app.logger.error("[MELWIN] Error for user %i" % user['id'])
+                    app.logger.error("[MELWIN]", r.text)
 
 
     except:
