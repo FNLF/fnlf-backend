@@ -34,7 +34,7 @@ _schema = {
                   },
 
     'lastname': {'type': 'string',
-                 'required': True, },
+                 'required': False, },
 
     'fullname': {'type': 'string'},
 
