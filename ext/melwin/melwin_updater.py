@@ -97,6 +97,7 @@ def do_melwin_update(app):
                         result['created'] += 1
                     else:
                         app.logger.info("[MELWIN] Status %i for put_internal" % status)
+                        app.logger.debug("[MELWIN]", r.text)
 
                 except KeyError:
                     r, _, _, status, header = post_internal(resource='melwin/users', payl=user, skip_validation=True)
