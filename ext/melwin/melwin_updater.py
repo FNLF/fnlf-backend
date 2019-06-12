@@ -11,6 +11,14 @@ from .melwin import Melwin
 import threading
 import os
 
+def remove_none(obj):
+  if isinstance(obj, (list, tuple, set)):
+    return type(obj)(remove_none(x) for x in obj if x is not None)
+  elif isinstance(obj, dict):
+    return type(obj)((remove_none(k), remove_none(v))
+      for k, v in obj.items() if k is not None and v is not None)
+  else:
+    return obj
 
 # @track_time_spent('Melwin Update')
 @async
@@ -87,9 +95,10 @@ def do_melwin_update(app):
 
                 lookup = dict({})
 
+
                 try:
                     lookup = dict({'id': key})
-                    r, _, _, status = put_internal(resource='melwin/users', payload=user, concurrency_check=False,
+                    r, _, _, status = put_internal(resource='melwin/users', payload=remove_none(user), concurrency_check=False,
                                                    skip_validation=False, **lookup)
 
                     if status == 200:
@@ -101,7 +110,7 @@ def do_melwin_update(app):
                         app.logger.info("[MELWIN] {}".format(r))
 
                 except KeyError:
-                    r, _, _, status, header = post_internal(resource='melwin/users', payl=user, skip_validation=True)
+                    r, _, _, status, header = post_internal(resource='melwin/users', payl=remove_none(user), skip_validation=True)
 
                     if status == 201:
                         result['created'] += 1
