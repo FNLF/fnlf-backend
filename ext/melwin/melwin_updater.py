@@ -106,7 +106,7 @@ def do_melwin_update(app):
                     elif status == 201:
                         result['created'] += 1
                     else:
-                        app.logger.info("[MELWIN] Status %i for put_internal" % status)
+                        app.logger.info("[MELWIN] Status %i for put_internal user %i" % (status, user['id']))
                         app.logger.info("[MELWIN] {}".format(r))
 
                 except KeyError:
