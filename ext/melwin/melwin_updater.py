@@ -98,7 +98,7 @@ def do_melwin_update(app):
                         result['created'] += 1
                     else:
                         app.logger.info("[MELWIN] Status %i for put_internal" % status)
-                        app.logger.info("[MELWIN]", r)
+                        app.logger.info("[MELWIN] {}".format(r))
 
                 except KeyError:
                     r, _, _, status, header = post_internal(resource='melwin/users', payl=user, skip_validation=True)
@@ -107,13 +107,13 @@ def do_melwin_update(app):
                         result['created'] += 1
                     else:
                         app.logger.error("[MELWIN] Error for user %i" % user['id'])
-                        app.logger.error("[MELWIN]", r)
+                        app.logger.error("[MELWIN] {}".format(r))
 
                 except:
                     result['errors'] += 1
                     result['error_ids'].append(user['id'])
                     app.logger.error("[MELWIN] Error for user %i" % user['id'])
-                    app.logger.error("[MELWIN]", r)
+                    app.logger.error("[MELWIN] {}".format(r))
 
 
     except:
