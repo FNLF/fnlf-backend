@@ -48,6 +48,7 @@ def share_observation(observation_id):
 
         return Response(json.dumps({'status': 'ok', 'code': 200}),  mimetype='application/json')
     except Exception as e:
-        app.logger.error("Error sending share observation")
+        app.logger.exception("[ORS SHARE] Error sending share observation")
+
 
     return Response(json.dumps({'status': 'error', 'code': 500}), mimetype='application/json')
