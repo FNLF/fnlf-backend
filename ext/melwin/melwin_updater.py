@@ -61,6 +61,7 @@ def do_melwin_update(app):
                     app.logger.info("[MELWIN] No existing user %i" % user['id'])
                     existing_user = None
 
+
                 if existing_user is None \
                         or user['location'].get('street', 'a') != existing_user['location'].get('street', 'b') \
                         or user['location'].get('zip', 'a') != existing_user['location'].get('zip', 'b') \
@@ -69,17 +70,20 @@ def do_melwin_update(app):
 
                     app.logger.info("[MELWIN] Geocoding %i" % user['id'])
                     try:
-                        geo = m.get_geo(user['location'].get('street', ''),
-                                        user['location'].get('city', ''),
-                                        user['location'].get('zip', ''),
-                                        user['location'].get('country', ''))
-                        if geo != None:
-                            user['location'].update(
-                                {'geo': {"type": "Point", "coordinates": [geo.latitude, geo.longitude]}})
-                            user['location'].update({'geo_type': geo.raw['type']})
-                            user['location'].update({'geo_class': geo.raw['class']})
-                            user['location'].update({'geo_importance': float(geo.raw['importance'])})
-                            user['location'].update({'geo_place_id': int(geo.raw['place_id'])})
+                        if user['location'].get('city', None) is not None:
+                            geo = m.get_geo(user['location'].get('street', ''),
+                                            user['location'].get('city', ''),
+                                            user['location'].get('zip', ''),
+                                            user['location'].get('country', ''))
+                            if geo != None:
+                                user['location'].update(
+                                    {'geo': {"type": "Point", "coordinates": [geo.latitude, geo.longitude]}})
+                                user['location'].update({'geo_type': geo.raw['type']})
+                                user['location'].update({'geo_class': geo.raw['class']})
+                                user['location'].update({'geo_importance': float(geo.raw['importance'])})
+                                user['location'].update({'geo_place_id': int(geo.raw['place_id'])})
+                        else:
+                            app.logger.error("[MELWIN] Geocoding for user %i failed NO CITY" % user['id'])
                     except:
                         app.logger.error("[MELWIN] Geocoding for user %i failed" % user['id'])
 

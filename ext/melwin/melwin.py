@@ -142,7 +142,7 @@ class Melwin():
     def __dbg(self, prefix, data):
         """Debug to std.out"""
         if self.debug:
-            print("(%s)\t %s" % (prefix, data))
+            # print("(%s)\t %s" % (prefix, data))
             pass
         pass
 
