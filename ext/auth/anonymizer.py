@@ -117,7 +117,8 @@ def anonymize_obs(item):
                 # Involved.gear -> rigger
                 if item['involved'][key].get('gear', False):
                     if item['involved'][key]['gear'].get('rigger', False):
-                        item['involved'][key]['gear']['rigger'] = anon.assign_pair(item['involved'][key]['gear']['rigger'])
+                        item['involved'][key]['gear']['rigger'] = anon.assign_pair(
+                            item['involved'][key]['gear']['rigger'])
 
         # Involved in components
         for key, val in enumerate(item['components']):
@@ -168,6 +169,9 @@ def anonymize_obs(item):
         # Reporter AND owner
         item['reporter'] = anon.assign(item['reporter'])
         item['owner'] = anon.assign(item['owner'])
+
+        for key, value in enumerate(item['watchers']):
+            item['watchers'][key] = anon.assign(item['watchers'][key])
 
         return item
 
