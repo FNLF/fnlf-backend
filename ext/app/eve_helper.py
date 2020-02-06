@@ -21,6 +21,8 @@ def eve_abort(status=500, message='', sysinfo=None):
     @Param: code http code
     @Param: message string representation"""
     try:
+        
+        
         status = int(status)
         if sysinfo == None:
             try:
@@ -31,17 +33,17 @@ def eve_abort(status=500, message='', sysinfo=None):
         resp = Response(None, status)
 
         if 100 <= status <= 299:
-            #app.logger.info("%s: %s" % (message, sysinfo))
+            app.logger.info("%s: %s" % (message, sysinfo))
             pass
         elif 300 <= status <= 399:
-            #app.logger.warn("%s: %s" % (message, sysinfo))
+            app.logger.warn("%s: %s" % (message, sysinfo))
             pass
         elif 400 <= status <= 499:
-            #app.logger.error("%s: %s" % (message, sysinfo))
+            app.logger.error("%s: %s" % (message, sysinfo))
             pass
         elif 500 <= status <= 599:
             # Check if mongo is down
-            #app.logger.error("%s: %s" % (message, sysinfo))
+            app.logger.error("%s: %s" % (message, sysinfo))
 
             # 503 Service Unavailable
             if status in CRITICAL_ERROR_CODES:
