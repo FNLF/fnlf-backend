@@ -116,26 +116,26 @@ def login():
             logged_in = True
             username = decoded_token.get('melwin_id', None)
             if username is None:
-                eve_abort(409, 'Could not validate the token, could not find username')
+                eve_abort(401, 'Could not validate the token, could not find username')
             else:
                 #  print('Username', username)
                 username = int(username)
 
         except jwt.exceptions.InvalidTokenError:
             logged_in = False
-            eve_abort(402, 'Could not validate the token, InvalidTokenError')
+            eve_abort(401, 'Could not validate the token, InvalidTokenError')
         except jwt.exceptions.InvalidSignatureError:
             logged_in = False
-            eve_abort(405, 'Could not validate the token, InvalidSignatureError')
+            eve_abort(401, 'Could not validate the token, InvalidSignatureError')
         except jwt.exceptions.InvalidIssuerError:
             logged_in = False
-            eve_abort(406, 'Could not validate the token, InvalidIssuerError')
+            eve_abort(401, 'Could not validate the token, InvalidIssuerError')
         except jwt.exceptions.ExpiredSignatureError:
             logged_in = False
-            eve_abort(407, 'Could not validate the token, ExpiredSignatureError')
+            eve_abort(401, 'Could not validate the token, ExpiredSignatureError')
         except Exception as e:
             logged_in = False
-            eve_abort(408, 'Could not validate your token {}'.format(e))
+            eve_abort(401, 'Could not validate your token {}'.format(e))
     else:
         try:
             username = int(username)
