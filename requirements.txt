@@ -1,4 +1,4 @@
-arrow==0.12.1
+arrow==0.15.1
 astroid==2.1.0
 blinker==1.4
 Cerberus==1.2
